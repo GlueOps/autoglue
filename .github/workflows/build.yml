@@ -56,7 +56,7 @@ jobs:
         run: go build -o autoglue main.go
 
       - name: Upload binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: autoglue
           path: autoglue
