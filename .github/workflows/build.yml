@@ -1,0 +1,111 @@
+name: Release and Build Autoglue
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  release:
+    name: Generate Release & Changelog
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Release Please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          release-type: go
+          package-name: autoglue
+          changelog-types: >
+            [
+              {"type":"feat","section":"Features"},
+              {"type":"fix","section":"Fixes"},
+              {"type":"docs","section":"Documentation"},
+              {"type":"chore","section":"Chores"},
+              {"type":"refactor","section":"Refactoring"},
+              {"type":"perf","section":"Performance"},
+              {"type":"test","section":"Tests"}
+            ]
+
+  build:
+    name: Build Autoglue Binary
+    needs: release
+    runs-on: ubuntu-latest
+    if: ${{ needs.release.outputs.release_created == 'true' }}
+
+    steps:
+      - name: Checkout backend repo
+        uses: actions/checkout@v3
+
+      - name: Checkout frontend (autoglue-ui)
+        uses: actions/checkout@v3
+        with:
+          repository: glueops/autoglue-ui  # ← Change this to your frontend repo
+          path: autoglue-ui
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install frontend dependencies
+        working-directory: ./autoglue-ui
+        run: yarn install --frozen-lockfile
+
+      - name: Build frontend
+        working-directory: ./autoglue-ui
+        run: yarn build
+
+      - name: Copy frontend dist into backend
+        run: |
+          rm -rf api/ui
+          mkdir -p api/ui
+          cp -r autoglue-ui/dist/* api/ui/
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Install swag CLI
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Generate Swagger docs
+        run: swag init
+
+      - name: Build binary
+        run: go build -o autoglue main.go
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: autoglue
+          path: autoglue
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extra short SHA
+        id: short-sha
+        run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/glueops/autoglue:latest
+            ghcr.io/glueops/autoglue:${{ steps.short-sha.outputs.sha }}
+            ghcr.io/glueops/autoglue:${{ needs.release.outputs.release-version }}
+

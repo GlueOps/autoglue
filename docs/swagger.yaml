@@ -1,0 +1,613 @@
+basePath: /
+definitions:
+  authentication.LoginInput:
+    properties:
+      email:
+        example: me@here.com
+        type: string
+      password:
+        example: "123456"
+        type: string
+    type: object
+  authentication.RegisterInput:
+    properties:
+      email:
+        example: me@here.com
+        type: string
+      name:
+        example: My Name
+        type: string
+      password:
+        example: "123456"
+        type: string
+    type: object
+  clusters.ClusterInput:
+    properties:
+      name:
+        minLength: 3
+        type: string
+      provider:
+        enum:
+        - aws
+        - hetzner
+        - linode
+        - digitalocean
+        type: string
+      region:
+        type: string
+    required:
+    - name
+    - provider
+    - region
+    type: object
+  models.Cluster:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      kubeconfig:
+        type: string
+      name:
+        type: string
+      org_id:
+        type: string
+      provider:
+        type: string
+      region:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Member:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      organization:
+        $ref: '#/definitions/models.Organization'
+      organization_id:
+        type: string
+      role:
+        description: e.g. admin, member
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: string
+    type: object
+  models.Organization:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      logo:
+        type: string
+      metadata:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  orgs.InviteInput:
+    properties:
+      email:
+        type: string
+      role:
+        type: string
+    type: object
+  orgs.JoinInput:
+    properties:
+      invitation_id:
+        type: string
+    type: object
+  orgs.OrgInput:
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  orgs.SwitchOrgInput:
+    properties:
+      organization_id:
+        type: string
+    type: object
+  orgs.UpdateOrgInput:
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for managing K3s clusters across cloud providers
+  title: AutoGlue API
+  version: "1.0"
+paths:
+  /api/healthz:
+    get:
+      consumes:
+      - application/json
+      description: Returns a 200 if the service is up
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Basic health check
+      tags:
+      - Health
+  /api/v1/authentication/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns a JWT bearer token
+      parameters:
+      - description: User login input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/authentication.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      summary: Authenticate and return a token
+      tags:
+      - Auth
+  /api/v1/authentication/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revoke a refresh token
+      parameters:
+      - description: refresh_token
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - text/plain
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+      summary: Logout user
+      tags:
+      - Auth
+  /api/v1/authentication/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Use a refresh token to obtain a new access token
+      parameters:
+      - description: refresh_token
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: new access token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      summary: Refresh access token
+      tags:
+      - Auth
+  /api/v1/authentication/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user and stores credentials
+      parameters:
+      - description: User registration input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/authentication.RegisterInput'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: created
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - Auth
+  /api/v1/clusters:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of all clusters in the database
+      parameters:
+      - description: Organization context
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Cluster'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List all clusters
+      tags:
+      - Clusters
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Cluster definition
+        in: body
+        name: cluster
+        required: true
+        schema:
+          $ref: '#/definitions/clusters.ClusterInput'
+      - description: Organization context
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Cluster'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new cluster
+      tags:
+      - Clusters
+  /api/v1/orgs:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Organization'
+            type: array
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List organizations for user
+      tags:
+      - Organizations
+    post:
+      consumes:
+      - application/json
+      description: Creates a new organization and assigns the authenticated user as
+        an admin member
+      parameters:
+      - description: Optional organization context (ignored for creation)
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Organization Input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/orgs.OrgInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: organization_id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: invalid input
+          schema:
+            type: string
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new organization
+      tags:
+      - Organizations
+  /api/v1/orgs/{orgId}:
+    delete:
+      parameters:
+      - description: Organization ID
+        in: path
+        name: orgId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: deleted
+          schema:
+            type: string
+        "403":
+          description: forbidden
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete organization
+      tags:
+      - Organizations
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Org ID
+        in: path
+        name: orgId
+        required: true
+        type: string
+      - description: Organization data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/orgs.UpdateOrgInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Organization'
+        "403":
+          description: forbidden
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update organization metadata
+      tags:
+      - Organizations
+  /api/v1/orgs/invite:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Invite input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/orgs.InviteInput'
+      - description: Organization context
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: invited
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "403":
+          description: forbidden
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Invite user to organization
+      tags:
+      - Organizations
+  /api/v1/orgs/join:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Join input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/orgs.JoinInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: joined
+          schema:
+            type: string
+        "403":
+          description: invalid invite
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Accept org invitation
+      tags:
+      - Organizations
+  /api/v1/orgs/members:
+    get:
+      description: Returns a list of all members in the current organization
+      parameters:
+      - description: Organization context
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Member'
+            type: array
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List organization members
+      tags:
+      - Organizations
+  /api/v1/orgs/members/{userId}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: deleted
+          schema:
+            type: string
+        "403":
+          description: forbidden
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Remove member from organization
+      tags:
+      - Organizations
+  /api/v1/orgs/switch:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Org to switch to
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/orgs.SwitchOrgInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: active org id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: not a member
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Switch active organization
+      tags:
+      - Organizations
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: Public endpoints for clients and probes
+  name: Public
+- description: Information about clusters
+  name: Clusters

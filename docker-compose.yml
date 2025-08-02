@@ -1,0 +1,54 @@
+services:
+  autoglue:
+    # image: ghcr.io/glueops/autoglue:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    expose:
+      - 8080
+    env_file: .env
+    environment:
+      AUTOGLUE_DATABASE_DSN: postgres://autoglue:autoglue@postgres:5432/autoglue
+      AUTOGLUE_BIND_ADDRESS: 0.0.0.0
+    depends_on:
+      - postgres
+
+  postgres:
+    build:
+      context: postgres
+    env_file: .env
+    environment:
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
+      POSTGRES_DB: $DB_NAME
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgweb:
+    image: sosedoff/pgweb
+    restart: always
+    ports:
+      - "8081:8081"
+    links:
+      - postgres:postgres
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://$DB_USER:$DB_PASSWORD@postgres:5432/$DB_NAME
+    depends_on:
+      - postgres
+
+  mailpit:
+    image: axllent/mailpit
+    restart: always
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  postgres_data:
