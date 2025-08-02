@@ -11,7 +11,6 @@ jobs:
   build:
     name: Build Autoglue Binary
     runs-on: ubuntu-latest
-    if: ${{ needs.release.outputs.release_created == 'true' }}
 
     steps:
       - name: Checkout backend repo
