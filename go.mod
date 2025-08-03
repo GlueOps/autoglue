@@ -5,28 +5,25 @@ go 1.24.4
 require (
 	github.com/earthboundkid/versioninfo/v2 v2.24.1
 	github.com/go-playground/validator/v10 v10.27.0
+	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/google/uuid v1.6.0
+	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/swaggo/http-swagger v1.3.4
+	github.com/swaggo/swag v1.16.6
+	golang.org/x/crypto v0.40.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.30.1
 )
 
 require (
-	github.com/golang-jwt/jwt/v5 v5.3.0
-	github.com/google/uuid v1.6.0
-	github.com/gorilla/handlers v1.5.2
-	github.com/swaggo/swag v1.16.6
-	golang.org/x/crypto v0.40.0
-)
-
-require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect

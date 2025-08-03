@@ -23,7 +23,7 @@ jobs:
           path: autoglue-ui
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "22"
 
@@ -42,7 +42,7 @@ jobs:
           cp -r autoglue-ui/dist/* api/ui/
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: "1.24"
 
@@ -73,7 +73,7 @@ jobs:
         run: echo "sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
