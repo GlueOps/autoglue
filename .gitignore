@@ -19,5 +19,5 @@ vendor/
 .idea/
 .DS_Store
 .vscode/
-
+.env
 config.yaml

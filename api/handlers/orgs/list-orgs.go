@@ -25,11 +25,12 @@ func ListOrganizations(w http.ResponseWriter, r *http.Request) {
 
 	var orgs []models.Organization
 	err := db.DB.Joins("JOIN members m ON m.organization_id = organizations.id").
-		Where("m.user_id = ?", auth.UserID).Find(&orgs).Error
+		Where("m.user_id = ?", auth.UserID).Where("organizations.deleted_at IS NULL").Find(&orgs).Error
 	if err != nil {
 		http.Error(w, "failed to fetch orgs", http.StatusInternalServerError)
 		return
 	}
 
+_:
 	json.NewEncoder(w).Encode(orgs)
 }

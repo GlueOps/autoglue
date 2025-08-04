@@ -24,6 +24,8 @@ func DeleteOrganization(w http.ResponseWriter, r *http.Request) {
 	}
 
 	orgId := mux.Vars(r)["orgId"]
+
+	db.DB.Where("organization_id = ?", orgId).Delete(&models.Member{})
 	db.DB.Delete(&models.Organization{}, "id = ?", orgId)
 	w.WriteHeader(http.StatusNoContent)
 }

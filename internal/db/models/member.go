@@ -10,7 +10,7 @@ type Member struct {
 	UserID         uuid.UUID    `gorm:"type:uuid;not null" json:"user_id"`
 	User           User         `gorm:"foreignKey:UserID" json:"user"`
 	OrganizationID uuid.UUID    `gorm:"type:uuid;not null" json:"organization_id"`
-	Organization   Organization `gorm:"foreignKey:OrganizationID" json:"organization"`
+	Organization   Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE" json:"organization"`
 	Role           string       `gorm:"not null;default:member" json:"role"` // e.g. admin, member
 	Timestamped
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
