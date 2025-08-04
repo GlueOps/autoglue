@@ -31,6 +31,5 @@ func ListOrganizations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-_:
-	json.NewEncoder(w).Encode(orgs)
+	_ = json.NewEncoder(w).Encode(orgs)
 }
