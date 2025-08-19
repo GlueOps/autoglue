@@ -63,6 +63,16 @@ func CreateCredential(w http.ResponseWriter, r *http.Request) {
 		IV:             iv,
 		Tag:            tag,
 	}
+
+	var exists int64
+	db.DB.Model(&models.Credential{}).
+		Where("organization_id = ? AND provider = ?", ac.OrganizationID, req.Provider).
+		Count(&exists)
+	if exists > 0 {
+		http.Error(w, "credential already exists for this provider", http.StatusConflict)
+		return
+	}
+
 	if err := db.DB.Create(&cred).Error; err != nil {
 		http.Error(w, "create failed", http.StatusInternalServerError)
 		return
