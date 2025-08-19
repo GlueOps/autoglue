@@ -1,11 +1,12 @@
 package orgs
 
 import (
+	"net/http"
+
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 // DeleteOrganization godoc

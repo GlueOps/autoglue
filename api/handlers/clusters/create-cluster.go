@@ -2,13 +2,14 @@ package clusters
 
 import (
 	"encoding/json"
+	"net/http"
+	"time"
+
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"net/http"
-	"time"
 )
 
 type ClusterInput struct {
@@ -49,14 +50,14 @@ func CreateCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cluster := models.Cluster{
-		Name:       input.Name,
-		Provider:   input.Provider,
-		Region:     input.Region,
-		Status:     "provisioning",
-		Kubeconfig: "",
-		OrgID:      authCtx.OrganizationID,
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
+		Name:           input.Name,
+		Provider:       input.Provider,
+		Region:         input.Region,
+		Status:         "provisioning",
+		Kubeconfig:     "",
+		OrganizationID: authCtx.OrganizationID,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	}
 
 	if err := db.DB.Create(&cluster).Error; err != nil {

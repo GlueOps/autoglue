@@ -2,26 +2,26 @@ package middleware
 
 import (
 	"context"
+	"net/http"
+	"strings"
+
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"net/http"
-	"strings"
 )
 
 type AuthClaims struct {
-	UserID string   `json:"sub"`
-	Orgs   []string `json:"orgs"`
-	Roles  []string `json:"roles"` // optional global roles
+	Orgs  []string `json:"orgs"`
+	Roles []string `json:"roles"` // optional global roles
 	jwt.RegisteredClaims
 }
 
 type AuthContext struct {
 	UserID         uuid.UUID
 	OrganizationID uuid.UUID
-	OrgRole        string // Role in the org
-	Claims         *AuthClaims
+	OrgRole        string      // Role in the org
+	Claims         *AuthClaims `json:"claims,omitempty" swaggerignore:"true"`
 }
 
 type contextKey string
@@ -49,7 +49,7 @@ func AuthMiddleware(secret string) func(http.Handler) http.Handler {
 				return
 			}
 
-			userUUID, err := uuid.Parse(claims.UserID)
+			userUUID, err := uuid.Parse(claims.Subject)
 			if err != nil {
 				http.Error(w, "invalid user id", http.StatusUnauthorized)
 				return
@@ -65,12 +65,12 @@ func AuthMiddleware(secret string) func(http.Handler) http.Handler {
 
 			if orgID != "" {
 				var member models.Member
-				if err := db.DB.Where("user_id = ? AND organization_id = ?", claims.UserID, orgID).First(&member).Error; err != nil {
+				if err := db.DB.Where("user_id = ? AND organization_id = ?", claims.Subject, orgID).First(&member).Error; err != nil {
 					http.Error(w, "User not a member of the organization", http.StatusForbidden)
 					return
 				}
 				authCtx.OrganizationID = orgUUID
-				authCtx.OrgRole = member.Role
+				authCtx.OrgRole = string(member.Role)
 			}
 
 			ctx := context.WithValue(r.Context(), authContextKey, authCtx)

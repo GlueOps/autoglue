@@ -2,11 +2,12 @@ package db
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/glueops/autoglue/internal/db/models"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
 )
 
 var DB *gorm.DB
@@ -26,15 +27,18 @@ func Connect() {
 
 	err = DB.AutoMigrate(
 		&models.Cluster{},
-		&models.User{},
-		&models.Organization{},
-		&models.Member{},
-		&models.RefreshToken{},
-		&models.OrganizationKey{},
-		&models.SshKey{},
 		&models.Credential{},
 		&models.Invitation{},
+		&models.MasterKey{},
+		&models.Member{},
+		&models.Organization{},
+		&models.OrganizationKey{},
+		&models.RefreshToken{},
+		&models.Server{},
+		&models.SshKey{},
+		&models.User{},
 	)
+
 	if err != nil {
 		log.Fatalf("auto migration failed: %v", err)
 	}

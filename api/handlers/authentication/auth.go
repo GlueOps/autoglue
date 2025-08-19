@@ -2,14 +2,16 @@ package authentication
 
 import (
 	"encoding/json"
+	"net/http"
+	"time"
+
+	"github.com/glueops/autoglue/api/middleware"
 	"github.com/glueops/autoglue/internal/config"
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
-	"time"
 )
 
 var jwtSecret = []byte(config.GetAuthSecret())
@@ -45,7 +47,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := models.User{ID: uuid.NewString(), Email: input.Email, Password: string(hashed), Name: input.Name, Role: "user"}
+	user := models.User{Email: input.Email, Password: string(hashed), Name: input.Name, Role: "user"}
 	if err := db.DB.Create(&user).Error; err != nil {
 		http.Error(w, "registration failed", 400)
 		return
@@ -113,6 +115,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 // @Param        body  body      map[string]string  true  "refresh_token"
 // @Success      200   {object}  map[string]string "new access token"
 // @Failure      401   {string}  string         "unauthorized"
+// @Security     BearerAuth
 // @Router       /api/v1/authentication/refresh [post]
 func Refresh(w http.ResponseWriter, r *http.Request) {
 	var input struct {
@@ -146,6 +149,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 // @Produce      plain
 // @Param        body  body      map[string]string  true  "refresh_token"
 // @Success      204   {string}  string         "no content"
+// @Security     BearerAuth
 // @Router       /api/v1/authentication/logout [post]
 func Logout(w http.ResponseWriter, r *http.Request) {
 	var input struct {
@@ -155,4 +159,76 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	db.DB.Model(&models.RefreshToken{}).Where("token = ?", input.RefreshToken).Update("revoked", true)
 	w.WriteHeader(http.StatusNoContent)
+}
+
+type AuthClaimsDTO struct {
+	Orgs      []string `json:"orgs,omitempty"`
+	Roles     []string `json:"roles,omitempty"`
+	Issuer    string   `json:"iss,omitempty"`
+	Subject   string   `json:"sub,omitempty"`
+	Audience  []string `json:"aud,omitempty"`
+	ExpiresAt int64    `json:"exp,omitempty"`
+	IssuedAt  int64    `json:"iat,omitempty"`
+	NotBefore int64    `json:"nbf,omitempty"`
+}
+
+type MeResponse struct {
+	UserID         string         `json:"user_id"`
+	OrganizationID *string        `json:"organization_id,omitempty"`
+	OrgRole        string         `json:"org_role,omitempty"`
+	Claims         *AuthClaimsDTO `json:"claims,omitempty"`
+}
+
+// Me godoc
+// @Summary      Get authenticated user info
+// @Description  Returns details from the authenticated context
+// @Tags         Auth
+// @Produce      json
+// @Success      200  {object}  authentication.MeResponse
+// @Failure      401  {string}  string  "unauthorized"
+// @Security     BearerAuth
+// @Router       /api/v1/authentication/me [get]
+func Me(w http.ResponseWriter, r *http.Request) {
+	authCtx := middleware.GetAuthContext(r)
+	if authCtx == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	resp := MeResponse{
+		UserID:  authCtx.UserID.String(),
+		OrgRole: authCtx.OrgRole,
+	}
+
+	if authCtx.OrganizationID != uuid.Nil {
+		s := authCtx.OrganizationID.String()
+		resp.OrganizationID = &s
+	}
+
+	if c := authCtx.Claims; c != nil {
+		var exp, iat, nbf int64
+		if c.ExpiresAt != nil {
+			exp = c.ExpiresAt.Time.Unix()
+		}
+		if c.IssuedAt != nil {
+			iat = c.IssuedAt.Time.Unix()
+		}
+		if c.NotBefore != nil {
+			nbf = c.NotBefore.Time.Unix()
+		}
+
+		resp.Claims = &AuthClaimsDTO{
+			Orgs:      c.Orgs,
+			Roles:     c.Roles,
+			Issuer:    c.Issuer,
+			Subject:   c.Subject,
+			Audience:  []string(c.Audience), // ClaimStrings → []string
+			ExpiresAt: exp,
+			IssuedAt:  iat,
+			NotBefore: nbf,
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(authCtx)
 }

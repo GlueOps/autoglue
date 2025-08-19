@@ -2,11 +2,12 @@ package clusters
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
 	"github.com/google/uuid"
-	"net/http"
 )
 
 // GetClusters godoc
@@ -28,7 +29,7 @@ func GetClusters(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var clusters []models.Cluster
-	if err := db.DB.Where("org_id = ?", authCtx.OrganizationID).Find(&clusters).Error; err != nil {
+	if err := db.DB.Where("organization_id = ?", authCtx.OrganizationID).Find(&clusters).Error; err != nil {
 		http.Error(w, "failed to list clusters", http.StatusInternalServerError)
 		return
 	}

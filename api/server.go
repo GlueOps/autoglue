@@ -1,15 +1,15 @@
 package api
 
 import (
-	"github.com/glueops/autoglue/api/handlers/health"
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/glueops/autoglue/api/handlers/pprof"
 	"github.com/glueops/autoglue/docs"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
-	"log"
-	"net/http"
-	"time"
 )
 
 func LoggingMiddleware(next http.Handler) http.Handler {
@@ -30,8 +30,6 @@ func NewRouter() http.Handler {
 	router.Use(LoggingMiddleware)
 
 	// Routes
-
-	router.HandleFunc("/healthz", health.Check).Methods("GET")
 
 	RegisterRoutes(router)
 	pprof.RegisterPprofRoutes(router)

@@ -1,8 +1,9 @@
 package pprof
 
 import (
-	"github.com/gorilla/mux"
 	"net/http/pprof"
+
+	"github.com/gorilla/mux"
 )
 
 func RegisterPprofRoutes(router *mux.Router) {

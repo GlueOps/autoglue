@@ -1,19 +1,19 @@
 services:
-  autoglue:
-    # image: ghcr.io/glueops/autoglue:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - 8080:8080
-    expose:
-      - 8080
-    env_file: .env
-    environment:
-      AUTOGLUE_DATABASE_DSN: postgres://autoglue:autoglue@postgres:5432/autoglue
-      AUTOGLUE_BIND_ADDRESS: 0.0.0.0
-    depends_on:
-      - postgres
+  # autoglue:
+  #  image: ghcr.io/glueops/autoglue:latest
+  #  build:
+  #    context: .
+  #    dockerfile: Dockerfile
+  #  ports:
+  #    - 8080:8080
+  #  expose:
+  #    - 8080
+  #  env_file: .env
+  #  environment:
+  #    AUTOGLUE_DATABASE_DSN: postgres://autoglue:autoglue@postgres:5432/autoglue
+  #    AUTOGLUE_BIND_ADDRESS: 0.0.0.0
+  #  depends_on:
+  #    - postgres
 
   postgres:
     build:

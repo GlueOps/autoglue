@@ -2,12 +2,13 @@ package orgs
 
 import (
 	"encoding/json"
+	"net/http"
+	"strings"
+
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
 	"github.com/google/uuid"
-	"net/http"
-	"strings"
 )
 
 type OrgInput struct {

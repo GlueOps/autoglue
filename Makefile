@@ -9,6 +9,11 @@ SWAGBIN=$(shell which swag)
 .PHONY: all
 all: build
 
+,PHONY: prepare
+prepare:
+	@${GOCMD} mod tidy
+	@${GOCMD} vet ./...
+
 .PHONY: ui
 ui:
 	rm -rf api/ui
@@ -18,7 +23,7 @@ ui:
 
 # Build the CLI binary
 .PHONY: build
-build: ui swagger
+build: prepare ui swagger
 	$(GOCMD) build -o autoglue main.go
 
 # Run the app with .env
@@ -35,7 +40,7 @@ ifndef SWAGBIN
 endif
 	@echo "Generating Swagger docs..."
 	@rm -rf docs/swagger.* docs/docs.go
-	@swag init
+	@swag init --parseDependency --parseInternal
 
 # Clean build artifacts
 .PHONY: clean

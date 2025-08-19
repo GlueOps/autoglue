@@ -2,7 +2,7 @@ package health
 
 import "net/http"
 
-// HealthCheck godoc
+// Check HealthCheck godoc
 // @Summary      Basic health check
 // @Description  Returns a 200 if the service is up
 // @Tags         Health

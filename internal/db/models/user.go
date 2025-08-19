@@ -1,8 +1,10 @@
 package models
 
-import (
-	"gorm.io/gorm"
-	"time"
+type Role string
+
+const (
+	RoleAdmin Role = "admin"
+	RoleUser  Role = "user"
 )
 
 type User struct {
@@ -10,9 +12,15 @@ type User struct {
 	Name          string `gorm:"type:varchar(255);not null" json:"name"`
 	Email         string `gorm:"uniqueIndex" json:"email"`
 	EmailVerified bool   `gorm:"default:false" json:"email_verified"`
-	Role          string `gorm:"type:varchar(255);not null" json:"role"`
 	Password      string
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
+	Role          Role
+	Timestamped
+}
+
+func (r Role) IsValid() bool {
+	switch r {
+	case RoleAdmin, RoleUser:
+		return true
+	}
+	return false
 }

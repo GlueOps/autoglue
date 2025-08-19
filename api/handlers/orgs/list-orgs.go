@@ -2,10 +2,11 @@ package orgs
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
-	"net/http"
 )
 
 // ListOrganizations godoc

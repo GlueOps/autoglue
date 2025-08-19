@@ -10,13 +10,12 @@ import (
 // @description API for managing K3s clusters across cloud providers
 // @BasePath /
 // @schemes http
-// @host localhost:8080
-
-// @tag.name    Public
-// @tag.description Public endpoints for clients and probes
 
 // @tag.name    Clusters
 // @tag.description Information about clusters
+
+// @tag.name Health
+// @tag.description Basic Health Check for api
 
 // @securityDefinitions.apikey BearerAuth
 // @in header

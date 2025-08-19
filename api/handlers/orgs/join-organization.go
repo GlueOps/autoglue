@@ -2,11 +2,12 @@ package orgs
 
 import (
 	"encoding/json"
+	"net/http"
+	"time"
+
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
-	"net/http"
-	"time"
 )
 
 type JoinInput struct {
@@ -50,7 +51,7 @@ func JoinOrganization(w http.ResponseWriter, r *http.Request) {
 	db.DB.Create(&models.Member{
 		UserID:         auth.UserID,
 		OrganizationID: invite.OrganizationID,
-		Role:           invite.Role,
+		Role:           models.MemberRole(invite.Role),
 	})
 
 	db.DB.Model(&invite).Update("status", "accepted")

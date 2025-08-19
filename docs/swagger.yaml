@@ -1,5 +1,30 @@
 basePath: /
 definitions:
+  authentication.AuthClaimsDTO:
+    properties:
+      aud:
+        items:
+          type: string
+        type: array
+      exp:
+        type: integer
+      iat:
+        type: integer
+      iss:
+        type: string
+      nbf:
+        type: integer
+      orgs:
+        items:
+          type: string
+        type: array
+      roles:
+        items:
+          type: string
+        type: array
+      sub:
+        type: string
+    type: object
   authentication.LoginInput:
     properties:
       email:
@@ -7,6 +32,17 @@ definitions:
         type: string
       password:
         example: "123456"
+        type: string
+    type: object
+  authentication.MeResponse:
+    properties:
+      claims:
+        $ref: '#/definitions/authentication.AuthClaimsDTO'
+      org_role:
+        type: string
+      organization_id:
+        type: string
+      user_id:
         type: string
     type: object
   authentication.RegisterInput:
@@ -40,6 +76,55 @@ definitions:
     - provider
     - region
     type: object
+  credentials.createCredentialRequest:
+    properties:
+      plaintext:
+        description: |-
+          Secret material in plaintext; will be encrypted at rest
+          required: true
+        type: string
+      provider:
+        description: |-
+          Provider name (e.g., "aws", "gitlab")
+          required: true
+        type: string
+    type: object
+  credentials.credentialResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      organization_id:
+        type: string
+      provider:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  credentials.credentialRevealResponse:
+    properties:
+      created_at:
+        type: string
+      decrypted:
+        description: Decrypted plaintext (only when ?reveal=true)
+        type: string
+      id:
+        type: string
+      organization_id:
+        type: string
+      provider:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  credentials.updateCredentialRequest:
+    properties:
+      plaintext:
+        type: string
+      provider:
+        type: string
+    type: object
   models.Cluster:
     properties:
       created_at:
@@ -50,11 +135,17 @@ definitions:
         type: string
       name:
         type: string
-      org_id:
+      organization:
+        $ref: '#/definitions/models.Organization'
+      organization_id:
         type: string
       provider:
         type: string
       region:
+        type: string
+      server:
+        $ref: '#/definitions/models.Server'
+      server_id:
         type: string
       status:
         type: string
@@ -72,8 +163,9 @@ definitions:
       organization_id:
         type: string
       role:
+        allOf:
+        - $ref: '#/definitions/models.MemberRole'
         description: e.g. admin, member
-        type: string
       updated_at:
         type: string
       user:
@@ -81,6 +173,16 @@ definitions:
       user_id:
         type: string
     type: object
+  models.MemberRole:
+    enum:
+    - admin
+    - member
+    - user
+    type: string
+    x-enum-varnames:
+    - MemberRoleAdmin
+    - MemberRoleMember
+    - MemberRoleUser
   models.Organization:
     properties:
       created_at:
@@ -94,6 +196,60 @@ definitions:
       name:
         type: string
       slug:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Role:
+    enum:
+    - admin
+    - user
+    type: string
+    x-enum-varnames:
+    - RoleAdmin
+    - RoleUser
+  models.Server:
+    properties:
+      created_at:
+        type: string
+      hostname:
+        type: string
+      id:
+        type: string
+      ipaddress:
+        type: string
+      organization:
+        $ref: '#/definitions/models.Organization'
+      organization_id:
+        type: string
+      role:
+        description: e.g., "master", "worker", "bastion"
+        type: string
+      sshKey:
+        $ref: '#/definitions/models.SshKey'
+      sshKeyID:
+        type: string
+      sshuser:
+        type: string
+      status:
+        description: pending, provisioning, ready, failed
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.SshKey:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      organization:
+        $ref: '#/definitions/models.Organization'
+      organization_id:
+        type: string
+      privateKey:
+        type: string
+      publicKey:
         type: string
       updated_at:
         type: string
@@ -113,7 +269,7 @@ definitions:
       password:
         type: string
       role:
-        type: string
+        $ref: '#/definitions/models.Role'
       updated_at:
         type: string
     type: object
@@ -148,7 +304,28 @@ definitions:
       slug:
         type: string
     type: object
-host: localhost:8080
+  servers.ServerInput:
+    properties:
+      cluster_id:
+        description: Optional
+        type: string
+      ip_address:
+        type: string
+      role:
+        enum:
+        - master
+        - worker
+        type: string
+      ssh_key_id:
+        type: string
+      ssh_user:
+        type: string
+    required:
+    - ip_address
+    - role
+    - ssh_key_id
+    - ssh_user
+    type: object
 info:
   contact: {}
   description: API for managing K3s clusters across cloud providers
@@ -219,7 +396,28 @@ paths:
           description: no content
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Logout user
+      tags:
+      - Auth
+  /api/v1/authentication/me:
+    get:
+      description: Returns details from the authenticated context
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/authentication.MeResponse'
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get authenticated user info
       tags:
       - Auth
   /api/v1/authentication/refresh:
@@ -249,6 +447,8 @@ paths:
           description: unauthorized
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Refresh access token
       tags:
       - Auth
@@ -342,6 +542,236 @@ paths:
       summary: Create a new cluster
       tags:
       - Clusters
+  /api/v1/credentials:
+    get:
+      consumes:
+      - application/json
+      description: Returns redacted credentials for the organization in X-Org-ID.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/credentials.credentialResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list credentials
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List credentials (org scoped)
+      tags:
+      - credentials
+    post:
+      consumes:
+      - application/json
+      description: Encrypts and stores plaintext for the org given by X-Org-ID.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Credential payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/credentials.createCredentialRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/credentials.credentialResponse'
+        "400":
+          description: invalid json / missing fields
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: encryption/create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create credential (org scoped)
+      tags:
+      - credentials
+  /api/v1/credentials/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the credential.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Credential ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete credential (org scoped)
+      tags:
+      - credentials
+    get:
+      consumes:
+      - application/json
+      description: Redacted by default. Append `?reveal=true` to include decrypted
+        value.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Credential ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reveal decrypted secret (requires authorization)
+        in: query
+        name: reveal
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: When reveal=true
+          schema:
+            $ref: '#/definitions/credentials.credentialRevealResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: failed to fetch/decrypt
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get credential by ID (org scoped)
+      tags:
+      - credentials
+    patch:
+      consumes:
+      - application/json
+      description: Patch provider and/or rotate secret by supplying plaintext.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Credential ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/credentials.updateCredentialRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/credentials.credentialResponse'
+        "400":
+          description: invalid id / invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: encryption/update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update credential (org scoped)
+      tags:
+      - credentials
   /api/v1/orgs:
     get:
       produces:
@@ -598,6 +1028,126 @@ paths:
       summary: Switch active organization
       tags:
       - Organizations
+  /api/v1/servers:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Server'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List all servers
+      tags:
+      - Servers
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Server definition
+        in: body
+        name: server
+        required: true
+        schema:
+          $ref: '#/definitions/servers.ServerInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Server'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new server
+      tags:
+      - Servers
+  /api/v1/servers/{id}:
+    delete:
+      parameters:
+      - description: Server ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "204":
+          description: Deleted
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete a server
+      tags:
+      - Servers
+    get:
+      parameters:
+      - description: Server ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Server'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get server by ID
+      tags:
+      - Servers
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Server ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Server fields
+        in: body
+        name: server
+        required: true
+        schema:
+          $ref: '#/definitions/servers.ServerInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Server'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update a server
+      tags:
+      - Servers
 schemes:
 - http
 securityDefinitions:
@@ -607,7 +1157,7 @@ securityDefinitions:
     type: apiKey
 swagger: "2.0"
 tags:
-- description: Public endpoints for clients and probes
-  name: Public
 - description: Information about clusters
   name: Clusters
+- description: Basic Health Check for api
+  name: Health
