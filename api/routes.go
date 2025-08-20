@@ -6,6 +6,7 @@ import (
 	"github.com/glueops/autoglue/api/handlers/credentials"
 	"github.com/glueops/autoglue/api/handlers/health"
 	"github.com/glueops/autoglue/api/handlers/orgs"
+	"github.com/glueops/autoglue/api/handlers/ssh"
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
@@ -54,5 +55,13 @@ func RegisterRoutes(router *mux.Router) {
 	credentialsRouter.HandleFunc("/{id}", credentials.GetCredential).Methods("GET")
 	credentialsRouter.HandleFunc("/{id}", credentials.UpdateCredential).Methods("PATCH")
 	credentialsRouter.HandleFunc("/{id}", credentials.DeleteCredential).Methods("DELETE")
+
+	sshRouter := v1Router.PathPrefix("/ssh").Subrouter()
+	sshRouter.Use(auth)
+	sshRouter.HandleFunc("", ssh.ListPublicKeys).Methods("GET")
+	sshRouter.HandleFunc("", ssh.CreateSSHKey).Methods("POST")
+	sshRouter.HandleFunc("/{id}", ssh.GetSSHKey).Methods("GET")
+	sshRouter.HandleFunc("/{id}", ssh.DeleteSSHKey).Methods("DELETE")
+	sshRouter.HandleFunc("/{id}/download", ssh.DownloadSSHKey).Methods("GET")
 
 }

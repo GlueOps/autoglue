@@ -326,6 +326,53 @@ definitions:
     - ssh_key_id
     - ssh_user
     type: object
+  ssh.createSSHRequest:
+    properties:
+      bits:
+        description: |-
+          RSA key size in bits. Allowed: 2048, 3072, 4096. Default: 4096
+          example: 4096
+        type: integer
+      comment:
+        description: |-
+          Optional comment appended to the authorized_keys string
+          example: deploy@autoglue
+        type: string
+      download:
+        description: |-
+          Optional immediate download: "none" (default), "public", "private", "both"
+          example: none
+        type: string
+    type: object
+  ssh.sshResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      organization_id:
+        type: string
+      public_keys:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  ssh.sshRevealResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      organization_id:
+        type: string
+      private_key:
+        description: Private key in PEM format (revealed only when requested)
+        type: string
+      public_keys:
+        type: string
+      updated_at:
+        type: string
+    type: object
 info:
   contact: {}
   description: API for managing K3s clusters across cloud providers
@@ -1148,6 +1195,244 @@ paths:
       summary: Update a server
       tags:
       - Servers
+  /api/v1/ssh:
+    get:
+      consumes:
+      - application/json
+      description: Returns ssh keys for the organization in X-Org-ID.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ssh.sshResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list keys
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List ssh keys (org scoped)
+      tags:
+      - ssh
+    post:
+      consumes:
+      - application/json
+      description: Generates an RSA keypair, saves it, and returns metadata. Optionally
+        set `download` to "public", "private", or "both" to download files immediately.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Key generation options
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/ssh.createSSHRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          headers:
+            Content-Disposition:
+              description: When download is requested
+              type: string
+          schema:
+            $ref: '#/definitions/ssh.sshResponse'
+        "400":
+          description: invalid json / invalid bits
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: generation/create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create ssh keypair (org scoped)
+      tags:
+      - ssh
+  /api/v1/ssh/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes a keypair.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: SSH Key ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete ssh keypair (org scoped)
+      tags:
+      - ssh
+    get:
+      consumes:
+      - application/json
+      description: Returns public key fields. Append `?reveal=true` to include the
+        private key PEM.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: SSH Key ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reveal private key PEM
+        in: query
+        name: reveal
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: When reveal=true
+          schema:
+            $ref: '#/definitions/ssh.sshRevealResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get ssh key by ID (org scoped)
+      tags:
+      - ssh
+  /api/v1/ssh/{id}/download:
+    get:
+      description: Download `part=public|private|both` of the keypair. `both` returns
+        a zip file.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: SSH Key ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Which part to download
+        enum:
+        - public
+        - private
+        - both
+        in: query
+        name: part
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: file content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid part
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: download failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Download ssh key files by ID (org scoped)
+      tags:
+      - ssh
 schemes:
 - http
 securityDefinitions:

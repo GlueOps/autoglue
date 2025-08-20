@@ -1301,6 +1301,367 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v1/ssh": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns ssh keys for the organization in X-Org-ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ssh"
+                ],
+                "summary": "List ssh keys (org scoped)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization UUID",
+                        "name": "X-Org-ID",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ssh.sshResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "organization required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to list keys",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates an RSA keypair, saves it, and returns metadata. Optionally set ` + "`" + `download` + "`" + ` to \"public\", \"private\", or \"both\" to download files immediately.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ssh"
+                ],
+                "summary": "Create ssh keypair (org scoped)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization UUID",
+                        "name": "X-Org-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Key generation options",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ssh.createSSHRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/ssh.sshResponse"
+                        },
+                        "headers": {
+                            "Content-Disposition": {
+                                "type": "string",
+                                "description": "When download is requested"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid json / invalid bits",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "organization required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "generation/create failed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ssh/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns public key fields. Append ` + "`" + `?reveal=true` + "`" + ` to include the private key PEM.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ssh"
+                ],
+                "summary": "Get ssh key by ID (org scoped)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization UUID",
+                        "name": "X-Org-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "SSH Key ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Reveal private key PEM",
+                        "name": "reveal",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "When reveal=true",
+                        "schema": {
+                            "$ref": "#/definitions/ssh.sshRevealResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "organization required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "fetch failed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently deletes a keypair.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ssh"
+                ],
+                "summary": "Delete ssh keypair (org scoped)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization UUID",
+                        "name": "X-Org-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "SSH Key ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "organization required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "delete failed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ssh/{id}/download": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download ` + "`" + `part=public|private|both` + "`" + ` of the keypair. ` + "`" + `both` + "`" + ` returns a zip file.",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "ssh"
+                ],
+                "summary": "Download ssh key files by ID (org scoped)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization UUID",
+                        "name": "X-Org-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "SSH Key ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "public",
+                            "private",
+                            "both"
+                        ],
+                        "type": "string",
+                        "description": "Which part to download",
+                        "name": "part",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "file content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid id / invalid part",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "organization required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "download failed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1782,6 +2143,67 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ssh_user": {
+                    "type": "string"
+                }
+            }
+        },
+        "ssh.createSSHRequest": {
+            "type": "object",
+            "properties": {
+                "bits": {
+                    "description": "RSA key size in bits. Allowed: 2048, 3072, 4096. Default: 4096\nexample: 4096",
+                    "type": "integer"
+                },
+                "comment": {
+                    "description": "Optional comment appended to the authorized_keys string\nexample: deploy@autoglue",
+                    "type": "string"
+                },
+                "download": {
+                    "description": "Optional immediate download: \"none\" (default), \"public\", \"private\", \"both\"\nexample: none",
+                    "type": "string"
+                }
+            }
+        },
+        "ssh.sshResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "public_keys": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "ssh.sshRevealResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "private_key": {
+                    "description": "Private key in PEM format (revealed only when requested)",
+                    "type": "string"
+                },
+                "public_keys": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
