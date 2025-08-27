@@ -3,13 +3,14 @@ package ssh
 import (
 	"errors"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
+	"github.com/glueops/autoglue/internal/utils"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
 
@@ -38,8 +39,7 @@ func GetSSHKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idStr := strings.TrimPrefix(r.URL.Path, "/api/v1/ssh/")
-	id, err := uuid.Parse(idStr)
+	id, err := uuid.Parse(mux.Vars(r)["id"])
 	if err != nil {
 		http.Error(w, "invalid id", http.StatusBadRequest)
 		return
@@ -67,6 +67,12 @@ func GetSSHKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	plain, err := utils.DecryptForOrg(ac.OrganizationID, key.EncryptedPrivateKey, key.PrivateIV, key.PrivateTag)
+	if err != nil {
+		http.Error(w, "failed to decrypt", http.StatusInternalServerError)
+		return
+	}
+
 	writeJSON(w, http.StatusOK, sshRevealResponse{
 		sshResponse: sshResponse{
 			ID:             key.ID,
@@ -75,6 +81,6 @@ func GetSSHKey(w http.ResponseWriter, r *http.Request) {
 			CreatedAt:      key.CreatedAt.UTC().Format(time.RFC3339),
 			UpdatedAt:      key.UpdatedAt.UTC().Format(time.RFC3339),
 		},
-		PrivateKey: key.PrivateKey,
+		PrivateKey: plain,
 	})
 }

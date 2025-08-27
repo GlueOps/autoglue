@@ -12,7 +12,9 @@ import (
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
+	"github.com/glueops/autoglue/internal/utils"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/ssh"
 )
 
 // CreateSSHKey godoc
@@ -52,16 +54,33 @@ func CreateSSHKey(w http.ResponseWriter, r *http.Request) {
 		bits = *req.Bits
 	}
 
-	privPEM, pubAuth, err := generateRSA(bits, req.Comment)
+	privPEM, pubAuth, err := GenerateRSAPEMAndAuthorized(bits, strings.TrimSpace(req.Comment))
 	if err != nil {
 		http.Error(w, "key generation failed", http.StatusInternalServerError)
 		return
 	}
 
+	cipher, iv, tag, err := utils.EncryptForOrg(ac.OrganizationID, []byte(privPEM))
+	if err != nil {
+		http.Error(w, "encryption failed", http.StatusInternalServerError)
+		return
+	}
+
+	parsed, _, _, _, err := ssh.ParseAuthorizedKey([]byte(pubAuth))
+	if err != nil {
+		http.Error(w, "failed to parse public key", http.StatusInternalServerError)
+		return
+	}
+	fp := ssh.FingerprintSHA256(parsed)
+
 	key := models.SshKey{
-		OrganizationID: ac.OrganizationID,
-		PublicKey:      pubAuth,
-		PrivateKey:     privPEM,
+		OrganizationID:      ac.OrganizationID,
+		Name:                req.Name,
+		PublicKey:           pubAuth,
+		EncryptedPrivateKey: cipher,
+		PrivateIV:           iv,
+		PrivateTag:          tag,
+		Fingerprint:         fp,
 	}
 	if err := db.DB.Create(&key).Error; err != nil {
 		http.Error(w, "create failed", http.StatusInternalServerError)
@@ -97,14 +116,13 @@ func CreateSSHKey(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		_, _ = w.Write(buf.Bytes())
 		return
-	default:
-		// fall through to JSON
 	}
 
 	writeJSON(w, http.StatusCreated, sshResponse{
 		ID:             key.ID,
 		OrganizationID: key.OrganizationID,
 		PublicKey:      key.PublicKey,
+		Fingerprint:    key.Fingerprint,
 		CreatedAt:      key.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:      key.UpdatedAt.UTC().Format(time.RFC3339),
 	})

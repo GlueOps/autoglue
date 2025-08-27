@@ -91,7 +91,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	refreshTokenStr := uuid.NewString()
 
 	db.DB.Create(&models.RefreshToken{
-		ID:        uuid.NewString(),
 		UserID:    user.ID,
 		Token:     refreshTokenStr,
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),

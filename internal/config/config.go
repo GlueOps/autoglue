@@ -4,11 +4,12 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"github.com/joho/godotenv"
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 var File = "config.yaml"

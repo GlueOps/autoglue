@@ -3,16 +3,17 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/glueops/autoglue/api"
-	"github.com/glueops/autoglue/internal/db"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/glueops/autoglue/api"
+	"github.com/glueops/autoglue/internal/db"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (

@@ -42,7 +42,9 @@ func ListPublicKeys(w http.ResponseWriter, r *http.Request) {
 		out = append(out, sshResponse{
 			ID:             s.ID,
 			OrganizationID: s.OrganizationID,
+			Name:           s.Name,
 			PublicKey:      s.PublicKey,
+			Fingerprint:    s.Fingerprint,
 			CreatedAt:      s.CreatedAt.UTC().Format(time.RFC3339),
 			UpdatedAt:      s.UpdatedAt.UTC().Format(time.RFC3339),
 		})

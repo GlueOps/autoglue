@@ -11,7 +11,9 @@ import (
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
+	"github.com/glueops/autoglue/internal/utils"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )
 
@@ -38,14 +40,7 @@ func DownloadSSHKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract id from path: /api/v1/ssh/{id}/download
-	path := strings.TrimPrefix(r.URL.Path, "/api/v1/ssh/")
-	parts := strings.SplitN(path, "/", 3)
-	if len(parts) < 2 || parts[1] != "download" {
-		http.Error(w, "invalid path", http.StatusBadRequest)
-		return
-	}
-	id, err := uuid.Parse(parts[0])
+	id, err := uuid.Parse(mux.Vars(r)["id"])
 	if err != nil {
 		http.Error(w, "invalid id", http.StatusBadRequest)
 		return
@@ -69,14 +64,24 @@ func DownloadSSHKey(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 		_, _ = w.Write([]byte(key.PublicKey))
 	case "private":
+		plain, err := utils.DecryptForOrg(ac.OrganizationID, key.EncryptedPrivateKey, key.PrivateIV, key.PrivateTag)
+		if err != nil {
+			http.Error(w, "decrypt failed", http.StatusInternalServerError)
+			return
+		}
 		filename := fmt.Sprintf("id_rsa_%s.pem", key.ID.String())
 		w.Header().Set("Content-Type", "application/x-pem-file")
 		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
-		_, _ = w.Write([]byte(key.PrivateKey))
+		_, _ = w.Write([]byte(plain))
 	case "both":
+		plain, err := utils.DecryptForOrg(ac.OrganizationID, key.EncryptedPrivateKey, key.PrivateIV, key.PrivateTag)
+		if err != nil {
+			http.Error(w, "decrypt failed", http.StatusInternalServerError)
+			return
+		}
 		var buf bytes.Buffer
 		zw := zip.NewWriter(&buf)
-		_ = toZipFile(fmt.Sprintf("id_rsa_%s.pem", key.ID.String()), []byte(key.PrivateKey), zw)
+		_ = toZipFile(fmt.Sprintf("id_rsa_%s.pem", key.ID.String()), []byte(plain), zw)
 		_ = toZipFile(fmt.Sprintf("id_rsa_%s.pub", key.ID.String()), []byte(key.PublicKey), zw)
 		_ = zw.Close()
 

@@ -11,12 +11,6 @@ import (
 // @BasePath /
 // @schemes http
 
-// @tag.name    Clusters
-// @tag.description Information about clusters
-
-// @tag.name Health
-// @tag.description Basic Health Check for api
-
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization

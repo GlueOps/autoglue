@@ -1,5 +1,7 @@
 package models
 
+import "github.com/google/uuid"
+
 type Role string
 
 const (
@@ -8,10 +10,10 @@ const (
 )
 
 type User struct {
-	ID            string `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	Name          string `gorm:"type:varchar(255);not null" json:"name"`
-	Email         string `gorm:"uniqueIndex" json:"email"`
-	EmailVerified bool   `gorm:"default:false" json:"email_verified"`
+	ID            uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Name          string    `gorm:"type:varchar(255);not null" json:"name"`
+	Email         string    `gorm:"uniqueIndex" json:"email"`
+	EmailVerified bool      `gorm:"default:false" json:"email_verified"`
 	Password      string
 	Role          Role
 	Timestamped

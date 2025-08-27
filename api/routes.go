@@ -5,7 +5,9 @@ import (
 	"github.com/glueops/autoglue/api/handlers/clusters"
 	"github.com/glueops/autoglue/api/handlers/credentials"
 	"github.com/glueops/autoglue/api/handlers/health"
+	"github.com/glueops/autoglue/api/handlers/nodepools"
 	"github.com/glueops/autoglue/api/handlers/orgs"
+	"github.com/glueops/autoglue/api/handlers/servers"
 	"github.com/glueops/autoglue/api/handlers/ssh"
 	"github.com/glueops/autoglue/api/middleware"
 	"github.com/gorilla/mux"
@@ -45,8 +47,14 @@ func RegisterRoutes(router *mux.Router) {
 
 	clustersRouter := v1Router.PathPrefix("/clusters").Subrouter()
 	clustersRouter.Use(auth)
+	clustersRouter.HandleFunc("", clusters.ListClusters).Methods("GET")
 	clustersRouter.HandleFunc("", clusters.CreateCluster).Methods("POST")
-	clustersRouter.HandleFunc("", clusters.GetClusters).Methods("GET")
+	clustersRouter.HandleFunc("/{id}", clusters.GetCluster).Methods("GET")
+	clustersRouter.HandleFunc("/{id}", clusters.UpdateCluster).Methods("PATCH")
+	clustersRouter.HandleFunc("/{id}", clusters.DeleteCluster).Methods("DELETE")
+	clustersRouter.HandleFunc("/{id}/node-pools", clusters.ListClusterNodeGroups).Methods("GET")
+	clustersRouter.HandleFunc("/{id}/node-pools", clusters.AttachClusterNodeGroups).Methods("POST")
+	clustersRouter.HandleFunc("/{id}/node-pools/{nodeGroupId}", clusters.DetachClusterNodeGroup).Methods("DELETE")
 
 	credentialsRouter := v1Router.PathPrefix("/credentials").Subrouter()
 	credentialsRouter.Use(auth)
@@ -64,4 +72,15 @@ func RegisterRoutes(router *mux.Router) {
 	sshRouter.HandleFunc("/{id}", ssh.DeleteSSHKey).Methods("DELETE")
 	sshRouter.HandleFunc("/{id}/download", ssh.DownloadSSHKey).Methods("GET")
 
+	serversRouter := v1Router.PathPrefix("/servers").Subrouter()
+	serversRouter.Use(auth)
+	serversRouter.HandleFunc("", servers.ListServers).Methods("GET")
+	serversRouter.HandleFunc("", servers.CreateServer).Methods("POST")
+	serversRouter.HandleFunc("/{id}", servers.GetServer).Methods("GET")
+	serversRouter.HandleFunc("/{id}", servers.UpdateServer).Methods("PATCH")
+	serversRouter.HandleFunc("/{id}", servers.DeleteServer).Methods("DELETE")
+
+	nodeGroupsRouter := v1Router.PathPrefix("/node-pool").Subrouter()
+	nodeGroupsRouter.Use(auth)
+	nodeGroupsRouter.HandleFunc("", nodepools.ListNodePools).Methods("GET")
 }
