@@ -45,7 +45,7 @@ func NewRouter() http.Handler {
 			"http://localhost:8080",
 			"http://127.0.0.1:8080",
 		}),
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{
 			"Content-Type",
 			"Authorization",

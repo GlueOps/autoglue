@@ -5,7 +5,7 @@ import "net/http"
 // Check HealthCheck godoc
 // @Summary      Basic health check
 // @Description  Returns a 200 if the service is up
-// @Tags         Health
+// @Tags         health
 // @Accept       json
 // @Produce      plain
 // @Success      200 {string} string "ok"

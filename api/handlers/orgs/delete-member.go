@@ -11,7 +11,7 @@ import (
 
 // DeleteMember godoc
 // @Summary      Remove member from organization
-// @Tags         Organizations
+// @Tags         organizations
 // @Param        userId path string true "User ID"
 // @Success      204 {string} string "deleted"
 // @Failure      403 {string} string "forbidden"

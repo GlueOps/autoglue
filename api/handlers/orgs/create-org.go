@@ -19,7 +19,7 @@ type OrgInput struct {
 // CreateOrganization godoc
 // @Summary      Create a new organization
 // @Description  Creates a new organization and assigns the authenticated user as an admin member
-// @Tags         Organizations
+// @Tags         organizations
 // @Accept       json
 // @Produce      json
 // @Param        X-Org-ID header string false "Optional organization context (ignored for creation)"

@@ -11,7 +11,7 @@ import (
 
 // DeleteOrganization godoc
 // @Summary      Delete organization
-// @Tags         Organizations
+// @Tags         organizations
 // @Param        orgId path string true "Organization ID"
 // @Success      204 {string} string "deleted"
 // @Failure      403 {string} string "forbidden"

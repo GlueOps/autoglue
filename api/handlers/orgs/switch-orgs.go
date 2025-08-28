@@ -15,7 +15,7 @@ type SwitchOrgInput struct {
 
 // SwitchOrganization godoc
 // @Summary      Switch active organization
-// @Tags         Organizations
+// @Tags         organizations
 // @Accept       json
 // @Produce      json
 // @Param        body body SwitchOrgInput true "Org to switch to"

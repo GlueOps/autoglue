@@ -16,7 +16,7 @@ type JoinInput struct {
 
 // JoinOrganization godoc
 // @Summary      Accept org invitation
-// @Tags         Organizations
+// @Tags         organizations
 // @Accept       json
 // @Produce      json
 // @Param        body body JoinInput true "Join input"

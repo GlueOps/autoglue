@@ -18,7 +18,7 @@ type InviteInput struct {
 
 // InviteMember godoc
 // @Summary      Invite user to organization
-// @Tags         Organizations
+// @Tags         organizations
 // @Accept       json
 // @Produce      plain
 // @Param        body body InviteInput true "Invite input"

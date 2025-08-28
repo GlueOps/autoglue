@@ -6,6 +6,7 @@ import (
 	"github.com/glueops/autoglue/api/handlers/credentials"
 	"github.com/glueops/autoglue/api/handlers/health"
 	"github.com/glueops/autoglue/api/handlers/nodepools"
+	"github.com/glueops/autoglue/api/handlers/nodetaints"
 	"github.com/glueops/autoglue/api/handlers/orgs"
 	"github.com/glueops/autoglue/api/handlers/servers"
 	"github.com/glueops/autoglue/api/handlers/ssh"
@@ -80,7 +81,22 @@ func RegisterRoutes(router *mux.Router) {
 	serversRouter.HandleFunc("/{id}", servers.UpdateServer).Methods("PATCH")
 	serversRouter.HandleFunc("/{id}", servers.DeleteServer).Methods("DELETE")
 
-	nodeGroupsRouter := v1Router.PathPrefix("/node-pool").Subrouter()
-	nodeGroupsRouter.Use(auth)
-	nodeGroupsRouter.HandleFunc("", nodepools.ListNodePools).Methods("GET")
+	nodeTaintsRouter := v1Router.PathPrefix("/node-taints").Subrouter()
+	nodeTaintsRouter.Use(auth)
+	nodeTaintsRouter.HandleFunc("", nodetaints.ListNodeTaints).Methods("GET")
+	nodeTaintsRouter.HandleFunc("", nodetaints.CreateNodeTaint).Methods("POST")
+	nodeTaintsRouter.HandleFunc("/{id}", nodetaints.GetNodeTaint).Methods("GET")
+	nodeTaintsRouter.HandleFunc("/{id}", nodetaints.UpdateNodeTaint).Methods("PATCH")
+	nodeTaintsRouter.HandleFunc("/{id}", nodetaints.DeleteNodeTaint).Methods("DELETE")
+
+	nodePoolsRouter := v1Router.PathPrefix("/node-pools").Subrouter()
+	nodePoolsRouter.Use(auth)
+	nodePoolsRouter.HandleFunc("", nodepools.ListNodePools).Methods("GET")
+	nodePoolsRouter.HandleFunc("", nodepools.CreateNodePool).Methods("POST")
+	nodePoolsRouter.HandleFunc("/{id}", nodepools.GetNodePool).Methods("GET")
+	nodePoolsRouter.HandleFunc("/{id}", nodepools.UpdateNodeGroup).Methods("PATCH")
+	nodePoolsRouter.HandleFunc("/{id}", nodepools.DeleteNodeGroup).Methods("DELETE")
+	nodePoolsRouter.HandleFunc("/{id}/servers", nodepools.ListNodeGroupServers).Methods("GET")
+	nodePoolsRouter.HandleFunc("/{id}/servers", nodepools.AttachNodeGroupServers).Methods("POST")
+	nodePoolsRouter.HandleFunc("/{id}/servers/{serverId}", nodepools.DetachNodeGroupServer).Methods("DELETE")
 }

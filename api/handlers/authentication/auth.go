@@ -30,7 +30,7 @@ type LoginInput struct {
 // Register godoc
 // @Summary      Register a new user
 // @Description  Registers a new user and stores credentials
-// @Tags         Auth
+// @Tags         auth
 // @Accept       json
 // @Produce      plain
 // @Param        body  body      RegisterInput  true  "User registration input"
@@ -58,7 +58,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 // Login godoc
 // @Summary      Authenticate and return a token
 // @Description  Authenticates a user and returns a JWT bearer token
-// @Tags         Auth
+// @Tags         auth
 // @Accept       json
 // @Produce      json
 // @Param        body  body      LoginInput     true  "User login input"
@@ -108,7 +108,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 // Refresh godoc
 // @Summary      Refresh access token
 // @Description  Use a refresh token to obtain a new access token
-// @Tags         Auth
+// @Tags         auth
 // @Accept       json
 // @Produce      json
 // @Param        body  body      map[string]string  true  "refresh_token"
@@ -143,7 +143,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 // Logout godoc
 // @Summary      Logout user
 // @Description  Revoke a refresh token
-// @Tags         Auth
+// @Tags         auth
 // @Accept       json
 // @Produce      plain
 // @Param        body  body      map[string]string  true  "refresh_token"
@@ -181,7 +181,7 @@ type MeResponse struct {
 // Me godoc
 // @Summary      Get authenticated user info
 // @Description  Returns details from the authenticated context
-// @Tags         Auth
+// @Tags         auth
 // @Produce      json
 // @Success      200  {object}  authentication.MeResponse
 // @Failure      401  {string}  string  "unauthorized"

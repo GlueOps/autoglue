@@ -11,7 +11,7 @@ import (
 
 // ListOrganizations godoc
 // @Summary      List organizations for user
-// @Tags         Organizations
+// @Tags         organizations
 // @Produce      json
 // @Success      200 {array} models.Organization
 // @Failure      401 {string} string "unauthorized"

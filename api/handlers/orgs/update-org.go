@@ -17,7 +17,7 @@ type UpdateOrgInput struct {
 
 // UpdateOrganization godoc
 // @Summary      Update organization metadata
-// @Tags         Organizations
+// @Tags         organizations
 // @Accept       json
 // @Produce      json
 // @Param        orgId path string true "Org ID"

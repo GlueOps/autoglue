@@ -571,7 +571,7 @@ paths:
             type: string
       summary: Basic health check
       tags:
-      - Health
+      - health
   /api/v1/authentication/login:
     post:
       consumes:
@@ -599,7 +599,7 @@ paths:
             type: string
       summary: Authenticate and return a token
       tags:
-      - Auth
+      - auth
   /api/v1/authentication/logout:
     post:
       consumes:
@@ -625,7 +625,7 @@ paths:
       - BearerAuth: []
       summary: Logout user
       tags:
-      - Auth
+      - auth
   /api/v1/authentication/me:
     get:
       description: Returns details from the authenticated context
@@ -644,7 +644,7 @@ paths:
       - BearerAuth: []
       summary: Get authenticated user info
       tags:
-      - Auth
+      - auth
   /api/v1/authentication/refresh:
     post:
       consumes:
@@ -676,7 +676,7 @@ paths:
       - BearerAuth: []
       summary: Refresh access token
       tags:
-      - Auth
+      - auth
   /api/v1/authentication/register:
     post:
       consumes:
@@ -702,7 +702,7 @@ paths:
             type: string
       summary: Register a new user
       tags:
-      - Auth
+      - auth
   /api/v1/clusters:
     get:
       consumes:
@@ -1345,397 +1345,6 @@ paths:
       summary: Update credential (org scoped)
       tags:
       - credentials
-  /api/v1/node-groups:
-    get:
-      consumes:
-      - application/json
-      description: Returns node pools for the organization in X-Org-ID. Add `include=servers`
-        to include attached servers. Filter by `q` (name contains).
-      parameters:
-      - description: Organization UUID
-        in: header
-        name: X-Org-ID
-        required: true
-        type: string
-      - description: Name contains (case-insensitive)
-        in: query
-        name: q
-        type: string
-      - description: 'Optional: servers'
-        in: query
-        name: include
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/nodepools.nodePoolResponse'
-            type: array
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "403":
-          description: organization required
-          schema:
-            type: string
-        "500":
-          description: failed to list node groups
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: List node pools (org scoped)
-      tags:
-      - node-pools
-    post:
-      consumes:
-      - application/json
-      description: Creates a node group. Optionally attach initial servers.
-      parameters:
-      - description: Organization UUID
-        in: header
-        name: X-Org-ID
-        required: true
-        type: string
-      - description: NodeGroup payload
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/nodepools.createNodePoolRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/nodepools.nodePoolResponse'
-        "400":
-          description: invalid json / missing fields / invalid server_ids
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "403":
-          description: organization required
-          schema:
-            type: string
-        "500":
-          description: create failed
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Create node group (org scoped)
-      tags:
-      - node-pools
-  /api/v1/node-groups/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Permanently deletes the node group.
-      parameters:
-      - description: Organization UUID
-        in: header
-        name: X-Org-ID
-        required: true
-        type: string
-      - description: Node Group ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-          schema:
-            type: string
-        "400":
-          description: invalid id
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "403":
-          description: organization required
-          schema:
-            type: string
-        "500":
-          description: delete failed
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Delete node group (org scoped)
-      tags:
-      - node-groups
-    get:
-      consumes:
-      - application/json
-      description: Returns one node group. Add `include=servers` to include servers.
-      parameters:
-      - description: Organization UUID
-        in: header
-        name: X-Org-ID
-        required: true
-        type: string
-      - description: Node Group ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: 'Optional: servers'
-        in: query
-        name: include
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/nodepools.nodePoolResponse'
-        "400":
-          description: invalid id
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "403":
-          description: organization required
-          schema:
-            type: string
-        "404":
-          description: not found
-          schema:
-            type: string
-        "500":
-          description: fetch failed
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Get node group by ID (org scoped)
-      tags:
-      - node-pools
-    patch:
-      consumes:
-      - application/json
-      description: Partially update node group fields.
-      parameters:
-      - description: Organization UUID
-        in: header
-        name: X-Org-ID
-        required: true
-        type: string
-      - description: Node Group ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Fields to update
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/nodepools.updateNodePoolRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/nodepools.nodePoolResponse'
-        "400":
-          description: invalid id / invalid json
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "403":
-          description: organization required
-          schema:
-            type: string
-        "404":
-          description: not found
-          schema:
-            type: string
-        "500":
-          description: update failed
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Update node group (org scoped)
-      tags:
-      - node-pools
-  /api/v1/node-groups/{id}/servers:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: Organization UUID
-        in: header
-        name: X-Org-ID
-        required: true
-        type: string
-      - description: Node Group ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/nodepools.serverBrief'
-            type: array
-        "400":
-          description: invalid id
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "403":
-          description: organization required
-          schema:
-            type: string
-        "404":
-          description: not found
-          schema:
-            type: string
-        "500":
-          description: fetch failed
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: List servers attached to a node group (org scoped)
-      tags:
-      - node-groups
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Organization UUID
-        in: header
-        name: X-Org-ID
-        required: true
-        type: string
-      - description: Node Group ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Server IDs to attach
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/nodepools.attachServersRequest'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-          schema:
-            type: string
-        "400":
-          description: invalid id / invalid server_ids
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "403":
-          description: organization required
-          schema:
-            type: string
-        "404":
-          description: not found
-          schema:
-            type: string
-        "500":
-          description: attach failed
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Attach servers to a node group (org scoped)
-      tags:
-      - node-groups
-  /api/v1/node-groups/{id}/servers/{serverId}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: Organization UUID
-        in: header
-        name: X-Org-ID
-        required: true
-        type: string
-      - description: Node Group ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Server ID (UUID)
-        in: path
-        name: serverId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-          schema:
-            type: string
-        "400":
-          description: invalid id
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "403":
-          description: organization required
-          schema:
-            type: string
-        "404":
-          description: not found
-          schema:
-            type: string
-        "500":
-          description: detach failed
-          schema:
-            type: string
-      security:
-      - BearerAuth: []
-      summary: Detach one server from a node group (org scoped)
-      tags:
-      - node-groups
   /api/v1/node-labels:
     get:
       consumes:
@@ -2136,6 +1745,397 @@ paths:
       summary: Detach one node group from a label (org scoped)
       tags:
       - node-labels
+  /api/v1/node-pools:
+    get:
+      consumes:
+      - application/json
+      description: Returns node pools for the organization in X-Org-ID. Add `include=servers`
+        to include attached servers. Filter by `q` (name contains).
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      - description: 'Optional: servers'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/nodepools.nodePoolResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list node groups
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List node pools (org scoped)
+      tags:
+      - node-pools
+    post:
+      consumes:
+      - application/json
+      description: Creates a node group. Optionally attach initial servers.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: NodeGroup payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nodepools.createNodePoolRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/nodepools.nodePoolResponse'
+        "400":
+          description: invalid json / missing fields / invalid server_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create node group (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the node group.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete node group (org scoped)
+      tags:
+      - node-pools
+    get:
+      consumes:
+      - application/json
+      description: Returns one node group. Add `include=servers` to include servers.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Optional: servers'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/nodepools.nodePoolResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get node group by ID (org scoped)
+      tags:
+      - node-pools
+    patch:
+      consumes:
+      - application/json
+      description: Partially update node group fields.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nodepools.updateNodePoolRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/nodepools.nodePoolResponse'
+        "400":
+          description: invalid id / invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update node group (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/servers:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/nodepools.serverBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List servers attached to a node group (org scoped)
+      tags:
+      - node-pools
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Server IDs to attach
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nodepools.attachServersRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid server_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach servers to a node group (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/servers/{serverId}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Server ID (UUID)
+        in: path
+        name: serverId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach one server from a node group (org scoped)
+      tags:
+      - node-pools
   /api/v1/node-taints:
     get:
       consumes:
@@ -2402,7 +2402,7 @@ paths:
       - BearerAuth: []
       summary: List organizations for user
       tags:
-      - Organizations
+      - organizations
     post:
       consumes:
       - application/json
@@ -2444,7 +2444,7 @@ paths:
       - BearerAuth: []
       summary: Create a new organization
       tags:
-      - Organizations
+      - organizations
   /api/v1/orgs/{orgId}:
     delete:
       parameters:
@@ -2466,7 +2466,7 @@ paths:
       - BearerAuth: []
       summary: Delete organization
       tags:
-      - Organizations
+      - organizations
     patch:
       consumes:
       - application/json
@@ -2497,7 +2497,7 @@ paths:
       - BearerAuth: []
       summary: Update organization metadata
       tags:
-      - Organizations
+      - organizations
   /api/v1/orgs/invite:
     post:
       consumes:
@@ -2533,7 +2533,7 @@ paths:
       - BearerAuth: []
       summary: Invite user to organization
       tags:
-      - Organizations
+      - organizations
   /api/v1/orgs/join:
     post:
       consumes:
@@ -2560,7 +2560,7 @@ paths:
       - BearerAuth: []
       summary: Accept org invitation
       tags:
-      - Organizations
+      - organizations
   /api/v1/orgs/members:
     get:
       description: Returns a list of all members in the current organization
@@ -2587,7 +2587,7 @@ paths:
       - BearerAuth: []
       summary: List organization members
       tags:
-      - Organizations
+      - organizations
   /api/v1/orgs/members/{userId}:
     delete:
       parameters:
@@ -2609,7 +2609,7 @@ paths:
       - BearerAuth: []
       summary: Remove member from organization
       tags:
-      - Organizations
+      - organizations
   /api/v1/orgs/switch:
     post:
       consumes:
@@ -2638,7 +2638,7 @@ paths:
       - BearerAuth: []
       summary: Switch active organization
       tags:
-      - Organizations
+      - organizations
   /api/v1/servers:
     get:
       consumes:

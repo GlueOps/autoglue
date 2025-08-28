@@ -13,7 +13,7 @@ import (
 // ListMembers lists all members of the authenticated org
 // @Summary List organization members
 // @Description Returns a list of all members in the current organization
-// @Tags Organizations
+// @Tags organizations
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {array} models.Member

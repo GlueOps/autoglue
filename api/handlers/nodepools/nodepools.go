@@ -102,7 +102,7 @@ func ensureServersBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
 // @Failure      401 {string} string "Unauthorized"
 // @Failure      403 {string} string "organization required"
 // @Failure      500 {string} string "failed to list node groups"
-// @Router       /api/v1/node-groups [get]
+// @Router       /api/v1/node-pools [get]
 func ListNodePools(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -149,7 +149,7 @@ func ListNodePools(w http.ResponseWriter, r *http.Request) {
 // @Failure      403 {string} string "organization required"
 // @Failure      404 {string} string "not found"
 // @Failure      500 {string} string "fetch failed"
-// @Router       /api/v1/node-groups/{id} [get]
+// @Router       /api/v1/node-pools/{id} [get]
 func GetNodePool(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -181,7 +181,7 @@ func GetNodePool(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, toResp(ng, includeServers))
 }
 
-// CreateNodeGroup godoc
+// CreateNodePool godoc
 // @Summary      Create node group (org scoped)
 // @Description  Creates a node group. Optionally attach initial servers.
 // @Tags         node-pools
@@ -195,8 +195,8 @@ func GetNodePool(w http.ResponseWriter, r *http.Request) {
 // @Failure      401 {string} string "Unauthorized"
 // @Failure      403 {string} string "organization required"
 // @Failure      500 {string} string "create failed"
-// @Router       /api/v1/node-groups [post]
-func CreateNodeGroup(w http.ResponseWriter, r *http.Request) {
+// @Router       /api/v1/node-pools [post]
+func CreateNodePool(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
 		http.Error(w, "organization required", http.StatusForbidden)
@@ -260,7 +260,7 @@ func CreateNodeGroup(w http.ResponseWriter, r *http.Request) {
 // @Failure      403 {string} string "organization required"
 // @Failure      404 {string} string "not found"
 // @Failure      500 {string} string "update failed"
-// @Router       /api/v1/node-groups/{id} [patch]
+// @Router       /api/v1/node-pools/{id} [patch]
 func UpdateNodeGroup(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -303,7 +303,7 @@ func UpdateNodeGroup(w http.ResponseWriter, r *http.Request) {
 // DeleteNodeGroup godoc
 // @Summary      Delete node group (org scoped)
 // @Description  Permanently deletes the node group.
-// @Tags         node-groups
+// @Tags         node-pools
 // @Accept       json
 // @Produce      json
 // @Param        X-Org-ID header string true "Organization UUID"
@@ -314,7 +314,7 @@ func UpdateNodeGroup(w http.ResponseWriter, r *http.Request) {
 // @Failure      401 {string} string "Unauthorized"
 // @Failure      403 {string} string "organization required"
 // @Failure      500 {string} string "delete failed"
-// @Router       /api/v1/node-groups/{id} [delete]
+// @Router       /api/v1/node-pools/{id} [delete]
 func DeleteNodeGroup(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -339,7 +339,7 @@ func DeleteNodeGroup(w http.ResponseWriter, r *http.Request) {
 
 // ListNodeGroupServers godoc
 // @Summary      List servers attached to a node group (org scoped)
-// @Tags         node-groups
+// @Tags         node-pools
 // @Accept       json
 // @Produce      json
 // @Param        X-Org-ID header string true "Organization UUID"
@@ -351,7 +351,7 @@ func DeleteNodeGroup(w http.ResponseWriter, r *http.Request) {
 // @Failure      403 {string} string "organization required"
 // @Failure      404 {string} string "not found"
 // @Failure      500 {string} string "fetch failed"
-// @Router       /api/v1/node-groups/{id}/servers [get]
+// @Router       /api/v1/node-pools/{id}/servers [get]
 func ListNodeGroupServers(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -390,7 +390,7 @@ func ListNodeGroupServers(w http.ResponseWriter, r *http.Request) {
 
 // AttachNodeGroupServers godoc
 // @Summary      Attach servers to a node group (org scoped)
-// @Tags         node-groups
+// @Tags         node-pools
 // @Accept       json
 // @Produce      json
 // @Param        X-Org-ID header string true "Organization UUID"
@@ -403,7 +403,7 @@ func ListNodeGroupServers(w http.ResponseWriter, r *http.Request) {
 // @Failure      403 {string} string "organization required"
 // @Failure      404 {string} string "not found"
 // @Failure      500 {string} string "attach failed"
-// @Router       /api/v1/node-groups/{id}/servers [post]
+// @Router       /api/v1/node-pools/{id}/servers [post]
 func AttachNodeGroupServers(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -459,7 +459,7 @@ func AttachNodeGroupServers(w http.ResponseWriter, r *http.Request) {
 
 // DetachNodeGroupServer godoc
 // @Summary      Detach one server from a node group (org scoped)
-// @Tags         node-groups
+// @Tags         node-pools
 // @Accept       json
 // @Produce      json
 // @Param        X-Org-ID header string true "Organization UUID"
@@ -472,7 +472,7 @@ func AttachNodeGroupServers(w http.ResponseWriter, r *http.Request) {
 // @Failure      403 {string} string "organization required"
 // @Failure      404 {string} string "not found"
 // @Failure      500 {string} string "detach failed"
-// @Router       /api/v1/node-groups/{id}/servers/{serverId} [delete]
+// @Router       /api/v1/node-pools/{id}/servers/{serverId} [delete]
 func DetachNodeGroupServer(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
