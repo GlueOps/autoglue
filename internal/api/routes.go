@@ -7,6 +7,7 @@ import (
 	"github.com/glueops/autoglue/internal/handlers/authn"
 	"github.com/glueops/autoglue/internal/handlers/health"
 	"github.com/glueops/autoglue/internal/handlers/orgs"
+	"github.com/glueops/autoglue/internal/handlers/servers"
 	"github.com/glueops/autoglue/internal/handlers/ssh"
 	"github.com/glueops/autoglue/internal/middleware"
 	"github.com/glueops/autoglue/internal/ui"
@@ -69,6 +70,16 @@ func RegisterRoutes(r chi.Router) {
 				s.Delete("/{id}", ssh.DeleteSSHKey)
 				s.Get("/{id}/download", ssh.DownloadSSHKey)
 			})
+
+			v1.Route("/servers", func(s chi.Router) {
+				s.Use(authMW)
+				s.Get("/", servers.ListServers)
+				s.Post("/", servers.CreateServer)
+				s.Get("/{id}", servers.GetServer)
+				s.Patch("/{id}", servers.UpdateServer)
+				s.Delete("/{id}", servers.DeleteServer)
+			})
+
 		})
 	})
 

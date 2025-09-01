@@ -243,6 +243,64 @@ definitions:
       slug:
         type: string
     type: object
+  servers.createServerRequest:
+    properties:
+      hostname:
+        type: string
+      ip_address:
+        type: string
+      role:
+        example: master|worker|bastion
+        type: string
+      ssh_key_id:
+        type: string
+      ssh_user:
+        type: string
+      status:
+        example: pending|provisioning|ready|failed
+        type: string
+    type: object
+  servers.serverResponse:
+    properties:
+      created_at:
+        type: string
+      hostname:
+        type: string
+      id:
+        type: string
+      ip_address:
+        type: string
+      organization_id:
+        type: string
+      role:
+        type: string
+      ssh_key_id:
+        type: string
+      ssh_user:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  servers.updateServerRequest:
+    properties:
+      hostname:
+        type: string
+      ip_address:
+        type: string
+      role:
+        example: master|worker|bastion
+        type: string
+      ssh_key_id:
+        type: string
+      ssh_user:
+        type: string
+      status:
+        description: 'enum: pending,provisioning,ready,failed'
+        example: pending|provisioning|ready|failed
+        type: string
+    type: object
   ssh.createSSHRequest:
     properties:
       bits:
@@ -1003,6 +1061,241 @@ paths:
       summary: Remove member from organization
       tags:
       - organizations
+  /api/v1/servers:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns servers for the organization in X-Org-ID. Optional filters:
+        status, role.'
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Filter by status (pending|provisioning|ready|failed)
+        in: query
+        name: status
+        type: string
+      - description: Filter by role
+        in: query
+        name: role
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/servers.serverResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list servers
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List servers (org scoped)
+      tags:
+      - servers
+    post:
+      consumes:
+      - application/json
+      description: Creates a server bound to the org in X-Org-ID. Validates that ssh_key_id
+        belongs to the org.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Server payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/servers.createServerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/servers.serverResponse'
+        "400":
+          description: invalid json / missing fields / invalid status / invalid ssh_key_id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create server (org scoped)
+      tags:
+      - servers
+  /api/v1/servers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the server.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Server ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete server (org scoped)
+      tags:
+      - servers
+    get:
+      consumes:
+      - application/json
+      description: Returns one server in the given organization.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Server ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/servers.serverResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get server by ID (org scoped)
+      tags:
+      - servers
+    patch:
+      consumes:
+      - application/json
+      description: Partially update fields; changing ssh_key_id validates ownership.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Server ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/servers.updateServerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/servers.serverResponse'
+        "400":
+          description: invalid id / invalid json / invalid status / invalid ssh_key_id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update server (org scoped)
+      tags:
+      - servers
   /api/v1/ssh:
     get:
       consumes:

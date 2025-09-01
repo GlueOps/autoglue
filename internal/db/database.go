@@ -35,6 +35,7 @@ func Connect() {
 		&models.OrganizationKey{},
 		&models.PasswordReset{},
 		&models.RefreshToken{},
+		&models.Server{},
 		&models.SshKey{},
 		&models.User{},
 	)

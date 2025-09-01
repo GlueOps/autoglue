@@ -10,11 +10,12 @@ import { Me } from "@/pages/auth/me.tsx"
 import { Register } from "@/pages/auth/register.tsx"
 import { ResetPassword } from "@/pages/auth/reset-password.tsx"
 import { VerifyEmail } from "@/pages/auth/verify-email.tsx"
+import { ServersPage } from "@/pages/core/servers-page.tsx"
 import { Forbidden } from "@/pages/error/forbidden.tsx"
 import { NotFoundPage } from "@/pages/error/not-found.tsx"
+import { SshKeysPage } from "@/pages/security/ssh.tsx"
 import { MemberManagement } from "@/pages/settings/members.tsx"
 import { OrgManagement } from "@/pages/settings/orgs.tsx"
-import {SshKeysPage} from "@/pages/security/ssh.tsx";
 
 function App() {
   return (
@@ -39,10 +40,11 @@ function App() {
           </Route>
 
           <Route path="/core">
+            <Route path="servers" element={<ServersPage />} />
             {/*
               <Route path="cluster" element={<ClusterListPage />} />
             <Route path="node-pools" element={<NodePoolsPage />} />
-            <Route path="servers" element={<ServersPage />} />
+
             <Route path="taints" element={<TaintsPage />} />
             */}
           </Route>
