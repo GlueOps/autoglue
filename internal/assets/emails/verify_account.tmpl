@@ -1,0 +1,45 @@
+{{define "subject"}}Verify your Dragon account{{end}}
+
+{{define "plainBody"}}
+Hi {{.Name}},
+
+Welcome to Dragon! Please verify your email to activate your account.
+
+Verification token:
+{{.Token}}
+
+{{if .VerificationURL}}You can also click this link:
+{{.VerificationURL}}{{end}}
+
+If you didn’t create an account, you can ignore this message.
+
+Sent at: {{now}}
+{{end}}
+
+{{define "htmlBody"}}
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Verify your Dragon account</title>
+  </head>
+  <body>
+    <p>Hi {{.Name}},</p>
+    <p>Welcome to Dragon! Please verify your email to activate your account.</p>
+
+    <p><strong>Verification token:</strong><br/>
+    <code style="font-family: monospace; font-size: 14px;">{{.Token}}</code></p>
+
+    {{if .VerificationURL}}
+      <p>
+        Or click here:
+        <a href="{{.VerificationURL}}">Verify my email</a>
+      </p>
+    {{end}}
+
+    <p>If you didn’t create an account, you can ignore this message.</p>
+    <p>Sent at: {{now}}</p>
+  </body>
+</html>
+{{end}}

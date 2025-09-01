@@ -1,0 +1,533 @@
+basePath: /
+definitions:
+  authn.AuthClaimsDTO:
+    properties:
+      aud:
+        items:
+          type: string
+        type: array
+      exp:
+        type: integer
+      iat:
+        type: integer
+      iss:
+        type: string
+      nbf:
+        type: integer
+      orgs:
+        items:
+          type: string
+        type: array
+      roles:
+        items:
+          type: string
+        type: array
+      sub:
+        type: string
+    type: object
+  authn.LoginInput:
+    properties:
+      email:
+        example: me@here.com
+        type: string
+      password:
+        example: "123456"
+        type: string
+    type: object
+  authn.MeResponse:
+    properties:
+      claims:
+        $ref: '#/definitions/authn.AuthClaimsDTO'
+      org_role:
+        type: string
+      organization_id:
+        type: string
+      user_id:
+        $ref: '#/definitions/authn.UserDTO'
+    type: object
+  authn.RegisterInput:
+    properties:
+      email:
+        example: me@here.com
+        type: string
+      name:
+        example: My Name
+        type: string
+      password:
+        example: "123456"
+        type: string
+    type: object
+  authn.UserDTO:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      role:
+        $ref: '#/definitions/models.Role'
+      updated_at:
+        type: string
+    type: object
+  models.Organization:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      logo:
+        type: string
+      metadata:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Role:
+    enum:
+    - admin
+    - user
+    type: string
+    x-enum-varnames:
+    - RoleAdmin
+    - RoleUser
+  orgs.OrgInput:
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API for managing K3s clusters across cloud providers
+  title: AutoGlue API
+  version: "1.0"
+paths:
+  /api/healthz:
+    get:
+      consumes:
+      - application/json
+      description: Returns a 200 if the service is up
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Basic health check
+      tags:
+      - health
+  /api/v1/auth/introspect:
+    post:
+      consumes:
+      - application/json
+      description: Returns whether the token is active and basic metadata
+      parameters:
+      - description: token
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Introspect a token
+      tags:
+      - auth
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns a JWT bearer token
+      parameters:
+      - description: User login input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/authn.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      summary: Authenticate and return a token
+      tags:
+      - auth
+  /api/v1/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revoke a refresh token
+      parameters:
+      - description: refresh_token
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Logout user
+      tags:
+      - auth
+  /api/v1/auth/logout_all:
+    post:
+      description: Revokes all active refresh tokens for the authenticated user
+      produces:
+      - text/plain
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Logout from all sessions
+      tags:
+      - auth
+  /api/v1/auth/me:
+    get:
+      description: Returns the authenticated user's profile and auth context
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/authn.MeResponse'
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get authenticated user info
+      tags:
+      - auth
+  /api/v1/auth/password/change:
+    post:
+      consumes:
+      - application/json
+      description: Changes the password for the authenticated user
+      parameters:
+      - description: current_password, new_password
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - text/plain
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Change password
+      tags:
+      - auth
+  /api/v1/auth/password/forgot:
+    post:
+      consumes:
+      - application/json
+      description: Sends a reset token to the user's email address
+      parameters:
+      - description: email
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - text/plain
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+      summary: Request password reset
+      tags:
+      - auth
+  /api/v1/auth/password/reset:
+    post:
+      consumes:
+      - application/json
+      description: Resets the password using a valid reset token
+      parameters:
+      - description: token, new_password
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - text/plain
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+      summary: Confirm password reset
+      tags:
+      - auth
+  /api/v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Use a refresh token to obtain a new access token
+      parameters:
+      - description: refresh_token
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: new access token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Refresh access token
+      tags:
+      - auth
+  /api/v1/auth/refresh/rotate:
+    post:
+      consumes:
+      - application/json
+      description: Exchanges a valid refresh token for a new access and refresh token,
+        revoking the old one
+      parameters:
+      - description: refresh_token
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: access_token, refresh_token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Rotate refresh token
+      tags:
+      - auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user and stores credentials
+      parameters:
+      - description: User registration input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/authn.RegisterInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: created
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - auth
+  /api/v1/auth/verify:
+    get:
+      description: Verifies the user's email using a token (often from an emailed
+        link)
+      parameters:
+      - description: verification token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+      summary: Verify email address
+      tags:
+      - auth
+  /api/v1/auth/verify/resend:
+    post:
+      consumes:
+      - application/json
+      description: Sends a new email verification token if needed
+      parameters:
+      - description: email
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - text/plain
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+      summary: Resend email verification
+      tags:
+      - auth
+  /api/v1/orgs:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Organization'
+            type: array
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List organizations for user
+      tags:
+      - organizations
+    post:
+      consumes:
+      - application/json
+      description: Creates a new organization and assigns the authenticated user as
+        an admin member
+      parameters:
+      - description: Optional organization context (ignored for creation)
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Organization Input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/orgs.OrgInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: organization_id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: invalid input
+          schema:
+            type: string
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create a new organization
+      tags:
+      - organizations
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
