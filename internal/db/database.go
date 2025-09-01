@@ -28,6 +28,7 @@ func Connect() {
 	err = DB.AutoMigrate(
 		&models.EmailVerification{},
 		&models.Invitation{},
+		&models.MasterKey{},
 		&models.Member{},
 		&models.Organization{},
 		&models.PasswordReset{},
