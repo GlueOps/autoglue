@@ -39,7 +39,7 @@ export function Login() {
     try {
       await authStore.login(values.email, values.password)
       toast.success("Welcome back!")
-      const to = location.state?.from?.pathname ?? "/auth/me"
+      const to = location.state?.from?.pathname ?? "/settings/me"
       navigate(to, { replace: true })
     } catch (e: any) {
       toast.error(e.message || "Login failed")

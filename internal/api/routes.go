@@ -7,6 +7,7 @@ import (
 	"github.com/glueops/autoglue/internal/handlers/authn"
 	"github.com/glueops/autoglue/internal/handlers/health"
 	"github.com/glueops/autoglue/internal/handlers/orgs"
+	"github.com/glueops/autoglue/internal/handlers/ssh"
 	"github.com/glueops/autoglue/internal/middleware"
 	"github.com/glueops/autoglue/internal/ui"
 	"github.com/go-chi/chi/v5"
@@ -20,6 +21,14 @@ func RegisterRoutes(r chi.Router) {
 		api.Route("/v1", func(v1 chi.Router) {
 			secret := viper.GetString("authentication.jwt_secret")
 			authMW := middleware.AuthMiddleware(secret)
+
+			v1.Route("/admin", func(ad chi.Router) {
+				ad.Use(authMW)
+				ad.Get("/users", authn.AdminListUsers)
+				ad.Post("/users", authn.AdminCreateUser)
+				ad.Patch("/users/{userId}", authn.AdminUpdateUser)
+				ad.Delete("/users/{userId}", authn.AdminDeleteUser)
+			})
 
 			v1.Route("/auth", func(a chi.Router) {
 				a.Post("/login", authn.Login)
@@ -45,6 +54,20 @@ func RegisterRoutes(r chi.Router) {
 				o.Use(authMW)
 				o.Post("/", orgs.CreateOrganization)
 				o.Get("/", orgs.ListOrganizations)
+				o.Post("/invite", orgs.InviteMember)
+				o.Get("/members", orgs.ListMembers)
+				o.Delete("/members/{userId}", orgs.DeleteMember)
+				o.Patch("/{orgId}", orgs.UpdateOrganization)
+				o.Delete("/{orgId}", orgs.DeleteOrganization)
+			})
+
+			v1.Route("/ssh", func(s chi.Router) {
+				s.Use(authMW)
+				s.Get("/", ssh.ListPublicKeys)
+				s.Post("/", ssh.CreateSSHKey)
+				s.Get("/{id}", ssh.GetSSHKey)
+				s.Delete("/{id}", ssh.DeleteSSHKey)
+				s.Get("/{id}/download", ssh.DownloadSSHKey)
 			})
 		})
 	})

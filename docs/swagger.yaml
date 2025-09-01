@@ -1,5 +1,42 @@
 basePath: /
 definitions:
+  authn.AdminCreateUserRequest:
+    properties:
+      email:
+        example: jane@example.com
+        type: string
+      name:
+        example: Jane Doe
+        type: string
+      password:
+        example: Secret123!
+        type: string
+      role:
+        description: 'Role allowed values: "user" or "admin"'
+        enum:
+        - user
+        - admin
+        example: user
+        type: string
+    type: object
+  authn.AdminUpdateUserRequest:
+    properties:
+      email:
+        example: jane@example.com
+        type: string
+      name:
+        example: Jane Doe
+        type: string
+      password:
+        example: NewSecret123!
+        type: string
+      role:
+        enum:
+        - user
+        - admin
+        example: admin
+        type: string
+    type: object
   authn.AuthClaimsDTO:
     properties:
       aud:
@@ -24,6 +61,19 @@ definitions:
         type: array
       sub:
         type: string
+    type: object
+  authn.ListUsersOut:
+    properties:
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/authn.UserListItem'
+        type: array
     type: object
   authn.LoginInput:
     properties:
@@ -74,6 +124,65 @@ definitions:
       updated_at:
         type: string
     type: object
+  authn.UserListItem:
+    properties:
+      created_at: {}
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      id: {}
+      name:
+        type: string
+      role:
+        type: string
+      updated_at: {}
+    type: object
+  authn.userOut:
+    properties:
+      created_at: {}
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      id: {}
+      name:
+        type: string
+      role:
+        type: string
+      updated_at: {}
+    type: object
+  models.Member:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      organization:
+        $ref: '#/definitions/models.Organization'
+      organization_id:
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/models.MemberRole'
+        description: e.g. admin, member
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: string
+    type: object
+  models.MemberRole:
+    enum:
+    - admin
+    - member
+    - user
+    type: string
+    x-enum-varnames:
+    - MemberRoleAdmin
+    - MemberRoleMember
+    - MemberRoleUser
   models.Organization:
     properties:
       created_at:
@@ -99,11 +208,89 @@ definitions:
     x-enum-varnames:
     - RoleAdmin
     - RoleUser
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      email_verified_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        $ref: '#/definitions/models.Role'
+      updated_at:
+        type: string
+    type: object
+  orgs.InviteInput:
+    properties:
+      email:
+        type: string
+      role:
+        type: string
+    type: object
   orgs.OrgInput:
     properties:
       name:
         type: string
       slug:
+        type: string
+    type: object
+  ssh.createSSHRequest:
+    properties:
+      bits:
+        example: 4096
+        type: integer
+      comment:
+        example: deploy@autoglue
+        type: string
+      download:
+        example: both
+        type: string
+      name:
+        type: string
+    type: object
+  ssh.sshResponse:
+    properties:
+      created_at:
+        type: string
+      fingerprint:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organization_id:
+        type: string
+      public_keys:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  ssh.sshRevealResponse:
+    properties:
+      created_at:
+        type: string
+      fingerprint:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organization_id:
+        type: string
+      private_key:
+        type: string
+      public_keys:
+        type: string
+      updated_at:
         type: string
     type: object
 info:
@@ -127,6 +314,161 @@ paths:
       summary: Basic health check
       tags:
       - health
+  /api/v1/admin/users:
+    get:
+      description: Returns paginated list of users (admin only)
+      parameters:
+      - description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - description: Page size (max 200)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/authn.ListUsersOut'
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "403":
+          description: forbidden
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: 'Admin: list all users'
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/authn.AdminCreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/authn.userOut'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "403":
+          description: forbidden
+          schema:
+            type: string
+        "409":
+          description: conflict
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: 'Admin: create user'
+      tags:
+      - admin
+  /api/v1/admin/users/{userId}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "403":
+          description: forbidden
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "409":
+          description: conflict
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: 'Admin: delete user'
+      tags:
+      - admin
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/authn.AdminUpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/authn.userOut'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "403":
+          description: forbidden
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "409":
+          description: conflict
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: 'Admin: update user'
+      tags:
+      - admin
   /api/v1/auth/introspect:
     post:
       consumes:
@@ -523,6 +865,382 @@ paths:
       summary: Create a new organization
       tags:
       - organizations
+  /api/v1/orgs/{orgId}:
+    delete:
+      parameters:
+      - description: Organization ID
+        in: path
+        name: orgId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: deleted
+          schema:
+            type: string
+        "403":
+          description: forbidden
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete organization
+      tags:
+      - organizations
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Org ID
+        in: path
+        name: orgId
+        required: true
+        type: string
+      - description: Organization data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/orgs.OrgInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Organization'
+        "403":
+          description: forbidden
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update organization metadata
+      tags:
+      - organizations
+  /api/v1/orgs/invite:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Invite input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/orgs.InviteInput'
+      - description: Organization context
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: invited
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "403":
+          description: forbidden
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Invite user to organization
+      tags:
+      - organizations
+  /api/v1/orgs/members:
+    get:
+      description: Returns a list of all members in the current organization
+      parameters:
+      - description: Organization context
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Member'
+            type: array
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List organization members
+      tags:
+      - organizations
+  /api/v1/orgs/members/{userId}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: deleted
+          schema:
+            type: string
+        "403":
+          description: forbidden
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Remove member from organization
+      tags:
+      - organizations
+  /api/v1/ssh:
+    get:
+      consumes:
+      - application/json
+      description: Returns ssh keys for the organization in X-Org-ID.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ssh.sshResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list keys
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List ssh keys (org scoped)
+      tags:
+      - ssh
+    post:
+      consumes:
+      - application/json
+      description: Generates an RSA keypair, saves it, and returns metadata. Optionally
+        set `download` to "public", "private", or "both" to download files immediately.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Key generation options
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/ssh.createSSHRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          headers:
+            Content-Disposition:
+              description: When download is requested
+              type: string
+          schema:
+            $ref: '#/definitions/ssh.sshResponse'
+        "400":
+          description: invalid json / invalid bits
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: generation/create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create ssh keypair (org scoped)
+      tags:
+      - ssh
+  /api/v1/ssh/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes a keypair.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: SSH Key ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete ssh keypair (org scoped)
+      tags:
+      - ssh
+    get:
+      consumes:
+      - application/json
+      description: Returns public key fields. Append `?reveal=true` to include the
+        private key PEM.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: SSH Key ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reveal private key PEM
+        in: query
+        name: reveal
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: When reveal=true
+          schema:
+            $ref: '#/definitions/ssh.sshRevealResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get ssh key by ID (org scoped)
+      tags:
+      - ssh
+  /api/v1/ssh/{id}/download:
+    get:
+      description: Download `part=public|private|both` of the keypair. `both` returns
+        a zip file.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: SSH Key ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Which part to download
+        enum:
+        - public
+        - private
+        - both
+        in: query
+        name: part
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: file content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid part
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: download failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Download ssh key files by ID (org scoped)
+      tags:
+      - ssh
 schemes:
 - http
 securityDefinitions:

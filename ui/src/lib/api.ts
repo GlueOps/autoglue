@@ -37,6 +37,11 @@ function authHeaders(): Record<string, string> {
   return headers
 }
 
+function orgContextHeaders(): Record<string, string> {
+  const id = localStorage.getItem("active_org_id")
+  return id ? { "X-Org-ID": id } : {}
+}
+
 async function request<T>(
   path: string,
   method: Method,
@@ -50,6 +55,7 @@ async function request<T>(
   const merged: Record<string, string> = {
     ...baseHeaders,
     ...(opts.auth === false ? {} : authHeaders()),
+    ...orgContextHeaders(),
     ...normalizeHeaders(opts.headers),
   }
 
@@ -82,6 +88,8 @@ async function request<T>(
       `HTTP ${res.status}`
     throw new ApiError(res.status, String(msg), payload)
   }
+
+  console.debug("API ->", method, `${API_BASE_URL}${path}`, merged)
 
   return isJSON ? (payload as T) : (undefined as T)
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/glueops/autoglue/internal/config"
@@ -11,6 +12,7 @@ import (
 	"github.com/glueops/autoglue/internal/db/models"
 	"github.com/glueops/autoglue/internal/middleware"
 	"github.com/glueops/autoglue/internal/response"
+	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -538,4 +540,300 @@ func RotateRefreshToken(w http.ResponseWriter, r *http.Request) {
 		"access_token":  accessStr,
 		"refresh_token": newRefresh.Token,
 	})
+}
+
+// AdminListUsers godoc
+// @Summary      Admin: list all users
+// @Description  Returns paginated list of users (admin only)
+// @Tags         admin
+// @Produce      json
+// @Param        page      query int false "Page number (1-based)"
+// @Param        page_size query int false "Page size (max 200)"
+// @Success      200 {object} ListUsersOut
+// @Failure      401 {string} string "unauthorized"
+// @Failure      403 {string} string "forbidden"
+// @Security     BearerAuth
+// @Router       /api/v1/admin/users [get]
+func AdminListUsers(w http.ResponseWriter, r *http.Request) {
+	ctx := middleware.GetAuthContext(r)
+	if ctx == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Load current user to check global role
+	var me models.User
+	if err := db.DB.Select("id, role").First(&me, "id = ?", ctx.UserID).Error; err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	if me.Role != "admin" {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	// Pagination
+	page := mustInt(r.URL.Query().Get("page"), 1)
+	if page < 1 {
+		page = 1
+	}
+	pageSize := mustInt(r.URL.Query().Get("page_size"), 50)
+	if pageSize < 1 {
+		pageSize = 50
+	}
+	if pageSize > 200 {
+		pageSize = 200
+	}
+	offset := (page - 1) * pageSize
+
+	// Query
+	var total int64
+	_ = db.DB.Model(&models.User{}).Count(&total).Error
+
+	var users []models.User
+	if err := db.DB.
+		Model(&models.User{}).
+		Order("created_at DESC").
+		Limit(pageSize).
+		Offset(offset).
+		Find(&users).Error; err != nil {
+		http.Error(w, "failed to fetch users", http.StatusInternalServerError)
+		return
+	}
+
+	out := make([]UserListItem, len(users))
+	for i, u := range users {
+		out[i] = UserListItem{
+			ID:            u.ID,
+			Name:          u.Name,
+			Email:         u.Email,
+			EmailVerified: u.EmailVerified,
+			Role:          string(u.Role),
+			CreatedAt:     u.CreatedAt,
+			UpdatedAt:     u.UpdatedAt,
+		}
+	}
+
+	_ = response.JSON(w, http.StatusOK, ListUsersOut{
+		Users:    out,
+		Page:     page,
+		PageSize: pageSize,
+		Total:    total,
+	})
+}
+
+// AdminCreateUser godoc
+// @Summary      Admin: create user
+// @Tags         admin
+// @Accept       json
+// @Produce      json
+// @Param        body body AdminCreateUserRequest true "payload"
+// @Success      201 {object} userOut
+// @Failure      400 {string} string "bad request"
+// @Failure      401 {string} string "unauthorized"
+// @Failure      403 {string} string "forbidden"
+// @Failure      409 {string} string "conflict"
+// @Security     BearerAuth
+// @Router       /api/v1/admin/users [post]
+func AdminCreateUser(w http.ResponseWriter, r *http.Request) {
+	if _, ok := requireGlobalAdmin(w, r); !ok {
+		return
+	}
+
+	var in struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		Role     string `json:"role"` // "user" | "admin"
+	}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	in.Email = strings.TrimSpace(strings.ToLower(in.Email))
+	in.Role = strings.TrimSpace(in.Role)
+	if in.Email == "" || in.Password == "" {
+		http.Error(w, "email and password required", http.StatusBadRequest)
+		return
+	}
+	if in.Role == "" {
+		in.Role = "user"
+	}
+	if in.Role != "user" && in.Role != "admin" {
+		http.Error(w, "invalid role", http.StatusBadRequest)
+		return
+	}
+
+	var exists int64
+	if err := db.DB.Model(&models.User{}).Where("LOWER(email)=?", in.Email).Count(&exists).Error; err == nil && exists > 0 {
+		http.Error(w, "email already in use", http.StatusConflict)
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(in.Password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "hash error", http.StatusInternalServerError)
+		return
+	}
+
+	u := models.User{
+		Name:     in.Name,
+		Email:    in.Email,
+		Password: string(hash),
+		Role:     models.Role(in.Role),
+	}
+	if err := db.DB.Create(&u).Error; err != nil {
+		http.Error(w, "create failed", http.StatusInternalServerError)
+		return
+	}
+	_ = response.JSON(w, http.StatusCreated, asUserOut(u))
+}
+
+// AdminUpdateUser godoc
+// @Summary      Admin: update user
+// @Tags         admin
+// @Accept       json
+// @Produce      json
+// @Param        userId path string true "User ID"
+// @Param        body body AdminUpdateUserRequest true "payload"
+// @Success      200 {object} userOut
+// @Failure      400 {string} string "bad request"
+// @Failure      401 {string} string "unauthorized"
+// @Failure      403 {string} string "forbidden"
+// @Failure      404 {string} string "not found"
+// @Failure      409 {string} string "conflict"
+// @Security     BearerAuth
+// @Router       /api/v1/admin/users/{userId} [patch]
+func AdminUpdateUser(w http.ResponseWriter, r *http.Request) {
+	_, ok := requireGlobalAdmin(w, r)
+	if !ok {
+		return
+	}
+
+	idStr := chi.URLParam(r, "userId")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, "bad user id", http.StatusBadRequest)
+		return
+	}
+
+	var u models.User
+	if err := db.DB.First(&u, "id = ?", id).Error; err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	var in struct {
+		Name     *string `json:"name"`
+		Email    *string `json:"email"`
+		Password *string `json:"password"`
+		Role     *string `json:"role"` // "user" | "admin"
+	}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	updates := map[string]any{}
+	if in.Name != nil {
+		updates["name"] = *in.Name
+	}
+	if in.Email != nil {
+		email := strings.TrimSpace(strings.ToLower(*in.Email))
+		if email == "" {
+			http.Error(w, "email required", http.StatusBadRequest)
+			return
+		}
+		var exists int64
+		_ = db.DB.Model(&models.User{}).Where("LOWER(email)=? AND id <> ?", email, u.ID).Count(&exists).Error
+		if exists > 0 {
+			http.Error(w, "email already in use", http.StatusConflict)
+			return
+		}
+		updates["email"] = email
+	}
+	if in.Password != nil && *in.Password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(*in.Password), bcrypt.DefaultCost)
+		if err != nil {
+			http.Error(w, "hash error", http.StatusInternalServerError)
+			return
+		}
+		updates["password"] = string(hash)
+	}
+	if in.Role != nil {
+		role := strings.TrimSpace(*in.Role)
+		if role != "user" && role != "admin" {
+			http.Error(w, "invalid role", http.StatusBadRequest)
+			return
+		}
+		// prevent demoting the last admin
+		if u.Role == "admin" && role == "user" {
+			n, _ := adminCount(&u.ID)
+			if n == 0 {
+				http.Error(w, "cannot demote last admin", http.StatusConflict)
+				return
+			}
+		}
+		updates["role"] = role
+	}
+	if len(updates) == 0 {
+		_ = response.JSON(w, http.StatusOK, asUserOut(u))
+		return
+	}
+	if err := db.DB.Model(&u).Updates(updates).Error; err != nil {
+		http.Error(w, "update failed", http.StatusInternalServerError)
+		return
+	}
+	_ = response.JSON(w, http.StatusOK, asUserOut(u))
+}
+
+// AdminDeleteUser godoc
+// @Summary      Admin: delete user
+// @Tags         admin
+// @Param        userId path string true "User ID"
+// @Success      204 {string} string "no content"
+// @Failure      400 {string} string "bad request"
+// @Failure      401 {string} string "unauthorized"
+// @Failure      403 {string} string "forbidden"
+// @Failure      404 {string} string "not found"
+// @Failure      409 {string} string "conflict"
+// @Security     BearerAuth
+// @Router       /api/v1/admin/users/{userId} [delete]
+func AdminDeleteUser(w http.ResponseWriter, r *http.Request) {
+	me, ok := requireGlobalAdmin(w, r)
+	if !ok {
+		return
+	}
+
+	idStr := chi.URLParam(r, "userId")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, "bad user id", http.StatusBadRequest)
+		return
+	}
+
+	if me.ID == id {
+		http.Error(w, "cannot delete self", http.StatusBadRequest)
+		return
+	}
+
+	var u models.User
+	if err := db.DB.First(&u, "id = ?", id).Error; err != nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	if u.Role == "admin" {
+		n, _ := adminCount(&u.ID)
+		if n == 0 {
+			http.Error(w, "cannot delete last admin", http.StatusConflict)
+			return
+		}
+	}
+
+	if err := db.DB.Delete(&models.User{}, "id = ?", id).Error; err != nil {
+		http.Error(w, "delete failed", http.StatusInternalServerError)
+		return
+	}
+	response.NoContent(w)
 }

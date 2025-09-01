@@ -7,6 +7,7 @@ import (
 
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
+	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -59,14 +60,32 @@ func AuthMiddleware(secret string) func(http.Handler) http.Handler {
 				Claims: claims,
 			}
 
-			if orgID := r.Header.Get("X-Org-ID"); orgID != "" {
-				orgUUID, _ := uuid.Parse(orgID)
+			orgIDStr := r.Header.Get("X-Org-ID")
+			if orgIDStr == "" {
+				if rc := chi.RouteContext(r.Context()); rc != nil {
+					if v := rc.URLParam("orgId"); v != "" {
+						orgIDStr = v
+					} else if v := rc.URLParam("organizationId"); v != "" {
+						orgIDStr = v
+					}
+				}
+			}
 
-				var member models.Member
-				if err := db.DB.Where("user_id = ? AND organization_id = ?", claims.Subject, orgID).First(&member).Error; err != nil {
-					http.Error(w, "User not a member of the organization", http.StatusForbidden)
+			if orgIDStr != "" {
+				orgUUID, err := uuid.Parse(orgIDStr)
+				if err != nil {
+					http.Error(w, "invalid organization id", http.StatusBadRequest)
 					return
 				}
+
+				var member models.Member
+				if err := db.DB.
+					Where("user_id = ? AND organization_id = ?", userUUID, orgUUID).
+					First(&member).Error; err != nil {
+					http.Error(w, "forbidden", http.StatusForbidden)
+					return
+				}
+
 				authCtx.OrganizationID = orgUUID
 				authCtx.OrgRole = string(member.Role)
 			}

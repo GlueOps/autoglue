@@ -1,4 +1,4 @@
-import { Laptop, Moon, Sun } from "lucide-react"
+import { CheckIcon, Laptop, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button.tsx"
@@ -25,9 +25,15 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("light")}>
+          {theme === "light" && <CheckIcon />}Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
+          {theme === "dark" && <CheckIcon />}Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")}>
+          {theme === "system" && <CheckIcon />}System
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

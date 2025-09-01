@@ -1,20 +1,21 @@
-import { SidebarProvider } from "@/components/ui/sidebar.tsx";
-import {Outlet} from "react-router-dom";
-import {Footer} from "@/components/footer.tsx";
-import {DashboardSidebar} from "@/components/dashboard-sidebar.tsx";
+import { Outlet } from "react-router-dom"
+
+import { SidebarProvider } from "@/components/ui/sidebar.tsx"
+import { DashboardSidebar } from "@/components/dashboard-sidebar.tsx"
+import { Footer } from "@/components/footer.tsx"
 
 export function DashboardLayout() {
   return (
-      <div className="flex h-screen">
-          <SidebarProvider>
-              <DashboardSidebar />
-              <div className="flex flex-col flex-1">
-                  <main className="flex-1 p-4 overflow-auto">
-                      <Outlet />
-                  </main>
-                  <Footer />
-              </div>
-          </SidebarProvider>
-      </div>
+    <div className="flex h-screen">
+      <SidebarProvider>
+        <DashboardSidebar />
+        <div className="flex flex-1 flex-col">
+          <main className="flex-1 overflow-auto p-4">
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
+      </SidebarProvider>
+    </div>
   )
 }

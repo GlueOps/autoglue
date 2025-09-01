@@ -1,5 +1,33 @@
 import { api, API_BASE_URL } from "@/lib/api.ts"
 
+export type MeUser = {
+  id: string
+  name?: string
+  email?: string
+  email_verified?: boolean
+  role: "admin" | "user" | string
+  created_at?: string
+  updated_at?: string
+}
+
+export type MePayload = {
+  user?: MeUser // preferred shape
+  user_id?: MeUser // fallback (older shape)
+  organization_id?: string | null
+  org_role?: "admin" | "member" | string | null
+  claims?: any
+}
+
+function getUser(me: MePayload | null | undefined): MeUser | undefined {
+  return (me && (me.user || me.user_id)) as MeUser | undefined
+}
+export function isGlobalAdmin(me: MePayload | null | undefined): boolean {
+  return getUser(me)?.role === "admin"
+}
+export function isOrgAdmin(me: MePayload | null | undefined): boolean {
+  return (me?.org_role ?? "") === "admin"
+}
+
 export const authStore = {
   isAuthenticated(): boolean {
     return !!localStorage.getItem("access_token")
@@ -19,9 +47,7 @@ export const authStore = {
   },
 
   async me() {
-    return await api.get<{ user_id: string; organization_id?: string; org_role?: string }>(
-      "/api/v1/auth/me"
-    )
+    return await api.get<MePayload>("/api/v1/auth/me")
   },
 
   async logout() {

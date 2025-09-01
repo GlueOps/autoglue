@@ -1,16 +1,15 @@
-import {useNavigate} from "react-router-dom";
-import {Button} from "@/components/ui/button.tsx";
+import { useNavigate } from "react-router-dom"
+
+import { Button } from "@/components/ui/button.tsx"
 
 export const NotFoundPage = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate()
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
-            <h1 className="text-6xl font-bold mb-4">404</h1>
-            <p className="text-2xl mb-8">Oops! Page not found</p>
-            <Button onClick={() => navigate("/dashboard")}>
-                Go back to Dashboard
-            </Button>
-        </div>
-    );
-};
+  return (
+    <div className="bg-background text-foreground flex min-h-screen flex-col items-center justify-center">
+      <h1 className="mb-4 text-6xl font-bold">404</h1>
+      <p className="mb-8 text-2xl">Oops! Page not found</p>
+      <Button onClick={() => navigate("/dashboard")}>Go back to Dashboard</Button>
+    </div>
+  )
+}
