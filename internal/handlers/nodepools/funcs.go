@@ -2,8 +2,6 @@ package nodepools
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
@@ -11,14 +9,14 @@ import (
 )
 
 func toResp(ng models.NodePool, includeServers bool) nodePoolResponse {
-	resp := nodePoolResponse{
+	out := nodePoolResponse{
 		ID:   ng.ID,
 		Name: ng.Name,
 	}
 	if includeServers {
-		resp.Servers = make([]serverBrief, 0, len(ng.Servers))
+		out.Servers = make([]serverBrief, 0, len(ng.Servers))
 		for _, s := range ng.Servers {
-			resp.Servers = append(resp.Servers, serverBrief{
+			out.Servers = append(out.Servers, serverBrief{
 				ID:       s.ID,
 				Hostname: s.Hostname,
 				IP:       s.IPAddress,
@@ -27,17 +25,17 @@ func toResp(ng models.NodePool, includeServers bool) nodePoolResponse {
 			})
 		}
 	}
-	return resp
+	return out
 }
 
 func parseUUIDs(ids []string) ([]uuid.UUID, error) {
 	out := make([]uuid.UUID, 0, len(ids))
-	for _, s := range ids {
-		u, err := uuid.Parse(strings.TrimSpace(s))
+	for _, raw := range ids {
+		id, err := uuid.Parse(raw)
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, u)
+		out = append(out, id)
 	}
 	return out, nil
 }
@@ -50,15 +48,25 @@ func ensureServersBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
 		return err
 	}
 	if count != int64(len(ids)) {
-		return fmt.Errorf("some servers do not belong to this organization")
+		return errors.New("some servers do not belong to org")
+	}
+	return nil
+}
+
+func ensureLabelsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
+	var count int64
+	if err := db.DB.Model(&models.Label{}).
+		Where("organization_id = ? AND id IN ?", orgID, ids).
+		Count(&count).Error; err != nil {
+		return err
+	}
+	if count != int64(len(ids)) {
+		return errors.New("some labels do not belong to org")
 	}
 	return nil
 }
 
 func ensureTaintsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
-	if len(ids) == 0 {
-		return nil
-	}
 	var count int64
 	if err := db.DB.Model(&models.Taint{}).
 		Where("organization_id = ? AND id IN ?", orgID, ids).
@@ -66,39 +74,7 @@ func ensureTaintsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
 		return err
 	}
 	if count != int64(len(ids)) {
-		return errors.New("some taints not in organization")
-	}
-	return nil
-}
-
-func ensureLabelsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
-	if len(ids) == 0 {
-		return nil
-	}
-	var cnt int64
-	if err := db.DB.Model(&models.Label{}).
-		Where("organization_id = ? AND id IN ?", orgID, ids).
-		Count(&cnt).Error; err != nil {
-		return err
-	}
-	if cnt != int64(len(ids)) {
-		return errors.New("one or more labels not in organization")
-	}
-	return nil
-}
-
-func ensureAnnotationsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
-	if len(ids) == 0 {
-		return nil
-	}
-	var cnt int64
-	if err := db.DB.Model(&models.Annotation{}).
-		Where("organization_id = ? AND id IN ?", orgID, ids).
-		Count(&cnt).Error; err != nil {
-		return err
-	}
-	if cnt != int64(len(ids)) {
-		return errors.New("one or more annotations not in organization")
+		return errors.New("some taints do not belong to org")
 	}
 	return nil
 }

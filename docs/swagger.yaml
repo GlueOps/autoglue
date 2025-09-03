@@ -300,7 +300,6 @@ definitions:
       name:
         type: string
       server_ids:
-        description: optional initial servers
         items:
           type: string
         type: array
@@ -2848,8 +2847,8 @@ paths:
       consumes:
       - application/json
       description: 'Returns node taints for the organization in X-Org-ID. Filters:
-        `key`, `value`, and `q` (key contains). Add `include=node_groups` to include
-        linked node groups.'
+        `key`, `value`, and `q` (key contains). Add `include=node_pools` to include
+        linked node pools.'
       parameters:
       - description: Organization UUID
         in: header
@@ -2989,7 +2988,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns one taint. Add `include=node_groups` to include node groups.
+      description: Returns one taint. Add `include=node_pools` to include node pools.
       parameters:
       - description: Organization UUID
         in: header

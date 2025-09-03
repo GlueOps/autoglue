@@ -3549,7 +3549,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns node taints for the organization in X-Org-ID. Filters: ` + "`" + `key` + "`" + `, ` + "`" + `value` + "`" + `, and ` + "`" + `q` + "`" + ` (key contains). Add ` + "`" + `include=node_groups` + "`" + ` to include linked node groups.",
+                "description": "Returns node taints for the organization in X-Org-ID. Filters: ` + "`" + `key` + "`" + `, ` + "`" + `value` + "`" + `, and ` + "`" + `q` + "`" + ` (key contains). Add ` + "`" + `include=node_pools` + "`" + ` to include linked node pools.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3699,7 +3699,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns one taint. Add ` + "`" + `include=node_groups` + "`" + ` to include node groups.",
+                "description": "Returns one taint. Add ` + "`" + `include=node_pools` + "`" + ` to include node pools.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4620,7 +4620,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "server_ids": {
-                    "description": "optional initial servers",
                     "type": "array",
                     "items": {
                         "type": "string"
