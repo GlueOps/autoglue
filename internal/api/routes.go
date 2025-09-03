@@ -118,6 +118,8 @@ func RegisterRoutes(r chi.Router) {
 				l.Get("/", labels.ListLabels)
 				l.Post("/", labels.CreateLabel)
 				l.Get("/{id}", labels.GetLabel)
+				l.Patch("/{id}", labels.UpdateLabel)
+				l.Delete("/{id}", labels.DeleteLabel)
 			})
 		})
 	})

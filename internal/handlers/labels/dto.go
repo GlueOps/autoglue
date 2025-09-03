@@ -19,3 +19,8 @@ type createLabelRequest struct {
 	Value       string   `json:"value"`
 	NodePoolIDs []string `json:"node_pool_ids,omitempty"`
 }
+
+type updateLabelRequest struct {
+	Key   *string `json:"key"`
+	Value *string `json:"value"`
+}

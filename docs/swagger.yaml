@@ -183,6 +183,13 @@ definitions:
       name:
         type: string
     type: object
+  labels.updateLabelRequest:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+    type: object
   models.Member:
     properties:
       created_at:
@@ -1104,6 +1111,154 @@ paths:
       security:
       - BearerAuth: []
       summary: Create label (org scoped)
+      tags:
+      - labels
+  /api/v1/labels/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the label.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete label (org scoped)
+      tags:
+      - labels
+    get:
+      consumes:
+      - application/json
+      description: Returns one label. Add `include=node_pools` to include node groups.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/labels.labelResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get label by ID (org scoped)
+      tags:
+      - labels
+    patch:
+      consumes:
+      - application/json
+      description: Partially update label fields.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/labels.updateLabelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/labels.labelResponse'
+        "400":
+          description: invalid id / invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update label (org scoped)
       tags:
       - labels
   /api/v1/node-pools:

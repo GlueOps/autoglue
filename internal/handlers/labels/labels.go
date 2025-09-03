@@ -79,7 +79,6 @@ func ListLabels(w http.ResponseWriter, r *http.Request) {
 // @Failure      404 {string} string "not found"
 // @Failure      500 {string} string "fetch failed"
 // @Router       /api/v1/labels/{id} [get]
-
 func GetLabel(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -176,5 +175,99 @@ func CreateLabel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = response.JSON(w, http.StatusCreated, toResp(t, false))
+}
 
+// UpdateLabel godoc
+// @Summary      Update label (org scoped)
+// @Description  Partially update label fields.
+// @Tags         labels
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Label ID (UUID)"
+// @Param        body body updateLabelRequest true "Fields to update"
+// @Security     BearerAuth
+// @Success      200 {object} labelResponse
+// @Failure      400 {string} string "invalid id / invalid json"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "update failed"
+// @Router       /api/v1/labels/{id} [patch]
+func UpdateLabel(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var t models.Label
+	if err := db.DB.Where("id = ? AND organization_id = ?", id, ac.OrganizationID).First(&t).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	var req updateLabelRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid json or missing key/value", http.StatusBadRequest)
+		return
+	}
+	if req.Key != nil {
+		t.Key = strings.TrimSpace(*req.Key)
+	}
+	if req.Value != nil {
+		t.Value = strings.TrimSpace(*req.Value)
+	}
+
+	if err := db.DB.Save(&t).Error; err != nil {
+		http.Error(w, "update failed", http.StatusInternalServerError)
+		return
+	}
+	_ = response.JSON(w, http.StatusOK, toResp(t, false))
+}
+
+// DeleteLabel godoc
+// @Summary      Delete label (org scoped)
+// @Description  Permanently deletes the label.
+// @Tags         labels
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Label ID (UUID)"
+// @Security     BearerAuth
+// @Success      204 {string} string "No Content"
+// @Failure      400 {string} string "invalid id"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      500 {string} string "delete failed"
+// @Router       /api/v1/labels/{id} [delete]
+func DeleteLabel(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	if err := db.DB.Where("id = ? AND organization_id = ?", id, ac.OrganizationID).Delete(&models.Taint{}).Error; err != nil {
+		http.Error(w, "delete failed", http.StatusInternalServerError)
+		return
+	}
+
+	response.NoContent(w)
 }
