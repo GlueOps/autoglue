@@ -4,6 +4,7 @@ import (
 	httpPprof "net/http/pprof"
 
 	"github.com/glueops/autoglue/internal/config"
+	"github.com/glueops/autoglue/internal/handlers/annotations"
 	"github.com/glueops/autoglue/internal/handlers/authn"
 	"github.com/glueops/autoglue/internal/handlers/health"
 	"github.com/glueops/autoglue/internal/handlers/labels"
@@ -52,6 +53,18 @@ func RegisterRoutes(r chi.Router) {
 					pr.Post("/password/change", authn.ChangePassword)
 					pr.Post("/refresh/rotate", authn.RotateRefreshToken)
 				})
+			})
+
+			v1.Route("/annotations", func(a chi.Router) {
+				a.Use(authMW)
+				a.Get("/", annotations.ListAnnotations)
+				a.Post("/", annotations.CreateAnnotation)
+				a.Get("/{id}", annotations.GetAnnotation)
+				a.Patch("/{id}", annotations.UpdateAnnotation)
+				a.Delete("/{id}", annotations.DeleteAnnotation)
+				a.Get("/{id}/node_pools", annotations.ListNodePoolsWithAnnotation)
+				a.Post("/{id}/node_pools", annotations.AddAnnotationToNodePools)
+				a.Delete("/{id}/node_pools/{poolId}", annotations.RemoveAnnotationFromNodePool)
 			})
 
 			v1.Route("/orgs", func(o chi.Router) {

@@ -1,5 +1,50 @@
 basePath: /
 definitions:
+  annotations.addAnnotationToNodePool:
+    properties:
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  annotations.annotationResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      node_pools:
+        items:
+          $ref: '#/definitions/annotations.nodePoolBrief'
+        type: array
+      value:
+        type: string
+    type: object
+  annotations.createAnnotationRequest:
+    properties:
+      name:
+        type: string
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+      value:
+        type: string
+    type: object
+  annotations.nodePoolBrief:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  annotations.updateAnnotationRequest:
+    properties:
+      name:
+        type: string
+      value:
+        type: string
+    type: object
   authn.AdminCreateUserRequest:
     properties:
       email:
@@ -726,6 +771,414 @@ paths:
       summary: 'Admin: update user'
       tags:
       - admin
+  /api/v1/annotations:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns annotations for the organization in X-Org-ID. Filters:
+        `name`, `value`, and `q` (name contains). Add `include=node_pools` to include
+        linked node pools.'
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Exact name
+        in: query
+        name: name
+        type: string
+      - description: Exact value
+        in: query
+        name: value
+        type: string
+      - description: name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/annotations.annotationResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list annotations
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List annotations (org scoped)
+      tags:
+      - annotations
+    post:
+      consumes:
+      - application/json
+      description: Creates an annotation. Optionally link to node pools.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/annotations.createAnnotationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/annotations.annotationResponse'
+        "400":
+          description: invalid json / missing fields / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create annotation (org scoped)
+      tags:
+      - annotations
+  /api/v1/annotations/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the annotation.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete annotation (org scoped)
+      tags:
+      - annotations
+    get:
+      consumes:
+      - application/json
+      description: Returns one annotation. Add `include=node_pools` to include node
+        pools.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/annotations.annotationResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get annotation by ID (org scoped)
+      tags:
+      - annotations
+    patch:
+      consumes:
+      - application/json
+      description: Partially update annotation fields.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/annotations.updateAnnotationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/annotations.annotationResponse'
+        "400":
+          description: invalid id / invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update annotation (org scoped)
+      tags:
+      - annotations
+  /api/v1/annotations/{id}/node_pools:
+    get:
+      consumes:
+      - application/json
+      description: Returns node pools attached to the annotation. Supports `q` (name
+        contains, case-insensitive).
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/annotations.nodePoolBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List node pools linked to an annotation (org scoped)
+      tags:
+      - annotations
+    post:
+      consumes:
+      - application/json
+      description: Links the annotation to one or more node pools in the same organization.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: IDs to attach
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/annotations.addAnnotationToNodePool'
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/annotations.annotationResponse'
+        "400":
+          description: invalid id / invalid json / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach annotation to node pools (org scoped)
+      tags:
+      - annotations
+  /api/v1/annotations/{id}/node_pools/{poolId}:
+    delete:
+      consumes:
+      - application/json
+      description: Unlinks the annotation from the specified node pool.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach annotation from a node pool (org scoped)
+      tags:
+      - annotations
   /api/v1/auth/introspect:
     post:
       consumes:
