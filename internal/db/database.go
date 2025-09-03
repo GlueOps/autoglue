@@ -26,17 +26,22 @@ func Connect() {
 	}
 
 	err = DB.AutoMigrate(
+		&models.Annotation{},
+		&models.Cluster{},
 		&models.Credential{},
 		&models.EmailVerification{},
 		&models.Invitation{},
+		&models.Label{},
 		&models.MasterKey{},
 		&models.Member{},
+		&models.NodePool{},
 		&models.Organization{},
 		&models.OrganizationKey{},
 		&models.PasswordReset{},
 		&models.RefreshToken{},
 		&models.Server{},
 		&models.SshKey{},
+		&models.Taint{},
 		&models.User{},
 	)
 	if err != nil {

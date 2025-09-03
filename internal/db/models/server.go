@@ -13,5 +13,6 @@ type Server struct {
 	SshKey         SshKey       `gorm:"foreignKey:SshKeyID"`
 	Role           string       `gorm:"not null"`          // e.g., "master", "worker", "bastion"
 	Status         string       `gorm:"default:'pending'"` // pending, provisioning, ready, failed
+	NodePools      []NodePool   `gorm:"many2many:node_servers;constraint:OnDelete:CASCADE" json:"servers,omitempty"`
 	Timestamped
 }

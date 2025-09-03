@@ -107,7 +107,7 @@ export const DashboardSidebar = () => {
       } catch {
         // ignore; unauthenticated users shouldn't be here anyway under ProtectedRoute
       } finally {
-        if (!alive) return
+        // if (!alive) return
         setLoading(false)
       }
     })()
@@ -122,13 +122,15 @@ export const DashboardSidebar = () => {
     return filterItems(items, admin, orgAdmin)
   }, [me])
 
+  if (loading) return <div className="p-6">Loading…</div>
+
   return (
     <Sidebar>
       <SidebarHeader className="flex items-center justify-between p-4">
         <h1 className="text-xl font-bold">AutoGlue</h1>
       </SidebarHeader>
       <SidebarContent>
-        {(loading ? items : visibleItems).map((item, i) => (
+        {visibleItems.map((item, i) => (
           <MenuItem item={item} key={i} />
         ))}
       </SidebarContent>

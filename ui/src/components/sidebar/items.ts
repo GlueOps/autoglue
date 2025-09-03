@@ -40,13 +40,13 @@ export const items = [
     items: [
       {
         label: "Cluster",
-        to: "/core/cluster",
+        to: "/core/clusters",
         icon: AiOutlineCluster,
       },
       {
         label: "Node Pools",
         icon: BoxesIcon,
-        to: "/core/node-pools",
+        to: "/core/nodepools",
       },
       {
         label: "Annotations",

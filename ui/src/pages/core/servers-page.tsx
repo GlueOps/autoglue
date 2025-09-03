@@ -86,7 +86,7 @@ const CreateServerSchema = z.object({
   hostname: z.string().trim().max(120, "Max 120 chars").optional(),
   ip_address: z.string().trim().min(1, "IP address is required"),
   role: z.enum(ROLE_OPTIONS),
-  ssh_key_id: z.string().uuid("Pick a valid SSH key"),
+  ssh_key_id: z.uuid("Pick a valid SSH key"),
   ssh_user: z.string().trim().min(1, "SSH user is required"),
   status: z.enum(STATUS).default("pending"),
 })
@@ -158,9 +158,9 @@ export const ServersPage = () => {
   }
 
   useEffect(() => {
-    loadAll()
+    void loadAll()
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "active_org_id") loadAll()
+      if (e.key === "active_org_id") void loadAll()
     }
     window.addEventListener("storage", onStorage)
     return () => window.removeEventListener("storage", onStorage)
@@ -168,7 +168,7 @@ export const ServersPage = () => {
   }, [])
 
   useEffect(() => {
-    loadAll()
+    void loadAll()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, roleFilter])
 

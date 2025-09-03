@@ -10,7 +10,12 @@ import { Me } from "@/pages/auth/me.tsx"
 import { Register } from "@/pages/auth/register.tsx"
 import { ResetPassword } from "@/pages/auth/reset-password.tsx"
 import { VerifyEmail } from "@/pages/auth/verify-email.tsx"
+import { AnnotationsPage } from "@/pages/core/annotations-page.tsx"
+import { ClustersPage } from "@/pages/core/clusters-page.tsx"
+import { LabelsPage } from "@/pages/core/labels-page.tsx"
+import { NodePoolPage } from "@/pages/core/nodepool-page.tsx"
 import { ServersPage } from "@/pages/core/servers-page.tsx"
+import { TaintsPage } from "@/pages/core/taints-page.tsx"
 import { Forbidden } from "@/pages/error/forbidden.tsx"
 import { NotFoundPage } from "@/pages/error/not-found.tsx"
 import { SshKeysPage } from "@/pages/security/ssh.tsx"
@@ -20,7 +25,6 @@ import { OrgManagement } from "@/pages/settings/orgs.tsx"
 function App() {
   return (
     <Routes>
-      <Route path="/403" element={<Forbidden />} />
       <Route path="/" element={<Navigate to="/auth/login" replace />} />
       {/* Public/auth branch */}
       <Route path="/auth">
@@ -40,13 +44,12 @@ function App() {
           </Route>
 
           <Route path="/core">
+            <Route path="annotations" element={<AnnotationsPage />} />
+            <Route path="clusters" element={<ClustersPage />} />
+            <Route path="labels" element={<LabelsPage />} />
+            <Route path="nodepools" element={<NodePoolPage />} />
             <Route path="servers" element={<ServersPage />} />
-            {/*
-              <Route path="cluster" element={<ClusterListPage />} />
-            <Route path="node-pools" element={<NodePoolsPage />} />
-
             <Route path="taints" element={<TaintsPage />} />
-            */}
           </Route>
 
           <Route path="/security">
@@ -58,10 +61,13 @@ function App() {
             <Route path="members" element={<MemberManagement />} />
             <Route path="me" element={<Me />} />
           </Route>
+          <Route path="/403" element={<Forbidden />} />
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Route>
+      <Route path="/403" element={<Forbidden />} />
+
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )

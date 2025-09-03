@@ -70,7 +70,7 @@ clean:
 	@echo ">> Cleaning artifacts..."
 	@rm -rf $(BIN) docs/swagger.* docs/docs.go $(UI_DIR)/dist
 
-dev: swagger ui
+dev: swagger
 	@echo ">> Starting Vite (frontend) and Go API (backend)..."
 	@cd $(UI_DIR) && \
 		( \

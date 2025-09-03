@@ -152,6 +152,37 @@ definitions:
         type: string
       updated_at: {}
     type: object
+  labels.createLabelRequest:
+    properties:
+      key:
+        type: string
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+      value:
+        type: string
+    type: object
+  labels.labelResponse:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      node_groups:
+        items:
+          $ref: '#/definitions/labels.nodePoolBrief'
+        type: array
+      value:
+        type: string
+    type: object
+  labels.nodePoolBrief:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   models.Member:
     properties:
       created_at:
@@ -227,6 +258,70 @@ definitions:
       role:
         $ref: '#/definitions/models.Role'
       updated_at:
+        type: string
+    type: object
+  nodepools.attachServersRequest:
+    properties:
+      server_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  nodepools.attachTaintsRequest:
+    properties:
+      taint_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  nodepools.createNodePoolRequest:
+    properties:
+      name:
+        type: string
+      server_ids:
+        description: optional initial servers
+        items:
+          type: string
+        type: array
+    type: object
+  nodepools.nodePoolResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      servers:
+        items:
+          $ref: '#/definitions/nodepools.serverBrief'
+        type: array
+    type: object
+  nodepools.serverBrief:
+    properties:
+      hostname:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+    type: object
+  nodepools.taintBrief:
+    properties:
+      effect:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  nodepools.updateNodePoolRequest:
+    properties:
+      name:
         type: string
     type: object
   orgs.InviteInput:
@@ -349,6 +444,57 @@ definitions:
       public_keys:
         type: string
       updated_at:
+        type: string
+    type: object
+  taints.addTaintToPoolRequest:
+    properties:
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  taints.createTaintRequest:
+    properties:
+      effect:
+        type: string
+      key:
+        type: string
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+      value:
+        type: string
+    type: object
+  taints.nodePoolBrief:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  taints.taintResponse:
+    properties:
+      effect:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+      node_groups:
+        items:
+          $ref: '#/definitions/taints.nodePoolBrief'
+        type: array
+      value:
+        type: string
+    type: object
+  taints.updateTaintRequest:
+    properties:
+      effect:
+        type: string
+      key:
+        type: string
+      value:
         type: string
     type: object
 info:
@@ -861,6 +1007,649 @@ paths:
       summary: Resend email verification
       tags:
       - auth
+  /api/v1/labels:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns node labels for the organization in X-Org-ID. Filters:
+        `name`, `value`, and `q` (name contains). Add `include=node_pools` to include
+        linked node groups.'
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Exact name
+        in: query
+        name: name
+        type: string
+      - description: Exact value
+        in: query
+        name: value
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/labels.labelResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list node taints
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List node labels (org scoped)
+      tags:
+      - labels
+    post:
+      consumes:
+      - application/json
+      description: Creates a label. Optionally link to node pools.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Label payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/labels.createLabelRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/labels.labelResponse'
+        "400":
+          description: invalid json / missing fields / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create label (org scoped)
+      tags:
+      - labels
+  /api/v1/node-pools:
+    get:
+      consumes:
+      - application/json
+      description: Returns node pools for the organization in X-Org-ID. Add `include=servers`
+        to include attached servers. Filter by `q` (name contains).
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      - description: 'Optional: servers'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/nodepools.nodePoolResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list node groups
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List node pools (org scoped)
+      tags:
+      - node-pools
+    post:
+      consumes:
+      - application/json
+      description: Creates a node group. Optionally attach initial servers.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: NodeGroup payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nodepools.createNodePoolRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/nodepools.nodePoolResponse'
+        "400":
+          description: invalid json / missing fields / invalid server_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create node group (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the node pool.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete node pool (org scoped)
+      tags:
+      - node-pools
+    get:
+      consumes:
+      - application/json
+      description: Returns one node group. Add `include=servers` to include servers.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Optional: servers'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/nodepools.nodePoolResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get node group by ID (org scoped)
+      tags:
+      - node-pools
+    patch:
+      consumes:
+      - application/json
+      description: Partially update node pool fields.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nodepools.updateNodePoolRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/nodepools.nodePoolResponse'
+        "400":
+          description: invalid id / invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update node pool (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/servers:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/nodepools.serverBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List servers attached to a node pool (org scoped)
+      tags:
+      - node-pools
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Server IDs to attach
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nodepools.attachServersRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid server_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach servers to a node pool (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/servers/{serverId}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Server ID (UUID)
+        in: path
+        name: serverId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach one server from a node pool (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/taints:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/nodepools.taintBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List taints attached to a node pool (org scoped)
+      tags:
+      - node-pools
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Taint IDs to attach
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nodepools.attachTaintsRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid taint_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach taints to a node pool (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/taints/{taintId}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Taint ID (UUID)
+        in: path
+        name: taintId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach one taint from a node pool (org scoped)
+      tags:
+      - node-pools
   /api/v1/orgs:
     get:
       produces:
@@ -1534,6 +2323,364 @@ paths:
       summary: Download ssh key files by ID (org scoped)
       tags:
       - ssh
+  /api/v1/taints:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns node taints for the organization in X-Org-ID. Filters:
+        `name`, `value`, and `q` (name contains). Add `include=node_groups` to include
+        linked node groups.'
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Exact name
+        in: query
+        name: name
+        type: string
+      - description: Exact value
+        in: query
+        name: value
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taints.taintResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list node taints
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List node taints (org scoped)
+      tags:
+      - taints
+    post:
+      consumes:
+      - application/json
+      description: Creates a taint. Optionally link to node pools.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Taint payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/taints.createTaintRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/taints.taintResponse'
+        "400":
+          description: invalid json / missing fields / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create node taint (org scoped)
+      tags:
+      - taints
+  /api/v1/taints/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the taint.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Taint ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete taint (org scoped)
+      tags:
+      - taints
+    get:
+      consumes:
+      - application/json
+      description: Returns one taint. Add `include=node_groups` to include node groups.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Taint ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/taints.taintResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get node taint by ID (org scoped)
+      tags:
+      - taints
+    patch:
+      consumes:
+      - application/json
+      description: Partially update taint fields.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Taint ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/taints.updateTaintRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/taints.taintResponse'
+        "400":
+          description: invalid id / invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update node taint (org scoped)
+      tags:
+      - taints
+  /api/v1/taints/{id}/node_pools:
+    post:
+      consumes:
+      - application/json
+      description: Links the taint to one or more node pools in the same organization.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Taint ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: IDs to attach
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/taints.addTaintToPoolRequest'
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/taints.taintResponse'
+        "400":
+          description: invalid id / invalid json / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach taint to node pools (org scoped)
+      tags:
+      - taints
+  /api/v1/taints/{id}/node_pools/{poolId}:
+    delete:
+      consumes:
+      - application/json
+      description: Unlinks the taint from the specified node pool.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Taint ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: poolId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach taint from a node pool (org scoped)
+      tags:
+      - taints
 schemes:
 - http
 securityDefinitions:

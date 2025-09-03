@@ -6,9 +6,12 @@ import (
 	"github.com/glueops/autoglue/internal/config"
 	"github.com/glueops/autoglue/internal/handlers/authn"
 	"github.com/glueops/autoglue/internal/handlers/health"
+	"github.com/glueops/autoglue/internal/handlers/labels"
+	"github.com/glueops/autoglue/internal/handlers/nodepools"
 	"github.com/glueops/autoglue/internal/handlers/orgs"
 	"github.com/glueops/autoglue/internal/handlers/servers"
 	"github.com/glueops/autoglue/internal/handlers/ssh"
+	"github.com/glueops/autoglue/internal/handlers/taints"
 	"github.com/glueops/autoglue/internal/middleware"
 	"github.com/glueops/autoglue/internal/ui"
 	"github.com/go-chi/chi/v5"
@@ -80,6 +83,42 @@ func RegisterRoutes(r chi.Router) {
 				s.Delete("/{id}", servers.DeleteServer)
 			})
 
+			v1.Route("/node-pools", func(np chi.Router) {
+				np.Use(authMW)
+				np.Get("/", nodepools.ListNodePools)
+				np.Post("/", nodepools.CreateNodePool)
+				np.Get("/{id}", nodepools.GetNodePool)
+				np.Patch("/{id}", nodepools.UpdateNodePool)
+				np.Delete("/{id}", nodepools.DeleteNodePool)
+
+				// servers
+				np.Get("/{id}/servers", nodepools.ListNodePoolServers)
+				np.Post("/{id}/servers", nodepools.AttachNodePoolServers)
+				np.Delete("/{id}/servers/{serverId}", nodepools.DetachNodePoolServer)
+
+				// taints
+				np.Get("/{id}/taints", nodepools.ListNodePoolTaints)
+				np.Post("/{id}/taints", nodepools.AttachNodePoolTaints)
+				np.Delete("/{id}/taints/{taintId}", nodepools.DetachNodePoolTaint)
+			})
+
+			v1.Route("/taints", func(t chi.Router) {
+				t.Use(authMW)
+				t.Get("/", taints.ListTaints)
+				t.Post("/", taints.CreateTaint)
+				t.Get("/{id}", taints.GetTaint)
+				t.Patch("/{id}", taints.UpdateTaint)
+				t.Delete("/{id}", taints.DeleteTaint)
+				t.Post("/{id}/node_pools", taints.AddTaintToNodePool)
+				t.Delete("/{id}/node_pools/{poolId}", taints.RemoveTaintFromNodePool)
+			})
+
+			v1.Route("/labels", func(l chi.Router) {
+				l.Use(authMW)
+				l.Get("/", labels.ListLabels)
+				l.Post("/", labels.CreateLabel)
+				l.Get("/{id}", labels.GetLabel)
+			})
 		})
 	})
 
