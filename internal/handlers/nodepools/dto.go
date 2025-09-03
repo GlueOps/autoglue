@@ -41,3 +41,23 @@ type taintBrief struct {
 type attachTaintsRequest struct {
 	TaintIDs []string `json:"taint_ids"`
 }
+
+type labelBrief struct {
+	ID    uuid.UUID `json:"id"`
+	Key   string    `json:"key"`
+	Value string    `json:"value"`
+}
+
+type attachLabelsRequest struct {
+	LabelIDs []string `json:"label_ids"`
+}
+
+type annotationBrief struct {
+	ID    uuid.UUID `json:"id"`
+	Key   string    `json:"key"`
+	Value string    `json:"value"`
+}
+
+type attachAnnotationsRequest struct {
+	AnnotationIDs []string `json:"annotation_ids"`
+}

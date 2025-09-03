@@ -624,3 +624,185 @@ func DetachNodePoolTaint(w http.ResponseWriter, r *http.Request) {
 	}
 	response.NoContent(w)
 }
+
+// ListNodePoolLabels godoc
+// @Summary      List labels attached to a node pool (org scoped)
+// @Tags         node-pools
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Node Pool ID (UUID)"
+// @Security     BearerAuth
+// @Success      200 {array}  labelBrief
+// @Failure      400 {string} string "invalid id"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "fetch failed"
+// @Router       /api/v1/node-pools/{id}/labels [get]
+func ListNodePoolLabels(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	ngID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var ng models.NodePool
+	if err := db.DB.Where("id = ? AND organization_id = ?", ngID, ac.OrganizationID).
+		Preload("Labels").First(&ng).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	out := make([]labelBrief, 0, len(ng.Labels))
+	for _, l := range ng.Labels {
+		out = append(out, labelBrief{
+			ID:    l.ID,
+			Key:   l.Key,
+			Value: l.Value,
+		})
+	}
+	_ = response.JSON(w, http.StatusOK, out)
+}
+
+// AttachNodePoolLabels godoc
+// @Summary      Attach labels to a node pool (org scoped)
+// @Tags         node-pools
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Node Pool ID (UUID)"
+// @Param        body body attachLabelsRequest true "Label IDs to attach"
+// @Security     BearerAuth
+// @Success      204 {string} string "No Content"
+// @Failure      400 {string} string "invalid id / invalid label_ids"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "attach failed"
+// @Router       /api/v1/node-pools/{id}/labels [post]
+func AttachNodePoolLabels(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	ngID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var ng models.NodePool
+	if err := db.DB.Where("id = ? AND organization_id = ?", ngID, ac.OrganizationID).
+		First(&ng).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	var body attachLabelsRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || len(body.LabelIDs) == 0 {
+		http.Error(w, "invalid label_ids", http.StatusBadRequest)
+		return
+	}
+
+	ids, err := parseUUIDs(body.LabelIDs) // already used in this package for servers/taints
+	if err != nil {
+		http.Error(w, "invalid label_ids", http.StatusBadRequest)
+		return
+	}
+	if err := ensureLabelsBelongToOrg(ac.OrganizationID, ids); err != nil {
+		http.Error(w, "invalid label_ids for this organization", http.StatusBadRequest)
+		return
+	}
+
+	var labels []models.Label
+	if err := db.DB.Where("id IN ? AND organization_id = ?", ids, ac.OrganizationID).
+		Find(&labels).Error; err != nil {
+		http.Error(w, "attach failed", http.StatusInternalServerError)
+		return
+	}
+	if err := db.DB.Model(&ng).Association("Labels").Append(&labels); err != nil {
+		http.Error(w, "attach failed", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// DetachNodePoolLabel godoc
+// @Summary      Detach one label from a node pool (org scoped)
+// @Tags         node-pools
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Node Pool ID (UUID)"
+// @Param        labelId path string true "Label ID (UUID)"
+// @Security     BearerAuth
+// @Success      204 {string} string "No Content"
+// @Failure      400 {string} string "invalid id"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "detach failed"
+// @Router       /api/v1/node-pools/{id}/labels/{labelId} [delete]
+func DetachNodePoolLabel(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	ngID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	lid, err := uuid.Parse(chi.URLParam(r, "labelId"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var ng models.NodePool
+	if err := db.DB.Where("id = ? AND organization_id = ?", ngID, ac.OrganizationID).
+		First(&ng).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	var l models.Label
+	if err := db.DB.Where("id = ? AND organization_id = ?", lid, ac.OrganizationID).
+		First(&l).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	if err := db.DB.Model(&ng).Association("Labels").Delete(&l); err != nil {
+		http.Error(w, "detach failed", http.StatusInternalServerError)
+		return
+	}
+	response.NoContent(w)
+}

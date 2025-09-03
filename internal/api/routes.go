@@ -100,6 +100,11 @@ func RegisterRoutes(r chi.Router) {
 				np.Get("/{id}/taints", nodepools.ListNodePoolTaints)
 				np.Post("/{id}/taints", nodepools.AttachNodePoolTaints)
 				np.Delete("/{id}/taints/{taintId}", nodepools.DetachNodePoolTaint)
+
+				// labels
+				np.Get("/{id}/labels", nodepools.ListNodePoolLabels)
+				np.Post("/{id}/labels", nodepools.AttachNodePoolLabels)
+				np.Delete("/{id}/labels/{labelId}", nodepools.DetachNodePoolLabel)
 			})
 
 			v1.Route("/taints", func(t chi.Router) {
@@ -110,6 +115,7 @@ func RegisterRoutes(r chi.Router) {
 				t.Patch("/{id}", taints.UpdateTaint)
 				t.Delete("/{id}", taints.DeleteTaint)
 				t.Post("/{id}/node_pools", taints.AddTaintToNodePool)
+				t.Get("/{id}/node_pools", taints.ListNodePoolsWithTaint)
 				t.Delete("/{id}/node_pools/{poolId}", taints.RemoveTaintFromNodePool)
 			})
 
@@ -120,6 +126,9 @@ func RegisterRoutes(r chi.Router) {
 				l.Get("/{id}", labels.GetLabel)
 				l.Patch("/{id}", labels.UpdateLabel)
 				l.Delete("/{id}", labels.DeleteLabel)
+				l.Get("/{id}/node_pools", labels.ListNodePoolsWithLabel)
+				l.Post("/{id}/node_pools", labels.AddLabelToNodePool)
+				l.Delete("/{id}/node_pools/{poolId}", labels.RemoveLabelFromNodePool)
 			})
 		})
 	})

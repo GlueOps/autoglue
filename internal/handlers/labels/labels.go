@@ -17,14 +17,14 @@ import (
 
 // ListLabels godoc
 // @Summary      List node labels (org scoped)
-// @Description  Returns node labels for the organization in X-Org-ID. Filters: `name`, `value`, and `q` (name contains). Add `include=node_pools` to include linked node groups.
+// @Description  Returns node labels for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node groups.
 // @Tags         labels
 // @Accept       json
 // @Produce      json
 // @Param        X-Org-ID header string true "Organization UUID"
-// @Param        name query string false "Exact name"
+// @Param        key query string false "Exact key"
 // @Param        value query string false "Exact value"
-// @Param        q query string false "Name contains (case-insensitive)"
+// @Param        q query string false "Key contains (case-insensitive)"
 // @Param        include query string false "Optional: node_pools"
 // @Security     BearerAuth
 // @Success      200 {array}  labelResponse
@@ -39,19 +39,25 @@ func ListLabels(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := db.DB.Where("organization_id = ?", ac.OrganizationID)
+	qb := db.DB.Where("organization_id = ?", ac.OrganizationID)
+	if key := strings.TrimSpace(r.URL.Query().Get("key")); key != "" {
+		qb = qb.Where(`"key" = ?`, key)
+	}
+	if val := strings.TrimSpace(r.URL.Query().Get("value")); val != "" {
+		qb = qb.Where(`"value" = ?`, val)
+	}
 	if needle := strings.TrimSpace(r.URL.Query().Get("q")); needle != "" {
-		q = q.Where("name ILIKE ?", "%"+needle+"%")
+		qb = qb.Where("name ILIKE ?", "%"+needle+"%")
 	}
 
 	includePools := strings.EqualFold(strings.TrimSpace(r.URL.Query().Get("include")), "node_pools")
 	if includePools {
-		q.Preload("NodePools")
+		qb.Preload("NodePools")
 	}
 
 	var rows []models.Label
-	if err := q.Order("created_at DESC").Find(&rows).Error; err != nil {
-		http.Error(w, "failed to list taints", http.StatusInternalServerError)
+	if err := qb.Order("created_at DESC").Find(&rows).Error; err != nil {
+		http.Error(w, "failed to list labels", http.StatusInternalServerError)
 		return
 	}
 
@@ -264,8 +270,223 @@ func DeleteLabel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.DB.Where("id = ? AND organization_id = ?", id, ac.OrganizationID).Delete(&models.Taint{}).Error; err != nil {
+	if err := db.DB.Where("id = ? AND organization_id = ?", id, ac.OrganizationID).Delete(&models.Label{}).Error; err != nil {
 		http.Error(w, "delete failed", http.StatusInternalServerError)
+		return
+	}
+
+	response.NoContent(w)
+}
+
+// ListNodePoolsWithLabel godoc
+// @Summary      List node pools linked to a label (org scoped)
+// @Description  Returns node pools attached to the label. Supports `q` (name contains, case-insensitive).
+// @Tags         labels
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Label ID (UUID)"
+// @Param        q query string false "Name contains (case-insensitive)"
+// @Security     BearerAuth
+// @Success      200 {array}  nodePoolBrief
+// @Failure      400 {string} string "invalid id"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "fetch failed"
+// @Router       /api/v1/labels/{id}/node_pools [get]
+func ListNodePoolsWithLabel(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	labelID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure the label exists and belongs to this org
+	var l models.Label
+	if err := db.DB.Where("id = ? AND organization_id = ?", labelID, ac.OrganizationID).
+		First(&l).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	// Query pools through the join table defined on the model: many2many:node_labels
+	q := db.DB.Model(&models.NodePool{}).
+		Joins("JOIN node_labels nl ON nl.node_pool_id = node_pools.id").
+		Where("nl.label_id = ? AND node_pools.organization_id = ?", labelID, ac.OrganizationID)
+
+	if needle := strings.TrimSpace(r.URL.Query().Get("q")); needle != "" {
+		q = q.Where("node_pools.name ILIKE ?", "%"+needle+"%")
+	}
+
+	var pools []models.NodePool
+	if err := q.Order("node_pools.created_at DESC").Find(&pools).Error; err != nil {
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	out := make([]nodePoolBrief, 0, len(pools))
+	for _, p := range pools {
+		out = append(out, nodePoolBrief{ID: p.ID, Name: p.Name})
+	}
+
+	_ = response.JSON(w, http.StatusOK, out)
+}
+
+// AddLabelToNodePool godoc
+// @Summary      Attach label to node pools (org scoped)
+// @Description  Links the label to one or more node pools in the same organization.
+// @Tags         labels
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Label ID (UUID)"
+// @Param        body body addLabelToPoolRequest true "IDs to attach"
+// @Param        include query string false "Optional: node_pools"
+// @Security     BearerAuth
+// @Success      200 {object} labelResponse
+// @Failure      400 {string} string "invalid id / invalid json / invalid node_pool_ids"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "attach failed"
+// @Router       /api/v1/labels/{id}/node_pools [post]
+func AddLabelToNodePool(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	labelID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var t models.Label
+	if err := db.DB.
+		Where("id = ? AND organization_id = ?", labelID, ac.OrganizationID).
+		First(&t).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	var in struct {
+		NodePoolIDs []string `json:"node_pool_ids"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil || len(in.NodePoolIDs) == 0 {
+		http.Error(w, "invalid json or empty node_pool_ids", http.StatusBadRequest)
+		return
+	}
+
+	ids, err := parseUUIDs(in.NodePoolIDs)
+	if err != nil {
+		http.Error(w, "invalid node_pool_ids", http.StatusBadRequest)
+		return
+	}
+	if err := ensureNodePoolsBelongToOrg(ac.OrganizationID, ids); err != nil {
+		http.Error(w, "invalid node_pool_ids for this organization", http.StatusBadRequest)
+		return
+	}
+
+	var pools []models.NodePool
+	if err := db.DB.
+		Where("id IN ? AND organization_id = ?", ids, ac.OrganizationID).
+		Find(&pools).Error; err != nil {
+		http.Error(w, "attach failed", http.StatusInternalServerError)
+		return
+	}
+	if err := db.DB.Model(&t).Association("NodePools").Append(&pools); err != nil {
+		http.Error(w, "attach failed", http.StatusInternalServerError)
+		return
+	}
+
+	includePools := strings.EqualFold(strings.TrimSpace(r.URL.Query().Get("include")), "node_pools")
+	if includePools {
+		if err := db.DB.Preload("NodePools").
+			First(&t, "id = ? AND organization_id = ?", labelID, ac.OrganizationID).Error; err != nil {
+			http.Error(w, "fetch failed", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	_ = response.JSON(w, http.StatusOK, toResp(t, includePools))
+}
+
+// RemoveLabelFromNodePool godoc
+// @Summary      Detach label from a node pool (org scoped)
+// @Description  Unlinks the label from the specified node pool.
+// @Tags         labels
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Label ID (UUID)"
+// @Param        poolId path string true "Node Pool ID (UUID)"
+// @Security     BearerAuth
+// @Success      204 {string} string "No Content"
+// @Failure      400 {string} string "invalid id"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "detach failed"
+// @Router       /api/v1/labels/{id}/node_pools/{poolId} [delete]
+func RemoveLabelFromNodePool(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	labelID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	poolID, err := uuid.Parse(chi.URLParam(r, "poolId"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var t models.Label
+	if err := db.DB.Where("id = ? AND organization_id = ?", labelID, ac.OrganizationID).
+		First(&t).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	var p models.NodePool
+	if err := db.DB.Where("id = ? AND organization_id = ?", poolID, ac.OrganizationID).
+		First(&p).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	if err := db.DB.Model(&t).Association("NodePools").Delete(&p); err != nil {
+		http.Error(w, "detach failed", http.StatusInternalServerError)
 		return
 	}
 

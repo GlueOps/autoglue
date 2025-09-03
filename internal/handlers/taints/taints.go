@@ -17,14 +17,14 @@ import (
 
 // ListTaints godoc
 // @Summary      List node taints (org scoped)
-// @Description  Returns node taints for the organization in X-Org-ID. Filters: `name`, `value`, and `q` (name contains). Add `include=node_groups` to include linked node groups.
+// @Description  Returns node taints for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_groups` to include linked node groups.
 // @Tags         taints
 // @Accept       json
 // @Produce      json
 // @Param        X-Org-ID header string true "Organization UUID"
-// @Param        name query string false "Exact name"
+// @Param        key query string false "Exact key"
 // @Param        value query string false "Exact value"
-// @Param        q query string false "Name contains (case-insensitive)"
+// @Param        q query string false "key contains (case-insensitive)"
 // @Param        include query string false "Optional: node_pools"
 // @Security     BearerAuth
 // @Success      200 {array}  taintResponse
@@ -40,6 +40,12 @@ func ListTaints(w http.ResponseWriter, r *http.Request) {
 	}
 
 	q := db.DB.Where("organization_id = ?", ac.OrganizationID)
+	if key := strings.TrimSpace(r.URL.Query().Get("key")); key != "" {
+		q = q.Where("key = ?", key)
+	}
+	if val := strings.TrimSpace(r.URL.Query().Get("value")); val != "" {
+		q = q.Where("value = ?", val)
+	}
 	if needle := strings.TrimSpace(r.URL.Query().Get("q")); needle != "" {
 		q = q.Where("name ILIKE ?", "%"+needle+"%")
 	}
@@ -422,4 +428,68 @@ func RemoveTaintFromNodePool(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.NoContent(w)
+}
+
+// ListNodePoolsWithTaint godoc
+// @Summary      List node pools linked to a taint (org scoped)
+// @Description  Returns node pools attached to the taint. Supports `q` (name contains, case-insensitive).
+// @Tags         taints
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Taint ID (UUID)"
+// @Param        q query string false "Name contains (case-insensitive)"
+// @Security     BearerAuth
+// @Success      200 {array}  nodePoolResponse
+// @Failure      400 {string} string "invalid id"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "fetch failed"
+// @Router       /api/v1/taints/{id}/node_pools [get]
+func ListNodePoolsWithTaint(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	taintID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure the taint exists and belongs to this org
+	var t models.Taint
+	if err := db.DB.Where("id = ? AND organization_id = ?", taintID, ac.OrganizationID).
+		First(&t).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	// Build query for pools linked via join table
+	q := db.DB.Model(&models.NodePool{}).
+		Joins("JOIN taint_node_pools tnp ON tnp.node_pool_id = node_pools.id").
+		Where("tnp.taint_id = ? AND node_pools.organization_id = ?", taintID, ac.OrganizationID)
+
+	if needle := strings.TrimSpace(r.URL.Query().Get("q")); needle != "" {
+		q = q.Where("node_pools.name ILIKE ?", "%"+needle+"%")
+	}
+
+	var pools []models.NodePool
+	if err := q.Order("node_pools.created_at DESC").Find(&pools).Error; err != nil {
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	// If you have a serializer like toNodePoolResp, use it; otherwise return models with JSON tags.
+	//out := make([]nodePoolResponse, 0, len(pools))
+	//for _, p := range pools { out = append(out, toNodePoolResp(p)) }
+
+	_ = response.JSON(w, http.StatusOK, pools)
 }

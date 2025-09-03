@@ -7,6 +7,7 @@ import {
   RefreshCw,
   Search,
   ServerIcon,
+  Tag,
   Trash,
   UnlinkIcon,
 } from "lucide-react"
@@ -49,6 +50,8 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx"
 
+/* ----------------------------- Types & Schemas ---------------------------- */
+
 type ServerBrief = {
   id: string
   hostname?: string | null
@@ -56,6 +59,16 @@ type ServerBrief = {
   ip_address?: string
   role?: string
   status?: string
+}
+
+type LabelBrief = {
+  id: string
+  key: string
+  value: string
+}
+
+type LabelWithPools = LabelBrief & {
+  node_groups?: { id: string; name: string }[]
 }
 
 type NodePool = {
@@ -66,7 +79,7 @@ type NodePool = {
 
 const CreatePoolSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120, "Max 120 chars"),
-  server_ids: z.array(z.uuid()).optional().default([]),
+  server_ids: z.array(z.string().uuid()).optional().default([]),
 })
 type CreatePoolInput = z.input<typeof CreatePoolSchema>
 type CreatePoolValues = z.output<typeof CreatePoolSchema>
@@ -77,9 +90,16 @@ const UpdatePoolSchema = z.object({
 type UpdatePoolValues = z.output<typeof UpdatePoolSchema>
 
 const AttachServersSchema = z.object({
-  server_ids: z.array(z.uuid()).min(1, "Pick at least one server"),
+  server_ids: z.array(z.string().uuid()).min(1, "Pick at least one server"),
 })
 type AttachServersValues = z.output<typeof AttachServersSchema>
+
+const AttachLabelsSchema = z.object({
+  label_ids: z.array(z.string().uuid()).min(1, "Pick at least one label"),
+})
+type AttachLabelsValues = z.output<typeof AttachLabelsSchema>
+
+/* --------------------------------- Utils --------------------------------- */
 
 function StatusBadge({ status }: { status?: string }) {
   const v =
@@ -109,28 +129,49 @@ function serverLabel(s: ServerBrief) {
   return `${name}${role}`
 }
 
+function labelKV(l: LabelBrief) {
+  return `${l.key}=${l.value}`
+}
+
+/* --------------------------------- Page ---------------------------------- */
+
 export const NodePoolPage = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [pools, setPools] = useState<NodePool[]>([])
   const [allServers, setAllServers] = useState<ServerBrief[]>([])
-  const [err, setErr] = useState<string | null>(null)
 
+  // Pull labels with include=node_pools so we can map them to pools
+  const [allLabels, setAllLabels] = useState<LabelWithPools[]>([])
+
+  const [err, setErr] = useState<string | null>(null)
   const [q, setQ] = useState("")
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<NodePool | null>(null)
+
+  // Servers dialog state
   const [manageTarget, setManageTarget] = useState<NodePool | null>(null)
+
+  // Labels dialog state
+  const [manageLabelsTarget, setManageLabelsTarget] = useState<NodePool | null>(null)
+  const [attachedLabels, setAttachedLabels] = useState<LabelBrief[]>([])
+  const [labelsLoading, setLabelsLoading] = useState(false)
+  const [labelsErr, setLabelsErr] = useState<string | null>(null)
+
+  /* ------------------------------- Data Load ------------------------------ */
 
   async function loadAll() {
     setLoading(true)
     setErr(null)
     try {
-      const [poolsData, serversData] = await Promise.all([
+      const [poolsData, serversData, labelsData] = await Promise.all([
         api.get<NodePool[]>("/api/v1/node-pools?include=servers"),
         api.get<ServerBrief[]>("/api/v1/servers"),
+        api.get<LabelWithPools[]>("/api/v1/labels?include=node_pools"),
       ])
       setPools(poolsData || [])
       setAllServers(serversData || [])
+      setAllLabels(labelsData || [])
 
       if (manageTarget) {
         const refreshed = (poolsData || []).find((p) => p.id === manageTarget.id) || null
@@ -140,18 +181,54 @@ export const NodePoolPage = () => {
         const refreshed = (poolsData || []).find((p) => p.id === editTarget.id) || null
         setEditTarget(refreshed)
       }
+      if (manageLabelsTarget) {
+        await loadAttachedLabels(manageLabelsTarget.id)
+      }
     } catch (e) {
       console.error(e)
-      const msg = e instanceof ApiError ? e.message : "Failed to load node pools or servers"
+      const msg = e instanceof ApiError ? e.message : "Failed to load node pools / servers / labels"
       setErr(msg)
     } finally {
       setLoading(false)
     }
   }
 
+  async function loadAttachedLabels(poolId: string) {
+    setLabelsLoading(true)
+    setLabelsErr(null)
+    try {
+      const data = await api.get<LabelBrief[]>(`/api/v1/node-pools/${poolId}/labels`)
+      setAttachedLabels(data || [])
+    } catch (e) {
+      console.error(e)
+      const msg = e instanceof ApiError ? e.message : "Failed to load labels for pool"
+      setLabelsErr(msg)
+    } finally {
+      setLabelsLoading(false)
+    }
+  }
+
   useEffect(() => {
     void loadAll()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /* ---------------------------- Labels per Pool --------------------------- */
+
+  // Build a quick lookup: poolId -> LabelBrief[]
+  const labelsByPool = useMemo(() => {
+    const map = new Map<string, LabelBrief[]>()
+    for (const l of allLabels) {
+      for (const ng of l.node_groups || []) {
+        const arr = map.get(ng.id) || []
+        arr.push({ id: l.id, key: l.key, value: l.value })
+        map.set(ng.id, arr)
+      }
+    }
+    return map
+  }, [allLabels])
+
+  /* -------------------------------- Filters ------------------------------- */
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -164,9 +241,15 @@ export const NodePoolPage = () => {
             (s.hostname || "").toLowerCase().includes(needle) ||
             (s.ip || s.ip_address || "").toLowerCase().includes(needle) ||
             (s.role || "").toLowerCase().includes(needle)
+        ) ||
+        (labelsByPool.get(p.id) || []).some(
+          (l) =>
+            l.key.toLowerCase().includes(needle) || (l.value || "").toLowerCase().includes(needle)
         )
     )
-  }, [pools, q])
+  }, [pools, q, labelsByPool])
+
+  /* ------------------------------ Mutations ------------------------------- */
 
   async function deletePool(id: string) {
     if (!confirm("Delete this node pool? This cannot be undone.")) return
@@ -174,6 +257,7 @@ export const NodePoolPage = () => {
     await loadAll()
   }
 
+  // Create Pool
   const createForm = useForm<CreatePoolInput, any, CreatePoolValues>({
     resolver: zodResolver(CreatePoolSchema),
     defaultValues: { name: "", server_ids: [] },
@@ -190,6 +274,7 @@ export const NodePoolPage = () => {
     await loadAll()
   }
 
+  // Edit Pool
   const editForm = useForm<UpdatePoolValues>({
     resolver: zodResolver(UpdatePoolSchema),
     defaultValues: { name: "" },
@@ -207,6 +292,7 @@ export const NodePoolPage = () => {
     await loadAll()
   }
 
+  // Attach / Detach Servers
   const attachForm = useForm<AttachServersValues>({
     resolver: zodResolver(AttachServersSchema),
     defaultValues: { server_ids: [] },
@@ -233,11 +319,37 @@ export const NodePoolPage = () => {
     await loadAll()
   }
 
-  const attachableServers = useMemo(() => {
-    if (!manageTarget) return [] as ServerBrief[]
-    const attachedIds = new Set((manageTarget.servers || []).map((s) => s.id))
-    return allServers.filter((s) => !attachedIds.has(s.id))
-  }, [manageTarget, allServers])
+  // Attach / Detach Labels
+  const attachLabelsForm = useForm<AttachLabelsValues>({
+    resolver: zodResolver(AttachLabelsSchema),
+    defaultValues: { label_ids: [] },
+  })
+
+  function openManageLabels(p: NodePool) {
+    setManageLabelsTarget(p)
+    attachLabelsForm.reset({ label_ids: [] })
+    void loadAttachedLabels(p.id)
+  }
+
+  const submitAttachLabels = async (values: AttachLabelsValues) => {
+    if (!manageLabelsTarget) return
+    await api.post(`/api/v1/node-pools/${manageLabelsTarget.id}/labels`, {
+      label_ids: values.label_ids,
+    })
+    attachLabelsForm.reset({ label_ids: [] })
+    await loadAttachedLabels(manageLabelsTarget.id)
+    await loadAll() // refresh badges in table
+  }
+
+  async function detachLabel(labelId: string) {
+    if (!manageLabelsTarget) return
+    if (!confirm("Detach this label from the pool?")) return
+    await api.delete(`/api/v1/node-pools/${manageLabelsTarget.id}/labels/${labelId}`)
+    await loadAttachedLabels(manageLabelsTarget.id)
+    await loadAll() // refresh badges in table
+  }
+
+  /* --------------------------------- Render -------------------------------- */
 
   if (loading) return <div className="p-6">Loading node pools…</div>
   if (err) return <div className="p-6 text-red-500">{err}</div>
@@ -253,7 +365,7 @@ export const NodePoolPage = () => {
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search pools or servers…"
+              placeholder="Search pools, servers, labels…"
               className="w-72 pl-8"
             />
           </div>
@@ -361,79 +473,106 @@ export const NodePoolPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">
-                      {(p.servers || []).slice(0, 6).map((s) => (
-                        <Badge key={s.id} variant="secondary" className="gap-1">
-                          <ServerIcon className="h-3 w-3" />{" "}
-                          {s.hostname || s.ip || s.ip_address || truncateMiddle(s.id, 6)}
-                          {s.status && (
-                            <span className="ml-1">
-                              <StatusBadge status={s.status} />
-                            </span>
-                          )}
-                        </Badge>
-                      ))}
-                      {(p.servers || []).length === 0 && (
-                        <span className="text-muted-foreground">No servers</span>
-                      )}
-                      {(p.servers || []).length > 6 && (
-                        <span className="text-muted-foreground">
-                          +{(p.servers || []).length - 6} more
-                        </span>
-                      )}
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => openManage(p)}>
-                      <LinkIcon className="mr-2 h-4 w-4" /> Manage servers
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">Annotations</div>
-                    <Button variant="outline" size="sm">
-                      <LinkIcon className="mr-2 h-4 w-4" /> Manage Annotations
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">Labels</div>
-                    <Button variant="outline" size="sm">
-                      <LinkIcon className="mr-2 h-4 w-4" /> Manage Labels
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">Taints</div>
-                    <Button variant="outline" size="sm">
-                      <LinkIcon className="mr-2 h-4 w-4" /> Manage Taints
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEdit(p)}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                      </Button>
+              {filtered.map((p) => {
+                const labels = labelsByPool.get(p.id) || []
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.name}</TableCell>
 
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Trash className="mr-2 h-4 w-4" /> Delete
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => deletePool(p.id)}>
-                            Confirm delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    {/* Servers cell */}
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">
+                        {(p.servers || []).slice(0, 6).map((s) => (
+                          <Badge key={s.id} variant="secondary" className="gap-1">
+                            <ServerIcon className="h-3 w-3" />{" "}
+                            {s.hostname || s.ip || s.ip_address || truncateMiddle(s.id, 6)}
+                            <span className="ml-1">{s.role}</span>
+                            {s.status && (
+                              <span className="ml-1">
+                                <StatusBadge status={s.status} />
+                              </span>
+                            )}
+                          </Badge>
+                        ))}
+                        {(p.servers || []).length === 0 && (
+                          <span className="text-muted-foreground">No servers</span>
+                        )}
+                        {(p.servers || []).length > 6 && (
+                          <span className="text-muted-foreground">
+                            +{(p.servers || []).length - 6} more
+                          </span>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => openManage(p)}>
+                        <LinkIcon className="mr-2 h-4 w-4" /> Manage servers
+                      </Button>
+                    </TableCell>
+
+                    {/* Annotations placeholder */}
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">Annotations</div>
+                      <Button variant="outline" size="sm" disabled>
+                        <LinkIcon className="mr-2 h-4 w-4" /> Manage Annotations
+                      </Button>
+                    </TableCell>
+
+                    {/* Labels cell with badges */}
+                    <TableCell>
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        {labels.slice(0, 6).map((l) => (
+                          <Badge key={l.id} variant="outline" className="font-mono">
+                            <Tag className="mr-1 h-3 w-3" />
+                            {l.key}={l.value}
+                          </Badge>
+                        ))}
+                        {labels.length === 0 && (
+                          <span className="text-muted-foreground">No labels</span>
+                        )}
+                        {labels.length > 6 && (
+                          <span className="text-muted-foreground">+{labels.length - 6} more</span>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => openManageLabels(p)}>
+                        <Tag className="mr-2 h-4 w-4" /> Manage Labels
+                      </Button>
+                    </TableCell>
+
+                    {/* Taints placeholder */}
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">Taints</div>
+                      <Button variant="outline" size="sm" disabled>
+                        <LinkIcon className="mr-2 h-4 w-4" /> Manage Taints
+                      </Button>
+                    </TableCell>
+
+                    {/* Actions */}
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => openEdit(p)}>
+                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </Button>
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash className="mr-2 h-4 w-4" /> Delete
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => deletePool(p.id)}>
+                              Confirm delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
 
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-muted-foreground py-10 text-center">
+                  <TableCell colSpan={6} className="text-muted-foreground py-10 text-center">
                     No node pools match your search.
                   </TableCell>
                 </TableRow>
@@ -541,7 +680,7 @@ export const NodePoolPage = () => {
             </div>
           </div>
 
-          {/* Attach section */}
+          {/* Attach servers */}
           <div className="pt-4">
             <Form {...attachForm}>
               <form onSubmit={attachForm.handleSubmit(submitAttach)} className="space-y-3">
@@ -552,36 +691,45 @@ export const NodePoolPage = () => {
                     <FormItem>
                       <FormLabel>Attach more servers</FormLabel>
                       <div className="grid max-h-64 grid-cols-1 gap-2 overflow-auto rounded-xl border p-2 md:grid-cols-2">
-                        {attachableServers.length === 0 && (
-                          <div className="text-muted-foreground p-2 text-sm">
-                            No more servers available to attach
-                          </div>
-                        )}
-                        {attachableServers.map((s) => {
-                          const checked = field.value?.includes(s.id) || false
-                          return (
-                            <label
-                              key={s.id}
-                              className="hover:bg-accent flex cursor-pointer items-start gap-2 rounded p-1"
-                            >
-                              <Checkbox
-                                checked={checked}
-                                onCheckedChange={(v) => {
-                                  const next = new Set(field.value || [])
-                                  if (v === true) next.add(s.id)
-                                  else next.delete(s.id)
-                                  field.onChange(Array.from(next))
-                                }}
-                              />
-                              <div className="leading-tight">
-                                <div className="text-sm font-medium">{serverLabel(s)}</div>
-                                <div className="text-muted-foreground text-xs">
-                                  {truncateMiddle(s.id, 8)}
-                                </div>
-                              </div>
-                            </label>
+                        {/* options */}
+                        {(() => {
+                          const attachedIds = new Set(
+                            (manageTarget?.servers || []).map((s) => s.id)
                           )
-                        })}
+                          const attachableServers = allServers.filter((s) => !attachedIds.has(s.id))
+                          if (attachableServers.length === 0) {
+                            return (
+                              <div className="text-muted-foreground p-2 text-sm">
+                                No more servers available to attach
+                              </div>
+                            )
+                          }
+                          return attachableServers.map((s) => {
+                            const checked = field.value?.includes(s.id) || false
+                            return (
+                              <label
+                                key={s.id}
+                                className="hover:bg-accent flex cursor-pointer items-start gap-2 rounded p-1"
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(v) => {
+                                    const next = new Set(field.value || [])
+                                    if (v === true) next.add(s.id)
+                                    else next.delete(s.id)
+                                    field.onChange(Array.from(next))
+                                  }}
+                                />
+                                <div className="leading-tight">
+                                  <div className="text-sm font-medium">{serverLabel(s)}</div>
+                                  <div className="text-muted-foreground text-xs">
+                                    {truncateMiddle(s.id, 8)}
+                                  </div>
+                                </div>
+                              </label>
+                            )
+                          })
+                        })()}
                       </div>
                       <FormMessage />
                     </FormItem>
@@ -592,6 +740,134 @@ export const NodePoolPage = () => {
                   <Button type="submit" disabled={attachForm.formState.isSubmitting}>
                     <LinkIcon className="mr-2 h-4 w-4" />{" "}
                     {attachForm.formState.isSubmitting ? "Attaching…" : "Attach selected"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage labels dialog */}
+      <Dialog open={!!manageLabelsTarget} onOpenChange={(o) => !o && setManageLabelsTarget(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Manage labels for <span className="font-mono">{manageLabelsTarget?.name}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Attached labels list */}
+          <div className="space-y-3">
+            <div className="text-sm font-medium">Attached labels</div>
+
+            {labelsLoading ? (
+              <div className="text-muted-foreground rounded-md border p-3 text-sm">Loading…</div>
+            ) : labelsErr ? (
+              <div className="rounded-md border p-3 text-sm text-red-500">{labelsErr}</div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Key</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead className="w-[120px] text-right">Detach</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {attachedLabels.map((l) => (
+                      <TableRow key={l.id}>
+                        <TableCell className="font-mono text-sm">{l.key}</TableCell>
+                        <TableCell className="font-mono text-sm">{l.value}</TableCell>
+                        <TableCell>
+                          <div className="flex justify-end">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => detachLabel(l.id)}
+                            >
+                              <UnlinkIcon className="mr-2 h-4 w-4" /> Detach
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {attachedLabels.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-muted-foreground py-8 text-center">
+                          No labels attached yet.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+
+          {/* Attach labels */}
+          <div className="pt-4">
+            <Form {...attachLabelsForm}>
+              <form
+                onSubmit={attachLabelsForm.handleSubmit(submitAttachLabels)}
+                className="space-y-3"
+              >
+                <FormField
+                  control={attachLabelsForm.control}
+                  name="label_ids"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Attach more labels</FormLabel>
+                      <div className="grid max-h-64 grid-cols-1 gap-2 overflow-auto rounded-xl border p-2 md:grid-cols-2">
+                        {(() => {
+                          const attachedIds = new Set(attachedLabels.map((l) => l.id))
+                          const attachable = (allLabels as LabelBrief[]).filter(
+                            (l) => !attachedIds.has(l.id)
+                          )
+                          if (attachable.length === 0) {
+                            return (
+                              <div className="text-muted-foreground p-2 text-sm">
+                                No more labels available to attach
+                              </div>
+                            )
+                          }
+                          return attachable.map((l) => {
+                            const checked = field.value?.includes(l.id) || false
+                            return (
+                              <label
+                                key={l.id}
+                                className="hover:bg-accent flex cursor-pointer items-start gap-2 rounded p-1"
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(v) => {
+                                    const next = new Set(field.value || [])
+                                    if (v === true) next.add(l.id)
+                                    else next.delete(l.id)
+                                    field.onChange(Array.from(next))
+                                  }}
+                                />
+                                <div className="leading-tight">
+                                  <div className="text-sm font-medium">{labelKV(l)}</div>
+                                  <div className="text-muted-foreground text-xs">
+                                    {truncateMiddle(l.id, 8)}
+                                  </div>
+                                </div>
+                              </label>
+                            )
+                          })
+                        })()}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter className="gap-2">
+                  <Button type="submit" disabled={attachLabelsForm.formState.isSubmitting}>
+                    <LinkIcon className="mr-2 h-4 w-4" />{" "}
+                    {attachLabelsForm.formState.isSubmitting ? "Attaching…" : "Attach selected"}
                   </Button>
                 </DialogFooter>
               </form>

@@ -70,3 +70,35 @@ func ensureTaintsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
 	}
 	return nil
 }
+
+func ensureLabelsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	var cnt int64
+	if err := db.DB.Model(&models.Label{}).
+		Where("organization_id = ? AND id IN ?", orgID, ids).
+		Count(&cnt).Error; err != nil {
+		return err
+	}
+	if cnt != int64(len(ids)) {
+		return errors.New("one or more labels not in organization")
+	}
+	return nil
+}
+
+func ensureAnnotationsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	var cnt int64
+	if err := db.DB.Model(&models.Annotation{}).
+		Where("organization_id = ? AND id IN ?", orgID, ids).
+		Count(&cnt).Error; err != nil {
+		return err
+	}
+	if cnt != int64(len(ids)) {
+		return errors.New("one or more annotations not in organization")
+	}
+	return nil
+}
