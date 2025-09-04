@@ -78,3 +78,19 @@ func ensureTaintsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
 	}
 	return nil
 }
+
+func ensureAnnotationsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return errors.New("empty ids")
+	}
+	var count int64
+	if err := db.DB.Model(&models.Annotation{}).
+		Where("organization_id = ? AND id IN ?", orgID, ids).
+		Count(&count).Error; err != nil {
+		return err
+	}
+	if count != int64(len(ids)) {
+		return errors.New("some annotations not in org")
+	}
+	return nil
+}

@@ -118,6 +118,11 @@ func RegisterRoutes(r chi.Router) {
 				np.Get("/{id}/labels", nodepools.ListNodePoolLabels)
 				np.Post("/{id}/labels", nodepools.AttachNodePoolLabels)
 				np.Delete("/{id}/labels/{labelId}", nodepools.DetachNodePoolLabel)
+
+				// annotations
+				np.Get("/{id}/annotations", nodepools.ListNodePoolAnnotations)
+				np.Post("/{id}/annotations", nodepools.AttachNodePoolAnnotations)
+				np.Delete("/{id}/annotations/{annotationId}", nodepools.DetachNodePoolAnnotation)
 			})
 
 			v1.Route("/taints", func(t chi.Router) {

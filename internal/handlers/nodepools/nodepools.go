@@ -806,3 +806,184 @@ func DetachNodePoolLabel(w http.ResponseWriter, r *http.Request) {
 	}
 	response.NoContent(w)
 }
+
+// ListNodePoolAnnotations godoc
+// @Summary      List annotations attached to a node pool (org scoped)
+// @Tags         node-pools
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Node Pool ID (UUID)"
+// @Security     BearerAuth
+// @Success      200 {array}  annotationBrief
+// @Failure      400 {string} string "invalid id"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "fetch failed"
+// @Router       /api/v1/node-pools/{id}/annotations [get]
+func ListNodePoolAnnotations(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	poolID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var ng models.NodePool
+	if err := db.DB.Where("id = ? AND organization_id = ?", poolID, ac.OrganizationID).
+		Preload("Annotations").
+		First(&ng).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	out := make([]annotationBrief, 0, len(ng.Annotations))
+	for _, a := range ng.Annotations {
+		out = append(out, annotationBrief{
+			ID:    a.ID,
+			Name:  a.Name,
+			Value: a.Value,
+		})
+	}
+	_ = response.JSON(w, http.StatusOK, out)
+}
+
+// AttachNodePoolAnnotations godoc
+// @Summary      Attach annotations to a node pool (org scoped)
+// @Tags         node-pools
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Node Pool ID (UUID)"
+// @Param        body body attachAnnotationsRequest true "Annotation IDs to attach"
+// @Security     BearerAuth
+// @Success      204 {string} string "No Content"
+// @Failure      400 {string} string "invalid id / invalid annotation_ids"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "attach failed"
+// @Router       /api/v1/node-pools/{id}/annotations [post]
+func AttachNodePoolAnnotations(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	poolID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var ng models.NodePool
+	if err := db.DB.Where("id = ? AND organization_id = ?", poolID, ac.OrganizationID).First(&ng).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	var in attachAnnotationsRequest
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil || len(in.AnnotationIDs) == 0 {
+		http.Error(w, "invalid annotation_ids", http.StatusBadRequest)
+		return
+	}
+
+	ids, err := parseUUIDs(in.AnnotationIDs)
+	if err != nil {
+		http.Error(w, "invalid annotation_ids", http.StatusBadRequest)
+		return
+	}
+	if err := ensureAnnotationsBelongToOrg(ac.OrganizationID, ids); err != nil {
+		http.Error(w, "invalid annotation_ids for this organization", http.StatusBadRequest)
+		return
+	}
+
+	var annotations []models.Annotation
+	if err := db.DB.Where("id IN ? AND organization_id = ?", ids, ac.OrganizationID).
+		Find(&annotations).Error; err != nil {
+		http.Error(w, "attach failed", http.StatusInternalServerError)
+		return
+	}
+	if err := db.DB.Model(&ng).Association("Annotations").Append(&annotations); err != nil {
+		http.Error(w, "attach failed", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// DetachNodePoolAnnotation godoc
+// @Summary      Detach one annotation from a node pool (org scoped)
+// @Tags         node-pools
+// @Accept       json
+// @Produce      json
+// @Param        X-Org-ID header string true "Organization UUID"
+// @Param        id path string true "Node Pool ID (UUID)"
+// @Param        annotationId path string true "Annotation ID (UUID)"
+// @Security     BearerAuth
+// @Success      204 {string} string "No Content"
+// @Failure      400 {string} string "invalid id"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      403 {string} string "organization required"
+// @Failure      404 {string} string "not found"
+// @Failure      500 {string} string "detach failed"
+// @Router       /api/v1/node-pools/{id}/annotations/{annotationId} [delete]
+func DetachNodePoolAnnotation(w http.ResponseWriter, r *http.Request) {
+	ac := middleware.GetAuthContext(r)
+	if ac == nil || ac.OrganizationID == uuid.Nil {
+		http.Error(w, "organization required", http.StatusForbidden)
+		return
+	}
+
+	poolID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+	annID, err := uuid.Parse(chi.URLParam(r, "annotationId"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var ng models.NodePool
+	if err := db.DB.Where("id = ? AND organization_id = ?", poolID, ac.OrganizationID).First(&ng).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	var ann models.Annotation
+	if err := db.DB.Where("id = ? AND organization_id = ?", annID, ac.OrganizationID).
+		First(&ann).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "fetch failed", http.StatusInternalServerError)
+		return
+	}
+
+	if err := db.DB.Model(&ng).Association("Annotations").Delete(&ann); err != nil {
+		http.Error(w, "detach failed", http.StatusInternalServerError)
+		return
+	}
+	response.NoContent(w)
+}

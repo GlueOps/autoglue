@@ -51,3 +51,13 @@ type taintBrief struct {
 	Value  string    `json:"value"`
 	Effect string    `json:"effect"`
 }
+
+type annotationBrief struct {
+	ID    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Value string    `json:"value"`
+}
+
+type attachAnnotationsRequest struct {
+	AnnotationIDs []string `json:"annotation_ids"`
+}

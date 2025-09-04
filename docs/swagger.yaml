@@ -319,6 +319,22 @@ definitions:
       updated_at:
         type: string
     type: object
+  nodepools.annotationBrief:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      value:
+        type: string
+    type: object
+  nodepools.attachAnnotationsRequest:
+    properties:
+      annotation_ids:
+        items:
+          type: string
+        type: array
+    type: object
   nodepools.attachLabelsRequest:
     properties:
       label_ids:
@@ -2161,6 +2177,159 @@ paths:
       security:
       - BearerAuth: []
       summary: Update node pool (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/annotations:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/nodepools.annotationBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List annotations attached to a node pool (org scoped)
+      tags:
+      - node-pools
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Annotation IDs to attach
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nodepools.attachAnnotationsRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid annotation_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach annotations to a node pool (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/annotations/{annotationId}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: annotationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach one annotation from a node pool (org scoped)
       tags:
       - node-pools
   /api/v1/node-pools/{id}/labels:
