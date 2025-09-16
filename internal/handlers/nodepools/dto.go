@@ -54,7 +54,7 @@ type taintBrief struct {
 
 type annotationBrief struct {
 	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
+	Key   string    `json:"key"`
 	Value string    `json:"value"`
 }
 

@@ -58,13 +58,13 @@ type NodePoolBrief = {
 
 type Annotation = {
   id: string
-  name: string
+  key: string
   value: string
   node_pools?: NodePoolBrief[]
 }
 
 const CreateSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(120, "Max 120 chars"),
+  key: z.string().trim().min(1, "Key is required").max(120, "Max 120 chars"),
   value: z.string().trim().min(1, "Value is required").max(512, "Max 512 chars"),
   node_pool_ids: z.array(z.string().uuid()).optional().default([]),
 })
@@ -72,7 +72,7 @@ type CreateInput = z.input<typeof CreateSchema>
 type CreateValues = z.output<typeof CreateSchema>
 
 const UpdateSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(120, "Max 120 chars"),
+    key: z.string().trim().min(1, "Key is required").max(120, "Max 120 chars"),
   value: z.string().trim().min(1, "Value is required").max(512, "Max 512 chars"),
 })
 type UpdateValues = z.output<typeof UpdateSchema>
@@ -171,7 +171,7 @@ export const AnnotationsPage = () => {
     if (!needle) return annotations
     return annotations.filter(
       (a) =>
-        a.name.toLowerCase().includes(needle) ||
+        a.key.toLowerCase().includes(needle) ||
         a.value.toLowerCase().includes(needle) ||
         (a.node_pools || []).some((p) => p.name.toLowerCase().includes(needle))
     )
@@ -188,35 +188,35 @@ export const AnnotationsPage = () => {
   // Create
   const createForm = useForm<CreateInput, any, CreateValues>({
     resolver: zodResolver(CreateSchema),
-    defaultValues: { name: "", value: "", node_pool_ids: [] },
+    defaultValues: { key: "", value: "", node_pool_ids: [] },
   })
 
   const submitCreate = async (values: CreateValues) => {
-    const payload: any = { name: values.name.trim(), value: values.value.trim() }
+    const payload: any = { key: values.key.trim(), value: values.value.trim() }
     if (values.node_pool_ids && values.node_pool_ids.length > 0) {
       payload.node_pool_ids = values.node_pool_ids
     }
     await api.post("/api/v1/annotations", payload)
     setCreateOpen(false)
-    createForm.reset({ name: "", value: "", node_pool_ids: [] })
+    createForm.reset({ key: "", value: "", node_pool_ids: [] })
     await loadAll()
   }
 
   // Edit
   const editForm = useForm<UpdateValues>({
     resolver: zodResolver(UpdateSchema),
-    defaultValues: { name: "", value: "" },
+    defaultValues: { key: "", value: "" },
   })
 
   function openEdit(a: Annotation) {
     setEditTarget(a)
-    editForm.reset({ name: a.name, value: a.value })
+    editForm.reset({ key: a.key, value: a.value })
   }
 
   const submitEdit = async (values: UpdateValues) => {
     if (!editTarget) return
     await api.patch(`/api/v1/annotations/${editTarget.id}`, {
-      name: values.name.trim(),
+      name: values.key.trim(),
       value: values.value.trim(),
     })
     setEditTarget(null)
@@ -293,10 +293,10 @@ export const AnnotationsPage = () => {
                 <form onSubmit={createForm.handleSubmit(submitCreate)} className="space-y-4">
                   <FormField
                     control={createForm.control}
-                    name="name"
+                    name="key"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name</FormLabel>
+                        <FormLabel>Key</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="cluster-autoscaler.kubernetes.io/safe-to-evict"
@@ -383,7 +383,7 @@ export const AnnotationsPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Key</TableHead>
                 <TableHead>Value</TableHead>
                 <TableHead>Node Pools</TableHead>
                 <TableHead className="w-[180px] text-right">Actions</TableHead>
@@ -394,7 +394,7 @@ export const AnnotationsPage = () => {
                 const pools = a.node_pools || []
                 return (
                   <TableRow key={a.id}>
-                    <TableCell className="font-mono text-sm">{a.name}</TableCell>
+                    <TableCell className="font-mono text-sm">{a.key}</TableCell>
                     <TableCell className="font-mono text-sm">{a.value}</TableCell>
 
                     <TableCell>
@@ -462,10 +462,10 @@ export const AnnotationsPage = () => {
             <form onSubmit={editForm.handleSubmit(submitEdit)} className="space-y-4">
               <FormField
                 control={editForm.control}
-                name="name"
+                name="key"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Key</FormLabel>
                     <FormControl>
                       <Input placeholder="example.com/some" {...field} />
                     </FormControl>
@@ -505,7 +505,7 @@ export const AnnotationsPage = () => {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              Manage node pools for <span className="font-mono">{managePoolsTarget?.name}</span>
+              Manage node pools for <span className="font-mono">{managePoolsTarget?.key}</span>
             </DialogTitle>
           </DialogHeader>
 

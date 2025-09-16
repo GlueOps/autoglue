@@ -851,7 +851,7 @@ func ListNodePoolAnnotations(w http.ResponseWriter, r *http.Request) {
 	for _, a := range ng.Annotations {
 		out = append(out, annotationBrief{
 			ID:    a.ID,
-			Name:  a.Name,
+			Key:   a.Key,
 			Value: a.Value,
 		})
 	}

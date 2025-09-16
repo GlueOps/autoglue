@@ -6,6 +6,7 @@ import (
 	"github.com/glueops/autoglue/internal/config"
 	"github.com/glueops/autoglue/internal/handlers/annotations"
 	"github.com/glueops/autoglue/internal/handlers/authn"
+	"github.com/glueops/autoglue/internal/handlers/clusters"
 	"github.com/glueops/autoglue/internal/handlers/health"
 	"github.com/glueops/autoglue/internal/handlers/labels"
 	"github.com/glueops/autoglue/internal/handlers/nodepools"
@@ -147,6 +148,24 @@ func RegisterRoutes(r chi.Router) {
 				l.Get("/{id}/node_pools", labels.ListNodePoolsWithLabel)
 				l.Post("/{id}/node_pools", labels.AddLabelToNodePool)
 				l.Delete("/{id}/node_pools/{poolId}", labels.RemoveLabelFromNodePool)
+			})
+
+			v1.Route("/clusters", func(c chi.Router) {
+				c.Use(authMW)
+				c.Get("/", clusters.ListClusters)
+				c.Post("/", clusters.CreateCluster)
+
+				c.Get("/{id}", clusters.GetCluster)
+				c.Patch("/{id}", clusters.UpdateCluster)
+				c.Delete("/{id}", clusters.DeleteCluster)
+
+				c.Get("/{id}/node_pools", clusters.ListClusterNodePools)
+				c.Post("/{id}/node_pools", clusters.AttachNodePools)
+				c.Delete("/{id}/node_pools/{poolId}", clusters.DetachNodePool)
+
+				c.Get("/{id}/bastion", clusters.GetBastion)
+				c.Post("/{id}/bastion", clusters.PutBastion)
+				c.Delete("/{id}/bastion", clusters.DeleteBastion)
 			})
 		})
 	})

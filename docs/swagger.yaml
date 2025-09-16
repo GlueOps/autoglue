@@ -11,7 +11,7 @@ definitions:
     properties:
       id:
         type: string
-      name:
+      key:
         type: string
       node_pools:
         items:
@@ -22,7 +22,7 @@ definitions:
     type: object
   annotations.createAnnotationRequest:
     properties:
-      name:
+      key:
         type: string
       node_pool_ids:
         items:
@@ -40,7 +40,7 @@ definitions:
     type: object
   annotations.updateAnnotationRequest:
     properties:
-      name:
+      key:
         type: string
       value:
         type: string
@@ -197,6 +197,146 @@ definitions:
         type: string
       updated_at: {}
     type: object
+  clusters.annotationBrief:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  clusters.attachNodePoolsRequest:
+    properties:
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  clusters.clusterResponse:
+    properties:
+      bastion_server:
+        $ref: '#/definitions/clusters.serverBrief'
+      cluster_load_balancer:
+        type: string
+      control_load_balancer:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      node_pools:
+        items:
+          $ref: '#/definitions/clusters.nodePoolBrief'
+        type: array
+      provider:
+        type: string
+      region:
+        type: string
+      status:
+        type: string
+    type: object
+  clusters.createClusterRequest:
+    properties:
+      bastion_server_id:
+        type: string
+      cluster_load_balancer:
+        type: string
+      control_load_balancer:
+        type: string
+      kubeconfig:
+        type: string
+      name:
+        type: string
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+      provider:
+        type: string
+      region:
+        type: string
+    type: object
+  clusters.labelBrief:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  clusters.nodePoolBrief:
+    properties:
+      annotations:
+        items:
+          $ref: '#/definitions/clusters.annotationBrief'
+        type: array
+      id:
+        type: string
+      labels:
+        items:
+          $ref: '#/definitions/clusters.labelBrief'
+        type: array
+      name:
+        type: string
+      servers:
+        items:
+          $ref: '#/definitions/clusters.serverBrief'
+        type: array
+      taints:
+        items:
+          $ref: '#/definitions/clusters.taintBrief'
+        type: array
+    type: object
+  clusters.serverBrief:
+    properties:
+      hostname:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+    type: object
+  clusters.setBastionRequest:
+    properties:
+      server_id:
+        type: string
+    type: object
+  clusters.taintBrief:
+    properties:
+      effect:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  clusters.updateClusterRequest:
+    properties:
+      bastion_server_id:
+        type: string
+      cluster_load_balancer:
+        type: string
+      control_load_balancer:
+        type: string
+      kubeconfig:
+        type: string
+      name:
+        type: string
+      provider:
+        type: string
+      region:
+        type: string
+      status:
+        type: string
+    type: object
   labels.addLabelToPoolRequest:
     properties:
       node_pool_ids:
@@ -323,7 +463,7 @@ definitions:
     properties:
       id:
         type: string
-      name:
+      key:
         type: string
       value:
         type: string
@@ -1529,6 +1669,528 @@ paths:
       summary: Resend email verification
       tags:
       - auth
+  /api/v1/clusters:
+    get:
+      description: Returns clusters for the organization in X-Org-ID. Add `include=node_pools,bastion`
+        to expand. Filter by `q` (name contains).
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      - description: 'Optional: node_pools,bastion'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/clusters.clusterResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list clusters
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List clusters (org scoped)
+      tags:
+      - clusters
+    post:
+      consumes:
+      - application/json
+      description: Creates a cluster and optionally links node pools and a bastion
+        server. If `kubeconfig` is provided, it will be encrypted per-organization
+        and stored securely (never returned).
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/clusters.createClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/clusters.clusterResponse'
+        "400":
+          description: invalid json / invalid node_pool_ids / invalid bastion_server_id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create cluster (org scoped)
+      tags:
+      - clusters
+  /api/v1/clusters/{id}:
+    delete:
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete cluster (org scoped)
+      tags:
+      - clusters
+    get:
+      description: Returns one cluster. Add `include=node_pools,bastion` to expand.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Optional: node_pools,bastion'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/clusters.clusterResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get cluster by ID (org scoped)
+      tags:
+      - clusters
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/clusters.updateClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/clusters.clusterResponse'
+        "400":
+          description: invalid id / invalid json / invalid bastion_server_id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update cluster (org scoped). If `kubeconfig` is provided and non-empty,
+        it will be encrypted per-organization and stored (never returned). Sending
+        an empty string for `kubeconfig` is ignored (no change).
+      tags:
+      - clusters
+  /api/v1/clusters/{id}/bastion:
+    delete:
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Clear cluster bastion (org scoped)
+      tags:
+      - clusters
+    get:
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/clusters.serverBrief'
+        "204":
+          description: No Content (no bastion set)
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get cluster bastion (org scoped)
+      tags:
+      - clusters
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: server_id with role=bastion
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/clusters.setBastionRequest'
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid server_id / server not bastion
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: cluster or server not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Set/replace cluster bastion (org scoped)
+      tags:
+      - clusters
+  /api/v1/clusters/{id}/node_pools:
+    get:
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/clusters.nodePoolBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List node pools attached to a cluster (org scoped)
+      tags:
+      - clusters
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: node_pool_ids
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/clusters.attachNodePoolsRequest'
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach node pools to cluster (org scoped)
+      tags:
+      - clusters
+  /api/v1/clusters/{id}/node_pools/{poolId}:
+    delete:
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: poolId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach one node pool from a cluster (org scoped)
+      tags:
+      - clusters
   /api/v1/labels:
     get:
       consumes:

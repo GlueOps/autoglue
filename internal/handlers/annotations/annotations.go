@@ -24,19 +24,19 @@ type nodePoolBrief struct {
 
 type annotationResponse struct {
 	ID        uuid.UUID       `json:"id"`
-	Name      string          `json:"name"`
+	Key       string          `json:"key"`
 	Value     string          `json:"value"`
 	NodePools []nodePoolBrief `json:"node_pools,omitempty"`
 }
 
 type createAnnotationRequest struct {
-	Name        string   `json:"name"`
+	Key         string   `json:"key"`
 	Value       string   `json:"value"`
 	NodePoolIDs []string `json:"node_pool_ids"`
 }
 
 type updateAnnotationRequest struct {
-	Name  *string `json:"name,omitempty"`
+	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
 }
 
@@ -49,7 +49,7 @@ type addAnnotationToNodePool struct {
 func toResp(a models.Annotation, includePools bool) annotationResponse {
 	out := annotationResponse{
 		ID:    a.ID,
-		Name:  a.Name,
+		Key:   a.Key,
 		Value: a.Value,
 	}
 	if includePools {
@@ -216,14 +216,14 @@ func CreateAnnotation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req createAnnotationRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Name) == "" || strings.TrimSpace(req.Value) == "" {
-		http.Error(w, "invalid json or missing name/value", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.Key) == "" || strings.TrimSpace(req.Value) == "" {
+		http.Error(w, "invalid json or missing key/value", http.StatusBadRequest)
 		return
 	}
 
 	a := models.Annotation{
 		OrganizationID: ac.OrganizationID,
-		Name:           strings.TrimSpace(req.Name),
+		Key:            strings.TrimSpace(req.Key),
 		Value:          strings.TrimSpace(req.Value),
 	}
 
@@ -301,8 +301,8 @@ func UpdateAnnotation(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid json", http.StatusBadRequest)
 		return
 	}
-	if req.Name != nil {
-		a.Name = strings.TrimSpace(*req.Name)
+	if req.Key != nil {
+		a.Key = strings.TrimSpace(*req.Key)
 	}
 	if req.Value != nil {
 		a.Value = strings.TrimSpace(*req.Value)
