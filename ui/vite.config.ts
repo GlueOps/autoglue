@@ -28,6 +28,7 @@ export default defineConfig({
       "/swagger": "http://localhost:8080",
       "/debug/pprof": "http://localhost:8080",
     },
+      allowedHosts: ['.getexposed.io']
   },
   build: {
     chunkSizeWarningLimit: 1000,

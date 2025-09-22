@@ -10,8 +10,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dyaksa/archer"
 	"github.com/glueops/autoglue/internal/api"
+	"github.com/glueops/autoglue/internal/bg"
 	"github.com/glueops/autoglue/internal/db"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -28,13 +31,69 @@ var serveCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db.Connect()
 
-		// Resolve bind address/port from viper (flags/env/config/defaults)
-		addr := fmt.Sprintf("%s:%s", viper.GetString("bind_address"), viper.GetString("bind_port"))
+		jobs, err := bg.NewJobs()
+		if err != nil {
+			log.Fatalf("failed to init background jobs: %v", err)
+		}
 
-		// Build server (uses Chi router inside)
+		// Start workers in background ONCE
+		go func() {
+			if err := jobs.Start(); err != nil {
+				log.Fatalf("failed to start background workers: %v", err)
+			}
+		}()
+		defer jobs.Stop()
+
+		// Enqueue one job immediately
+		/*
+			id := uuid.NewString()
+			if _, err := jobs.Enqueue(context.Background(), id, "bootstrap_bastion", bg.BastionBootstrapArgs{}); err != nil {
+				log.Fatalf("[enqueue] failed (job_id=%s): %v", id, err)
+			}
+			log.Printf("[enqueue] queued (job_id=%s)", id)
+
+			// Verify the row exists
+			if got, err := jobs.Client.Get(context.Background(), id); err != nil {
+				log.Fatalf("[verify] Get failed (job_id=%s): %v", id, err)
+			} else if j, ok := got.(*job.Job); ok {
+				log.Printf("[verify] Get ok (job_id=%s, status=%s)", j.ID, j.Status)
+			} else {
+				log.Printf("[verify] Get ok (job_id=%s) but unexpected type %T", id, got)
+			}
+		*/
+		// Periodic scheduler
+		schedCtx, schedCancel := context.WithCancel(context.Background())
+		defer schedCancel()
+
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					_, err := jobs.Enqueue(
+						context.Background(),
+						uuid.NewString(),
+						"bootstrap_bastion",
+						bg.BastionBootstrapArgs{},
+						archer.WithMaxRetries(3),
+						// while debugging, avoid extra schedule delay:
+						archer.WithScheduleTime(time.Now().Add(10*time.Second)),
+					)
+					if err != nil {
+						log.Printf("failed to enqueue bootstrap_bastion: %v", err)
+					}
+				case <-schedCtx.Done():
+					return
+				}
+			}
+		}()
+
+		// HTTP server
+		addr := fmt.Sprintf("%s:%s", viper.GetString("bind_address"), viper.GetString("bind_port"))
 		srv := api.NewServer(addr)
 
-		// Start server
 		errCh := make(chan error, 1)
 		go func() {
 			log.Printf("HTTP server listening on http://%s (ui.dev=%v)", addr, viper.GetBool("ui.dev"))
@@ -44,7 +103,6 @@ var serveCmd = &cobra.Command{
 			close(errCh)
 		}()
 
-		// Handle OS signals for graceful shutdown
 		stop := make(chan os.Signal, 1)
 		signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
@@ -57,9 +115,10 @@ var serveCmd = &cobra.Command{
 			}
 		}
 
+		schedCancel()
+
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-
 		if err := srv.Shutdown(ctx); err != nil {
 			log.Printf("Graceful shutdown failed: %v; forcing close", err)
 			_ = srv.Close()
@@ -70,14 +129,9 @@ var serveCmd = &cobra.Command{
 }
 
 func init() {
-	// Flags to override bind address/port
 	serveCmd.Flags().StringVar(&bindAddress, "bind-address", "", "Address to bind the HTTP server (default 127.0.0.1)")
 	serveCmd.Flags().StringVar(&bindPort, "bind-port", "", "Port to bind the HTTP server (default 8080)")
-
-	// Bind flags to viper keys
 	_ = viper.BindPFlag("bind_address", serveCmd.Flags().Lookup("bind-address"))
 	_ = viper.BindPFlag("bind_port", serveCmd.Flags().Lookup("bind-port"))
-
-	// Register command
 	rootCmd.AddCommand(serveCmd)
 }

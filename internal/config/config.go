@@ -10,6 +10,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 )
 
 var File = "config.yaml"
@@ -34,6 +35,9 @@ func Load() {
 	viper.SetDefault("smtp.from", "no-reply@example.com")
 
 	viper.SetDefault("frontend.base_url", "http://localhost:5173")
+
+	viper.SetDefault("archer.instances", 2)
+	viper.SetDefault("archer.timeoutSec", 60)
 
 	viper.SetEnvPrefix("AUTOGLUE")
 
@@ -70,10 +74,14 @@ func GetAuthSecret() string {
 
 func DebugPrintConfig() {
 	all := viper.AllSettings()
-	fmt.Println("Loaded configuration:")
-	for k, v := range all {
-		fmt.Printf("%s: %#v\n", k, v)
+
+	b, err := yaml.Marshal(all)
+	if err != nil {
+		fmt.Println("error marshalling config:", err)
+		return
 	}
+	fmt.Println("Loaded configuration:")
+	fmt.Println(string(b))
 }
 
 func IsUIDev() bool {

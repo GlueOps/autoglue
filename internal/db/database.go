@@ -31,6 +31,7 @@ func Connect() {
 		&models.Credential{},
 		&models.EmailVerification{},
 		&models.Invitation{},
+		&models.Job{},
 		&models.Label{},
 		&models.MasterKey{},
 		&models.Member{},
