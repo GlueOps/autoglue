@@ -3797,9 +3797,9 @@ tapable@^2.2.0:
   integrity sha512-ZL6DDuAlRlLGghwcfmSn9sK3Hr6ArtyudlSAiCqQ6IfE+b+HHbydbYDIG15IfS5do+7XQQBdBiubF/cV2dnDzg==
 
 tar@^7.4.3:
-  version "7.4.4"
-  resolved "https://registry.yarnpkg.com/tar/-/tar-7.4.4.tgz#6a4bcb5cb53d63a16e3a59822d48d89506e8ecc9"
-  integrity sha512-O1z7ajPkjTgEgmTGz0v9X4eqeEXTDREPTO77pVC1Nbs86feBU1Zhdg+edzavPmYW1olxkwsqA2v4uOw6E8LeDg==
+  version "7.5.0"
+  resolved "https://registry.yarnpkg.com/tar/-/tar-7.5.0.tgz#7a3901593aabcf002633776564a6b7b0c81316a5"
+  integrity sha512-StRGMxeVwyozZpAmHLm2IfbwUlE21DbRXyZrYpGPFBVxM8cxALPongxFVMrs+HqCN7jQVVKyAgKOwGB1WbCp4A==
   dependencies:
     "@isaacs/fs-minipass" "^4.0.0"
     chownr "^3.0.0"
