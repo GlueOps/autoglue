@@ -14,7 +14,7 @@ import (
 // NOTE: Vite outputs to ui/dist with assets in dist/assets.
 // If you add more nested folders in the future, include them here too.
 
-//go:embed dist/* dist/assets/*
+//go:embed dist
 var distFS embed.FS
 
 // spaFileSystem serves embedded dist/ files with SPA fallback to index.html
@@ -37,7 +37,8 @@ func (s spaFileSystem) Open(name string) (fs.File, error) {
 	// BUT only if it's not obviously a static asset extension
 	ext := strings.ToLower(filepath.Ext(name))
 	switch ext {
-	case ".js", ".css", ".map", ".json", ".txt", ".ico", ".png", ".jpg", ".jpeg", ".svg", ".webp", ".gif", ".woff", ".woff2":
+	case ".js", ".css", ".map", ".json", ".txt", ".ico", ".png", ".jpg", ".jpeg",
+		".svg", ".webp", ".gif", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".wasm":
 		return nil, fs.ErrNotExist
 	}
 
@@ -89,8 +90,14 @@ func SPAHandler() (http.Handler, error) {
 			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		}
 
+		info, _ := f.Stat()
+		modTime := time.Now()
+		if info != nil {
+			modTime = info.ModTime()
+		}
+
 		// Serve content
-		http.ServeContent(w, r, filePath, time.Now(), file{f})
+		http.ServeContent(w, r, filePath, modTime, file{f})
 	}), nil
 }
 

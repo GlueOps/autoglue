@@ -13,7 +13,7 @@ RUN npm i -g yarn pnpm
 WORKDIR /src
 
 COPY . .
-RUN make swagger && make build
+RUN make clean && make swagger && make ui && make build
 
 
 #################################

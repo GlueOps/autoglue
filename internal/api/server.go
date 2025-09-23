@@ -20,10 +20,8 @@ func NewRouter() http.Handler {
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{
-			"http://localhost:5173",
-			"http://127.0.0.1:5173",
-			"http://localhost:8080",
-			"http://127.0.0.1:8080",
+			"http://*:5173",
+			"http://*:8080",
 		},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "content-type", "Authorization", "authorization", "X-Org-ID", "x-org-id"},

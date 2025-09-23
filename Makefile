@@ -3,6 +3,7 @@ GOINSTALL    := $(GOCMD) install
 BIN          ?= autoglue
 MAIN         ?= main.go
 UI_DIR       ?= ui
+UI_DEST_DIR  ?= internal/ui
 
 SWAG         := $(shell command -v swag 2>/dev/null)
 GMU          := $(shell command -v go-mod-upgrade 2>/dev/null)
@@ -68,7 +69,7 @@ build: prepare ui swagger
 
 clean:
 	@echo ">> Cleaning artifacts..."
-	@rm -rf $(BIN) docs/swagger.* docs/docs.go $(UI_DIR)/dist
+	@rm -rf $(BIN) docs/swagger.* docs/docs.go $(UI_DEST_DIR)/dist $(UI_DIR)/dist $(UI_DIR)/node_modules
 
 dev: swagger
 	@echo ">> Starting Vite (frontend) and Go API (backend)..."

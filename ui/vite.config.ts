@@ -34,21 +34,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     outDir: "../internal/ui/dist",
     emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (!id.includes("node_modules")) return
-
-          if (id.includes("react-router")) return "router"
-          if (id.includes("@radix-ui")) return "radix"
-          if (id.includes("lucide-react") || id.includes("react-icons")) return "icons"
-          if (id.includes("recharts") || id.includes("d3")) return "charts"
-          if (id.includes("date-fns") || id.includes("dayjs")) return "dates"
-
-          return "vendor"
-        },
-      },
-    },
   },
   optimizeDeps: {
     include: ["react", "react-dom", "react-router-dom"],
