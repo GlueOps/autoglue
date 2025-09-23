@@ -21,6 +21,7 @@ import { NotFoundPage } from "@/pages/error/not-found.tsx"
 import { SshKeysPage } from "@/pages/security/ssh.tsx"
 import { MemberManagement } from "@/pages/settings/members.tsx"
 import { OrgManagement } from "@/pages/settings/orgs.tsx"
+import JobsDashboard from "@/pages/settings/jobs.tsx";
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
           </Route>
 
           <Route path="/settings">
+              <Route path="jobs" element={<JobsDashboard />} />
             <Route path="orgs" element={<OrgManagement />} />
             <Route path="members" element={<MemberManagement />} />
             <Route path="me" element={<Me />} />

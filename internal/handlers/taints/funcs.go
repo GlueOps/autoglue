@@ -2,12 +2,26 @@ package taints
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/glueops/autoglue/internal/db"
 	"github.com/glueops/autoglue/internal/db/models"
 	"github.com/google/uuid"
 )
+
+var allowedEffects = map[string]struct{}{
+	"NoSchedule":       {},
+	"PreferNoSchedule": {},
+	"NoExecute":        {},
+}
+
+// includeNodePools returns true when the query param requests linked pools.
+// Accepts both "node_pools" and "node_groups" for compatibility.
+func includeNodePools(r *http.Request) bool {
+	inc := strings.TrimSpace(r.URL.Query().Get("include"))
+	return strings.EqualFold(inc, "node_pools") || strings.EqualFold(inc, "node_groups")
+}
 
 func toResp(t models.Taint, include bool) taintResponse {
 	resp := taintResponse{

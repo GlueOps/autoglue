@@ -31,3 +31,17 @@ type updateTaintRequest struct {
 type addTaintToPoolRequest struct {
 	NodePoolIDs []string `json:"node_pool_ids"`
 }
+
+type nodePoolResponse struct {
+	ID      uuid.UUID     `json:"id"`
+	Name    string        `json:"name"`
+	Servers []serverBrief `json:"servers,omitempty"`
+}
+
+type serverBrief struct {
+	ID       uuid.UUID `json:"id"`
+	Hostname string    `json:"hostname"`
+	IP       string    `json:"ip"`
+	Role     string    `json:"role"`
+	Status   string    `json:"status"`
+}

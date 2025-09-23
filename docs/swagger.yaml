@@ -1,5 +1,50 @@
 basePath: /
 definitions:
+  annotations.addAnnotationToNodePool:
+    properties:
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  annotations.annotationResponse:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      node_pools:
+        items:
+          $ref: '#/definitions/annotations.nodePoolBrief'
+        type: array
+      value:
+        type: string
+    type: object
+  annotations.createAnnotationRequest:
+    properties:
+      key:
+        type: string
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+      value:
+        type: string
+    type: object
+  annotations.nodePoolBrief:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  annotations.updateAnnotationRequest:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+    type: object
   authn.AdminCreateUserRequest:
     properties:
       email:
@@ -152,6 +197,225 @@ definitions:
         type: string
       updated_at: {}
     type: object
+  clusters.annotationBrief:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  clusters.attachNodePoolsRequest:
+    properties:
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  clusters.clusterResponse:
+    properties:
+      bastion_server:
+        $ref: '#/definitions/clusters.serverBrief'
+      cluster_load_balancer:
+        type: string
+      control_load_balancer:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      node_pools:
+        items:
+          $ref: '#/definitions/clusters.nodePoolBrief'
+        type: array
+      provider:
+        type: string
+      region:
+        type: string
+      status:
+        type: string
+    type: object
+  clusters.createClusterRequest:
+    properties:
+      bastion_server_id:
+        type: string
+      cluster_load_balancer:
+        type: string
+      control_load_balancer:
+        type: string
+      kubeconfig:
+        type: string
+      name:
+        type: string
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+      provider:
+        type: string
+      region:
+        type: string
+    type: object
+  clusters.labelBrief:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  clusters.nodePoolBrief:
+    properties:
+      annotations:
+        items:
+          $ref: '#/definitions/clusters.annotationBrief'
+        type: array
+      id:
+        type: string
+      labels:
+        items:
+          $ref: '#/definitions/clusters.labelBrief'
+        type: array
+      name:
+        type: string
+      servers:
+        items:
+          $ref: '#/definitions/clusters.serverBrief'
+        type: array
+      taints:
+        items:
+          $ref: '#/definitions/clusters.taintBrief'
+        type: array
+    type: object
+  clusters.serverBrief:
+    properties:
+      hostname:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+    type: object
+  clusters.setBastionRequest:
+    properties:
+      server_id:
+        type: string
+    type: object
+  clusters.taintBrief:
+    properties:
+      effect:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  clusters.updateClusterRequest:
+    properties:
+      bastion_server_id:
+        type: string
+      cluster_load_balancer:
+        type: string
+      control_load_balancer:
+        type: string
+      kubeconfig:
+        type: string
+      name:
+        type: string
+      provider:
+        type: string
+      region:
+        type: string
+      status:
+        type: string
+    type: object
+  jobs.EnqueueReq:
+    type: object
+  jobs.EnqueueResp:
+    properties:
+      id:
+        type: string
+    type: object
+  jobs.JobListItem:
+    properties:
+      id:
+        type: string
+      last_error:
+        type: string
+      max_retry:
+        type: integer
+      queue_name:
+        type: string
+      retry_count:
+        type: integer
+      scheduled_at:
+        type: string
+      started_at:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  jobs.KPI:
+    properties:
+      dueNow:
+        format: int64
+        type: integer
+      failed24h:
+        format: int64
+        type: integer
+      retryable:
+        format: int64
+        type: integer
+      runningNow:
+        format: int64
+        type: integer
+      scheduledFuture:
+        format: int64
+        type: integer
+      succeeded24h:
+        format: int64
+        type: integer
+    type: object
+  jobs.QueueRollup:
+    properties:
+      avgDurationSecs:
+        format: float64
+        type: number
+      failed24h:
+        format: int64
+        type: integer
+      queueName:
+        type: string
+      queuedDue:
+        format: int64
+        type: integer
+      queuedFuture:
+        format: int64
+        type: integer
+      running:
+        format: int64
+        type: integer
+      success24h:
+        format: int64
+        type: integer
+    type: object
+  labels.addLabelToPoolRequest:
+    properties:
+      node_pool_ids:
+        items:
+          type: string
+        type: array
+    type: object
   labels.createLabelRequest:
     properties:
       key:
@@ -181,6 +445,13 @@ definitions:
       id:
         type: string
       name:
+        type: string
+    type: object
+  labels.updateLabelRequest:
+    properties:
+      key:
+        type: string
+      value:
         type: string
     type: object
   models.Member:
@@ -260,6 +531,29 @@ definitions:
       updated_at:
         type: string
     type: object
+  nodepools.annotationBrief:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  nodepools.attachAnnotationsRequest:
+    properties:
+      annotation_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  nodepools.attachLabelsRequest:
+    properties:
+      label_ids:
+        items:
+          type: string
+        type: array
+    type: object
   nodepools.attachServersRequest:
     properties:
       server_ids:
@@ -279,10 +573,18 @@ definitions:
       name:
         type: string
       server_ids:
-        description: optional initial servers
         items:
           type: string
         type: array
+    type: object
+  nodepools.labelBrief:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
     type: object
   nodepools.nodePoolResponse:
     properties:
@@ -471,6 +773,30 @@ definitions:
       id:
         type: string
       name:
+        type: string
+    type: object
+  taints.nodePoolResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      servers:
+        items:
+          $ref: '#/definitions/taints.serverBrief'
+        type: array
+    type: object
+  taints.serverBrief:
+    properties:
+      hostname:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      role:
+        type: string
+      status:
         type: string
     type: object
   taints.taintResponse:
@@ -673,6 +999,414 @@ paths:
       summary: 'Admin: update user'
       tags:
       - admin
+  /api/v1/annotations:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns annotations for the organization in X-Org-ID. Filters:
+        `name`, `value`, and `q` (name contains). Add `include=node_pools` to include
+        linked node pools.'
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Exact name
+        in: query
+        name: name
+        type: string
+      - description: Exact value
+        in: query
+        name: value
+        type: string
+      - description: name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/annotations.annotationResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list annotations
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List annotations (org scoped)
+      tags:
+      - annotations
+    post:
+      consumes:
+      - application/json
+      description: Creates an annotation. Optionally link to node pools.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/annotations.createAnnotationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/annotations.annotationResponse'
+        "400":
+          description: invalid json / missing fields / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create annotation (org scoped)
+      tags:
+      - annotations
+  /api/v1/annotations/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the annotation.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete annotation (org scoped)
+      tags:
+      - annotations
+    get:
+      consumes:
+      - application/json
+      description: Returns one annotation. Add `include=node_pools` to include node
+        pools.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/annotations.annotationResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get annotation by ID (org scoped)
+      tags:
+      - annotations
+    patch:
+      consumes:
+      - application/json
+      description: Partially update annotation fields.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/annotations.updateAnnotationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/annotations.annotationResponse'
+        "400":
+          description: invalid id / invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update annotation (org scoped)
+      tags:
+      - annotations
+  /api/v1/annotations/{id}/node_pools:
+    get:
+      consumes:
+      - application/json
+      description: Returns node pools attached to the annotation. Supports `q` (name
+        contains, case-insensitive).
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/annotations.nodePoolBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List node pools linked to an annotation (org scoped)
+      tags:
+      - annotations
+    post:
+      consumes:
+      - application/json
+      description: Links the annotation to one or more node pools in the same organization.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: IDs to attach
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/annotations.addAnnotationToNodePool'
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/annotations.annotationResponse'
+        "400":
+          description: invalid id / invalid json / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach annotation to node pools (org scoped)
+      tags:
+      - annotations
+  /api/v1/annotations/{id}/node_pools/{poolId}:
+    delete:
+      consumes:
+      - application/json
+      description: Unlinks the annotation from the specified node pool.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach annotation from a node pool (org scoped)
+      tags:
+      - annotations
   /api/v1/auth/introspect:
     post:
       consumes:
@@ -1007,12 +1741,758 @@ paths:
       summary: Resend email verification
       tags:
       - auth
+  /api/v1/clusters:
+    get:
+      description: Returns clusters for the organization in X-Org-ID. Add `include=node_pools,bastion`
+        to expand. Filter by `q` (name contains).
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      - description: 'Optional: node_pools,bastion'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/clusters.clusterResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list clusters
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List clusters (org scoped)
+      tags:
+      - clusters
+    post:
+      consumes:
+      - application/json
+      description: Creates a cluster and optionally links node pools and a bastion
+        server. If `kubeconfig` is provided, it will be encrypted per-organization
+        and stored securely (never returned).
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/clusters.createClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/clusters.clusterResponse'
+        "400":
+          description: invalid json / invalid node_pool_ids / invalid bastion_server_id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create cluster (org scoped)
+      tags:
+      - clusters
+  /api/v1/clusters/{id}:
+    delete:
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete cluster (org scoped)
+      tags:
+      - clusters
+    get:
+      description: Returns one cluster. Add `include=node_pools,bastion` to expand.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Optional: node_pools,bastion'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/clusters.clusterResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get cluster by ID (org scoped)
+      tags:
+      - clusters
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/clusters.updateClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/clusters.clusterResponse'
+        "400":
+          description: invalid id / invalid json / invalid bastion_server_id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update cluster (org scoped). If `kubeconfig` is provided and non-empty,
+        it will be encrypted per-organization and stored (never returned). Sending
+        an empty string for `kubeconfig` is ignored (no change).
+      tags:
+      - clusters
+  /api/v1/clusters/{id}/bastion:
+    delete:
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Clear cluster bastion (org scoped)
+      tags:
+      - clusters
+    get:
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/clusters.serverBrief'
+        "204":
+          description: No Content (no bastion set)
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get cluster bastion (org scoped)
+      tags:
+      - clusters
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: server_id with role=bastion
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/clusters.setBastionRequest'
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid server_id / server not bastion
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: cluster or server not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Set/replace cluster bastion (org scoped)
+      tags:
+      - clusters
+  /api/v1/clusters/{id}/node_pools:
+    get:
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/clusters.nodePoolBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List node pools attached to a cluster (org scoped)
+      tags:
+      - clusters
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: node_pool_ids
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/clusters.attachNodePoolsRequest'
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach node pools to cluster (org scoped)
+      tags:
+      - clusters
+  /api/v1/clusters/{id}/node_pools/{poolId}:
+    delete:
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Cluster ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: poolId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach one node pool from a cluster (org scoped)
+      tags:
+      - clusters
+  /api/v1/jobs/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Cancels running or scheduled jobs
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Cancel a job
+      tags:
+      - jobs
+  /api/v1/jobs/{id}/retry:
+    post:
+      consumes:
+      - application/json
+      description: Calls Archer ScheduleNow on the job id
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: no content
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Retry a job immediately
+      tags:
+      - jobs
+  /api/v1/jobs/active:
+    get:
+      description: Currently running jobs (limit default 100)
+      parameters:
+      - default: 100
+        description: Max rows
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/jobs.JobListItem'
+            type: array
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Active jobs
+      tags:
+      - jobs
+  /api/v1/jobs/enqueue:
+    post:
+      consumes:
+      - application/json
+      description: Schedules a job on a queue with optional args/schedule
+      parameters:
+      - description: Enqueue request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/jobs.EnqueueReq'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/jobs.EnqueueResp'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Manually enqueue a job
+      tags:
+      - jobs
+  /api/v1/jobs/failures:
+    get:
+      description: Failed jobs ordered by most recent (limit default 100)
+      parameters:
+      - default: 100
+        description: Max rows
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/jobs.JobListItem'
+            type: array
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Recent failures
+      tags:
+      - jobs
+  /api/v1/jobs/kpi:
+    get:
+      description: Aggregated counters across all queues
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/jobs.KPI'
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Jobs KPI
+      tags:
+      - jobs
+  /api/v1/jobs/queues:
+    get:
+      description: Counts and avg duration per queue (last 24h)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/jobs.QueueRollup'
+            type: array
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Per-queue rollups
+      tags:
+      - jobs
   /api/v1/labels:
     get:
       consumes:
       - application/json
       description: 'Returns node labels for the organization in X-Org-ID. Filters:
-        `name`, `value`, and `q` (name contains). Add `include=node_pools` to include
+        `key`, `value`, and `q` (key contains). Add `include=node_pools` to include
         linked node groups.'
       parameters:
       - description: Organization UUID
@@ -1020,15 +2500,15 @@ paths:
         name: X-Org-ID
         required: true
         type: string
-      - description: Exact name
+      - description: Exact key
         in: query
-        name: name
+        name: key
         type: string
       - description: Exact value
         in: query
         name: value
         type: string
-      - description: Name contains (case-insensitive)
+      - description: Key contains (case-insensitive)
         in: query
         name: q
         type: string
@@ -1104,6 +2584,319 @@ paths:
       security:
       - BearerAuth: []
       summary: Create label (org scoped)
+      tags:
+      - labels
+  /api/v1/labels/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the label.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete label (org scoped)
+      tags:
+      - labels
+    get:
+      consumes:
+      - application/json
+      description: Returns one label. Add `include=node_pools` to include node groups.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/labels.labelResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get label by ID (org scoped)
+      tags:
+      - labels
+    patch:
+      consumes:
+      - application/json
+      description: Partially update label fields.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/labels.updateLabelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/labels.labelResponse'
+        "400":
+          description: invalid id / invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update label (org scoped)
+      tags:
+      - labels
+  /api/v1/labels/{id}/node_pools:
+    get:
+      consumes:
+      - application/json
+      description: Returns node pools attached to the label. Supports `q` (name contains,
+        case-insensitive).
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/labels.nodePoolBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List node pools linked to a label (org scoped)
+      tags:
+      - labels
+    post:
+      consumes:
+      - application/json
+      description: Links the label to one or more node pools in the same organization.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: IDs to attach
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/labels.addLabelToPoolRequest'
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/labels.labelResponse'
+        "400":
+          description: invalid id / invalid json / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach label to node pools (org scoped)
+      tags:
+      - labels
+  /api/v1/labels/{id}/node_pools/{poolId}:
+    delete:
+      consumes:
+      - application/json
+      description: Unlinks the label from the specified node pool.
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: poolId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach label from a node pool (org scoped)
       tags:
       - labels
   /api/v1/node-pools:
@@ -1342,6 +3135,312 @@ paths:
       security:
       - BearerAuth: []
       summary: Update node pool (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/annotations:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/nodepools.annotationBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List annotations attached to a node pool (org scoped)
+      tags:
+      - node-pools
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Annotation IDs to attach
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nodepools.attachAnnotationsRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid annotation_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach annotations to a node pool (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/annotations/{annotationId}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: annotationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach one annotation from a node pool (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/labels:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/nodepools.labelBrief'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List labels attached to a node pool (org scoped)
+      tags:
+      - node-pools
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Label IDs to attach
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/nodepools.attachLabelsRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid label_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: attach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Attach labels to a node pool (org scoped)
+      tags:
+      - node-pools
+  /api/v1/node-pools/{id}/labels/{labelId}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: labelId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: detach failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Detach one label from a node pool (org scoped)
       tags:
       - node-pools
   /api/v1/node-pools/{id}/servers:
@@ -2328,23 +4427,23 @@ paths:
       consumes:
       - application/json
       description: 'Returns node taints for the organization in X-Org-ID. Filters:
-        `name`, `value`, and `q` (name contains). Add `include=node_groups` to include
-        linked node groups.'
+        `key`, `value`, and `q` (key contains). Add `include=node_pools` to include
+        linked node pools.'
       parameters:
       - description: Organization UUID
         in: header
         name: X-Org-ID
         required: true
         type: string
-      - description: Exact name
+      - description: Exact key
         in: query
-        name: name
+        name: key
         type: string
       - description: Exact value
         in: query
         name: value
         type: string
-      - description: Name contains (case-insensitive)
+      - description: key contains (case-insensitive)
         in: query
         name: q
         type: string
@@ -2469,7 +4568,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns one taint. Add `include=node_groups` to include node groups.
+      description: Returns one taint. Add `include=node_pools` to include node pools.
       parameters:
       - description: Organization UUID
         in: header
@@ -2571,6 +4670,60 @@ paths:
       tags:
       - taints
   /api/v1/taints/{id}/node_pools:
+    get:
+      consumes:
+      - application/json
+      description: Returns node pools attached to the taint. Supports `q` (name contains,
+        case-insensitive).
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: Taint ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/taints.nodePoolResponse'
+            type: array
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List node pools linked to a taint (org scoped)
+      tags:
+      - taints
     post:
       consumes:
       - application/json

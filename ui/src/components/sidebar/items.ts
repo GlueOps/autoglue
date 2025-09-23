@@ -18,6 +18,7 @@ import {
   UsersIcon,
 } from "lucide-react"
 import { AiOutlineCluster } from "react-icons/ai"
+import {GrUserWorker} from "react-icons/gr";
 
 export type NavItem = {
   label: string
@@ -95,6 +96,11 @@ export const items = [
     label: "Settings",
     icon: SettingsIcon,
     items: [
+        {
+            label: "Jobs",
+            icon: GrUserWorker,
+            to: '/settings/jobs',
+        },
       {
         label: "Organizations",
         to: "/settings/orgs",

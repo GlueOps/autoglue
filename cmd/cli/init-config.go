@@ -32,6 +32,11 @@ var initConfigCmd = &cobra.Command{
 			"authentication": map[string]string{
 				"secret": defaultSecret,
 			},
+			"archer": map[string]interface{}{
+				"instances":     2,
+				"timeoutSec":    60,
+				"enqueue_every": 500,
+			},
 			"smtp": map[string]interface{}{
 				"enabled":  false,
 				"host":     "smtp.example.com",

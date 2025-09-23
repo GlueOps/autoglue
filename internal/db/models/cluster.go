@@ -14,4 +14,8 @@ type Cluster struct {
 	KubeIV              string       `json:"-"`
 	KubeTag             string       `json:"-"`
 	NodePools           []NodePool   `gorm:"many2many:cluster_node_pools;constraint:OnDelete:CASCADE" json:"node_pools,omitempty"`
+	BastionServerID     *uuid.UUID   `gorm:"type:uuid" json:"bastion_server_id,omitempty"`
+	BastionServer       *Server      `gorm:"foreignKey:BastionServerID" json:"bastion_server,omitempty"`
+	ClusterLoadBalancer string       `gorm:"type:text" json:"cluster_load_balancer"`
+	ControlLoadBalancer string       `gorm:"type:text" json:"control_load_balancer"`
 }

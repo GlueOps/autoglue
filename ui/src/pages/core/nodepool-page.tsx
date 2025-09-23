@@ -7,6 +7,7 @@ import {
   RefreshCw,
   Search,
   ServerIcon,
+  Tag,
   Trash,
   UnlinkIcon,
 } from "lucide-react"
@@ -49,6 +50,8 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx"
 
+/* ----------------------------- Types & Schemas ---------------------------- */
+
 type ServerBrief = {
   id: string
   hostname?: string | null
@@ -56,6 +59,37 @@ type ServerBrief = {
   ip_address?: string
   role?: string
   status?: string
+}
+
+type LabelBrief = {
+  id: string
+  key: string
+  value: string
+}
+
+type LabelWithPools = LabelBrief & {
+  node_groups?: { id: string; name: string }[]
+}
+
+type TaintBrief = {
+  id: string
+  key: string
+  value: string
+  effect: string
+}
+
+type TaintWithPools = TaintBrief & {
+  node_groups?: { id: string; name: string }[]
+}
+
+type AnnotationBrief = {
+  id: string
+  name: string
+  value: string
+}
+
+type AnnotationWithPools = AnnotationBrief & {
+  node_pools?: { id: string; name: string }[]
 }
 
 type NodePool = {
@@ -66,7 +100,7 @@ type NodePool = {
 
 const CreatePoolSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120, "Max 120 chars"),
-  server_ids: z.array(z.uuid()).optional().default([]),
+  server_ids: z.array(z.string().uuid()).optional().default([]),
 })
 type CreatePoolInput = z.input<typeof CreatePoolSchema>
 type CreatePoolValues = z.output<typeof CreatePoolSchema>
@@ -77,9 +111,26 @@ const UpdatePoolSchema = z.object({
 type UpdatePoolValues = z.output<typeof UpdatePoolSchema>
 
 const AttachServersSchema = z.object({
-  server_ids: z.array(z.uuid()).min(1, "Pick at least one server"),
+  server_ids: z.array(z.string().uuid()).min(1, "Pick at least one server"),
 })
 type AttachServersValues = z.output<typeof AttachServersSchema>
+
+const AttachLabelsSchema = z.object({
+  label_ids: z.array(z.string().uuid()).min(1, "Pick at least one label"),
+})
+type AttachLabelsValues = z.output<typeof AttachLabelsSchema>
+
+const AttachTaintsSchema = z.object({
+  taint_ids: z.array(z.string().uuid()).min(1, "Pick at least one taint"),
+})
+type AttachTaintsValues = z.output<typeof AttachTaintsSchema>
+
+const AttachAnnotationsSchema = z.object({
+  annotation_ids: z.array(z.string().uuid()).min(1, "Pick at least one annotation"),
+})
+type AttachAnnotationsValues = z.output<typeof AttachAnnotationsSchema>
+
+/* --------------------------------- Utils --------------------------------- */
 
 function StatusBadge({ status }: { status?: string }) {
   const v =
@@ -109,28 +160,76 @@ function serverLabel(s: ServerBrief) {
   return `${name}${role}`
 }
 
+function labelKV(l: LabelBrief) {
+  return `${l.key}=${l.value}`
+}
+
+function taintText(t: TaintBrief) {
+  const kv = t.value ? `${t.key}=${t.value}` : t.key
+  return `${kv}:${t.effect}`
+}
+
+function annotationKV(a: AnnotationBrief) {
+  return `${a.name}=${a.value}`
+}
+
+/* --------------------------------- Page ---------------------------------- */
+
 export const NodePoolPage = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [pools, setPools] = useState<NodePool[]>([])
   const [allServers, setAllServers] = useState<ServerBrief[]>([])
-  const [err, setErr] = useState<string | null>(null)
 
+  // Labels / Taints / Annotations
+  const [allLabels, setAllLabels] = useState<LabelWithPools[]>([])
+  const [allTaints, setAllTaints] = useState<TaintWithPools[]>([])
+  const [allAnnotations, setAllAnnotations] = useState<AnnotationWithPools[]>([])
+
+  const [err, setErr] = useState<string | null>(null)
   const [q, setQ] = useState("")
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<NodePool | null>(null)
+
+  // Servers dialog state
   const [manageTarget, setManageTarget] = useState<NodePool | null>(null)
+
+  // Labels dialog state
+  const [manageLabelsTarget, setManageLabelsTarget] = useState<NodePool | null>(null)
+  const [attachedLabels, setAttachedLabels] = useState<LabelBrief[]>([])
+  const [labelsLoading, setLabelsLoading] = useState(false)
+  const [labelsErr, setLabelsErr] = useState<string | null>(null)
+
+  // Taints dialog state
+  const [manageTaintsTarget, setManageTaintsTarget] = useState<NodePool | null>(null)
+  const [attachedTaints, setAttachedTaints] = useState<TaintBrief[]>([])
+  const [taintsLoading, setTaintsLoading] = useState(false)
+  const [taintsErr, setTaintsErr] = useState<string | null>(null)
+
+  // Annotations dialog state
+  const [manageAnnotationsTarget, setManageAnnotationsTarget] = useState<NodePool | null>(null)
+  const [attachedAnnotations, setAttachedAnnotations] = useState<AnnotationBrief[]>([])
+  const [annotationsLoading, setAnnotationsLoading] = useState(false)
+  const [annotationsErr, setAnnotationsErr] = useState<string | null>(null)
+
+  /* ------------------------------- Data Load ------------------------------ */
 
   async function loadAll() {
     setLoading(true)
     setErr(null)
     try {
-      const [poolsData, serversData] = await Promise.all([
+      const [poolsData, serversData, labelsData, taintsData, annotationsData] = await Promise.all([
         api.get<NodePool[]>("/api/v1/node-pools?include=servers"),
         api.get<ServerBrief[]>("/api/v1/servers"),
+        api.get<LabelWithPools[]>("/api/v1/labels?include=node_pools"),
+        api.get<TaintWithPools[]>("/api/v1/taints?include=node_pools"),
+        api.get<AnnotationWithPools[]>("/api/v1/annotations?include=node_pools"),
       ])
       setPools(poolsData || [])
       setAllServers(serversData || [])
+      setAllLabels(labelsData || [])
+      setAllTaints(taintsData || [])
+      setAllAnnotations(annotationsData || [])
 
       if (manageTarget) {
         const refreshed = (poolsData || []).find((p) => p.id === manageTarget.id) || null
@@ -140,33 +239,157 @@ export const NodePoolPage = () => {
         const refreshed = (poolsData || []).find((p) => p.id === editTarget.id) || null
         setEditTarget(refreshed)
       }
+      if (manageLabelsTarget) {
+        await loadAttachedLabels(manageLabelsTarget.id)
+      }
+      if (manageTaintsTarget) {
+        await loadAttachedTaints(manageTaintsTarget.id)
+      }
+      if (manageAnnotationsTarget) {
+        await loadAttachedAnnotations(manageAnnotationsTarget.id)
+      }
     } catch (e) {
       console.error(e)
-      const msg = e instanceof ApiError ? e.message : "Failed to load node pools or servers"
+      const msg =
+        e instanceof ApiError
+          ? e.message
+          : "Failed to load node pools / servers / labels / taints / annotations"
       setErr(msg)
     } finally {
       setLoading(false)
     }
   }
 
+  async function loadAttachedLabels(poolId: string) {
+    setLabelsLoading(true)
+    setLabelsErr(null)
+    try {
+      const data = await api.get<LabelBrief[]>(`/api/v1/node-pools/${poolId}/labels`)
+      setAttachedLabels(data || [])
+    } catch (e) {
+      console.error(e)
+      const msg = e instanceof ApiError ? e.message : "Failed to load labels for pool"
+      setLabelsErr(msg)
+    } finally {
+      setLabelsLoading(false)
+    }
+  }
+
+  async function loadAttachedTaints(poolId: string) {
+    setTaintsLoading(true)
+    setTaintsErr(null)
+    try {
+      const data = await api.get<TaintBrief[]>(`/api/v1/node-pools/${poolId}/taints`)
+      setAttachedTaints(data || [])
+    } catch (e) {
+      console.error(e)
+      const msg = e instanceof ApiError ? e.message : "Failed to load taints for pool"
+      setTaintsErr(msg)
+    } finally {
+      setTaintsLoading(false)
+    }
+  }
+
+  async function loadAttachedAnnotations(poolId: string) {
+    setAnnotationsLoading(true)
+    setAnnotationsErr(null)
+    try {
+      const data = await api.get<AnnotationBrief[]>(`/api/v1/node-pools/${poolId}/annotations`)
+      setAttachedAnnotations(data || [])
+    } catch (e) {
+      console.error(e)
+      const msg = e instanceof ApiError ? e.message : "Failed to load annotations for pool"
+      setAnnotationsErr(msg)
+    } finally {
+      setAnnotationsLoading(false)
+    }
+  }
+
   useEffect(() => {
     void loadAll()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /* --------------------- Labels/Taints/Annotations per Pool --------------------- */
+
+  const labelsByPool = useMemo(() => {
+    const map = new Map<string, LabelBrief[]>()
+    for (const l of allLabels) {
+      for (const ng of l.node_groups || []) {
+        const arr = map.get(ng.id) || []
+        arr.push({ id: l.id, key: l.key, value: l.value })
+        map.set(ng.id, arr)
+      }
+    }
+    return map
+  }, [allLabels])
+
+  const taintsByPool = useMemo(() => {
+    const map = new Map<string, TaintBrief[]>()
+    for (const t of allTaints) {
+      for (const ng of t.node_groups || []) {
+        const arr = map.get(ng.id) || []
+        arr.push({ id: t.id, key: t.key, value: t.value, effect: t.effect })
+        map.set(ng.id, arr)
+      }
+    }
+    return map
+  }, [allTaints])
+
+  const annotationsByPool = useMemo(() => {
+    const map = new Map<string, AnnotationBrief[]>()
+    for (const a of allAnnotations) {
+      for (const ng of a.node_pools || []) {
+        const arr = map.get(ng.id) || []
+        arr.push({ id: a.id, name: a.name, value: a.value })
+        map.set(ng.id, arr)
+      }
+    }
+    return map
+  }, [allAnnotations])
+
+  /* -------------------------------- Filters ------------------------------- */
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
     if (!needle) return pools
-    return pools.filter(
-      (p) =>
-        p.name.toLowerCase().includes(needle) ||
-        (p.servers || []).some(
-          (s) =>
-            (s.hostname || "").toLowerCase().includes(needle) ||
-            (s.ip || s.ip_address || "").toLowerCase().includes(needle) ||
-            (s.role || "").toLowerCase().includes(needle)
+    return pools.filter((p) => {
+      const serversMatch = (p.servers || []).some(
+        (s) =>
+          (s.hostname || "").toLowerCase().includes(needle) ||
+          (s.ip || s.ip_address || "").toLowerCase().includes(needle) ||
+          (s.role || "").toLowerCase().includes(needle)
+      )
+      const labelsMatch = (labelsByPool.get(p.id) || []).some(
+        (l) =>
+          l.key.toLowerCase().includes(needle) || (l.value || "").toLowerCase().includes(needle)
+      )
+      const taintsMatch = (taintsByPool.get(p.id) || []).some((t) => {
+        const kv = `${t.key}=${t.value}`.toLowerCase()
+        return (
+          t.key.toLowerCase().includes(needle) ||
+          (t.value || "").toLowerCase().includes(needle) ||
+          t.effect.toLowerCase().includes(needle) ||
+          kv.includes(needle)
         )
-    )
-  }, [pools, q])
+      })
+      const annotationsMatch = (annotationsByPool.get(p.id) || []).some(
+        (a) =>
+          a.name.toLowerCase().includes(needle) ||
+          (a.value || "").toLowerCase().includes(needle) ||
+          `${a.name}=${a.value}`.toLowerCase().includes(needle)
+      )
+      return (
+        p.name.toLowerCase().includes(needle) ||
+        serversMatch ||
+        labelsMatch ||
+        taintsMatch ||
+        annotationsMatch
+      )
+    })
+  }, [pools, q, labelsByPool, taintsByPool, annotationsByPool])
+
+  /* ------------------------------ Mutations ------------------------------- */
 
   async function deletePool(id: string) {
     if (!confirm("Delete this node pool? This cannot be undone.")) return
@@ -174,6 +397,7 @@ export const NodePoolPage = () => {
     await loadAll()
   }
 
+  // Create Pool
   const createForm = useForm<CreatePoolInput, any, CreatePoolValues>({
     resolver: zodResolver(CreatePoolSchema),
     defaultValues: { name: "", server_ids: [] },
@@ -190,6 +414,7 @@ export const NodePoolPage = () => {
     await loadAll()
   }
 
+  // Edit Pool
   const editForm = useForm<UpdatePoolValues>({
     resolver: zodResolver(UpdatePoolSchema),
     defaultValues: { name: "" },
@@ -207,6 +432,7 @@ export const NodePoolPage = () => {
     await loadAll()
   }
 
+  // Attach / Detach Servers
   const attachForm = useForm<AttachServersValues>({
     resolver: zodResolver(AttachServersSchema),
     defaultValues: { server_ids: [] },
@@ -233,11 +459,97 @@ export const NodePoolPage = () => {
     await loadAll()
   }
 
-  const attachableServers = useMemo(() => {
-    if (!manageTarget) return [] as ServerBrief[]
-    const attachedIds = new Set((manageTarget.servers || []).map((s) => s.id))
-    return allServers.filter((s) => !attachedIds.has(s.id))
-  }, [manageTarget, allServers])
+  // Attach / Detach Labels
+  const attachLabelsForm = useForm<AttachLabelsValues>({
+    resolver: zodResolver(AttachLabelsSchema),
+    defaultValues: { label_ids: [] },
+  })
+
+  function openManageLabels(p: NodePool) {
+    setManageLabelsTarget(p)
+    attachLabelsForm.reset({ label_ids: [] })
+    void loadAttachedLabels(p.id)
+  }
+
+  const submitAttachLabels = async (values: AttachLabelsValues) => {
+    if (!manageLabelsTarget) return
+    await api.post(`/api/v1/node-pools/${manageLabelsTarget.id}/labels`, {
+      label_ids: values.label_ids,
+    })
+    attachLabelsForm.reset({ label_ids: [] })
+    await loadAttachedLabels(manageLabelsTarget.id)
+    await loadAll()
+  }
+
+  async function detachLabel(labelId: string) {
+    if (!manageLabelsTarget) return
+    if (!confirm("Detach this label from the pool?")) return
+    await api.delete(`/api/v1/node-pools/${manageLabelsTarget.id}/labels/${labelId}`)
+    await loadAttachedLabels(manageLabelsTarget.id)
+    await loadAll()
+  }
+
+  // Attach / Detach Taints
+  const attachTaintsForm = useForm<AttachTaintsValues>({
+    resolver: zodResolver(AttachTaintsSchema),
+    defaultValues: { taint_ids: [] },
+  })
+
+  function openManageTaints(p: NodePool) {
+    setManageTaintsTarget(p)
+    attachTaintsForm.reset({ taint_ids: [] })
+    void loadAttachedTaints(p.id)
+  }
+
+  const submitAttachTaints = async (values: AttachTaintsValues) => {
+    if (!manageTaintsTarget) return
+    await api.post(`/api/v1/node-pools/${manageTaintsTarget.id}/taints`, {
+      taint_ids: values.taint_ids,
+    })
+    attachTaintsForm.reset({ taint_ids: [] })
+    await loadAttachedTaints(manageTaintsTarget.id)
+    await loadAll()
+  }
+
+  async function detachTaint(taintId: string) {
+    if (!manageTaintsTarget) return
+    if (!confirm("Detach this taint from the pool?")) return
+    await api.delete(`/api/v1/node-pools/${manageTaintsTarget.id}/taints/${taintId}`)
+    await loadAttachedTaints(manageTaintsTarget.id)
+    await loadAll()
+  }
+
+  // Attach / Detach Annotations
+  const attachAnnotationsForm = useForm<AttachAnnotationsValues>({
+    resolver: zodResolver(AttachAnnotationsSchema),
+    defaultValues: { annotation_ids: [] },
+  })
+
+  function openManageAnnotations(p: NodePool) {
+    setManageAnnotationsTarget(p)
+    attachAnnotationsForm.reset({ annotation_ids: [] })
+    void loadAttachedAnnotations(p.id)
+  }
+
+  const submitAttachAnnotations = async (values: AttachAnnotationsValues) => {
+    if (!manageAnnotationsTarget) return
+    await api.post(`/api/v1/node-pools/${manageAnnotationsTarget.id}/annotations`, {
+      annotation_ids: values.annotation_ids,
+    })
+    attachAnnotationsForm.reset({ annotation_ids: [] })
+    await loadAttachedAnnotations(manageAnnotationsTarget.id)
+    await loadAll() // refresh badges in table
+  }
+
+  async function detachAnnotation(annotationId: string) {
+    if (!manageAnnotationsTarget) return
+    if (!confirm("Detach this annotation from the pool?")) return
+    await api.delete(`/api/v1/node-pools/${manageAnnotationsTarget.id}/annotations/${annotationId}`)
+    await loadAttachedAnnotations(manageAnnotationsTarget.id)
+    await loadAll() // refresh badges in table
+  }
+
+  /* --------------------------------- Render -------------------------------- */
 
   if (loading) return <div className="p-6">Loading node pools…</div>
   if (err) return <div className="p-6 text-red-500">{err}</div>
@@ -253,7 +565,7 @@ export const NodePoolPage = () => {
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search pools or servers…"
+              placeholder="Search pools, servers, labels, taints, annotations…"
               className="w-72 pl-8"
             />
           </div>
@@ -361,79 +673,136 @@ export const NodePoolPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">
-                      {(p.servers || []).slice(0, 6).map((s) => (
-                        <Badge key={s.id} variant="secondary" className="gap-1">
-                          <ServerIcon className="h-3 w-3" />{" "}
-                          {s.hostname || s.ip || s.ip_address || truncateMiddle(s.id, 6)}
-                          {s.status && (
-                            <span className="ml-1">
-                              <StatusBadge status={s.status} />
-                            </span>
-                          )}
-                        </Badge>
-                      ))}
-                      {(p.servers || []).length === 0 && (
-                        <span className="text-muted-foreground">No servers</span>
-                      )}
-                      {(p.servers || []).length > 6 && (
-                        <span className="text-muted-foreground">
-                          +{(p.servers || []).length - 6} more
-                        </span>
-                      )}
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => openManage(p)}>
-                      <LinkIcon className="mr-2 h-4 w-4" /> Manage servers
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">Annotations</div>
-                    <Button variant="outline" size="sm">
-                      <LinkIcon className="mr-2 h-4 w-4" /> Manage Annotations
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">Labels</div>
-                    <Button variant="outline" size="sm">
-                      <LinkIcon className="mr-2 h-4 w-4" /> Manage Labels
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">Taints</div>
-                    <Button variant="outline" size="sm">
-                      <LinkIcon className="mr-2 h-4 w-4" /> Manage Taints
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEdit(p)}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                      </Button>
+              {filtered.map((p) => {
+                const labels = labelsByPool.get(p.id) || []
+                const taints = taintsByPool.get(p.id) || []
+                const annotations = annotationsByPool.get(p.id) || []
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.name}</TableCell>
 
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Trash className="mr-2 h-4 w-4" /> Delete
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => deletePool(p.id)}>
-                            Confirm delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    {/* Servers cell */}
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">
+                        {(p.servers || []).slice(0, 6).map((s) => (
+                          <Badge key={s.id} variant="secondary" className="gap-1">
+                            <ServerIcon className="h-3 w-3" />{" "}
+                            {s.hostname || s.ip || s.ip_address || truncateMiddle(s.id, 6)}
+                            <span className="ml-1">{s.role}</span>
+                            {s.status && (
+                              <span className="ml-1">
+                                <StatusBadge status={s.status} />
+                              </span>
+                            )}
+                          </Badge>
+                        ))}
+                        {(p.servers || []).length === 0 && (
+                          <span className="text-muted-foreground">No servers</span>
+                        )}
+                        {(p.servers || []).length > 6 && (
+                          <span className="text-muted-foreground">
+                            +{(p.servers || []).length - 6} more
+                          </span>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => openManage(p)}>
+                        <LinkIcon className="mr-2 h-4 w-4" /> Manage servers
+                      </Button>
+                    </TableCell>
+
+                    {/* Annotations cell */}
+                    <TableCell>
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        {annotations.slice(0, 6).map((a) => (
+                          <Badge key={a.id} variant="outline" className="font-mono">
+                            <Tag className="mr-1 h-3 w-3" />
+                            {annotationKV(a)}
+                          </Badge>
+                        ))}
+                        {annotations.length === 0 && (
+                          <span className="text-muted-foreground">No annotations</span>
+                        )}
+                        {annotations.length > 6 && (
+                          <span className="text-muted-foreground">
+                            +{annotations.length - 6} more
+                          </span>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => openManageAnnotations(p)}>
+                        <LinkIcon className="mr-2 h-4 w-4" /> Manage Annotations
+                      </Button>
+                    </TableCell>
+
+                    {/* Labels cell */}
+                    <TableCell>
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        {labels.slice(0, 6).map((l) => (
+                          <Badge key={l.id} variant="outline" className="font-mono">
+                            <Tag className="mr-1 h-3 w-3" />
+                            {l.key}={l.value}
+                          </Badge>
+                        ))}
+                        {labels.length === 0 && (
+                          <span className="text-muted-foreground">No labels</span>
+                        )}
+                        {labels.length > 6 && (
+                          <span className="text-muted-foreground">+{labels.length - 6} more</span>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => openManageLabels(p)}>
+                        <Tag className="mr-2 h-4 w-4" /> Manage Labels
+                      </Button>
+                    </TableCell>
+
+                    {/* Taints cell */}
+                    <TableCell>
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        {taints.slice(0, 6).map((t) => (
+                          <Badge key={t.id} variant="outline" className="font-mono">
+                            <Tag className="mr-1 h-3 w-3" />
+                            {taintText(t)}
+                          </Badge>
+                        ))}
+                        {taints.length === 0 && (
+                          <span className="text-muted-foreground">No taints</span>
+                        )}
+                        {taints.length > 6 && (
+                          <span className="text-muted-foreground">+{taints.length - 6} more</span>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => openManageTaints(p)}>
+                        <LinkIcon className="mr-2 h-4 w-4" /> Manage Taints
+                      </Button>
+                    </TableCell>
+
+                    {/* Actions */}
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => openEdit(p)}>
+                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </Button>
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash className="mr-2 h-4 w-4" /> Delete
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => deletePool(p.id)}>
+                              Confirm delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
 
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-muted-foreground py-10 text-center">
+                  <TableCell colSpan={6} className="text-muted-foreground py-10 text-center">
                     No node pools match your search.
                   </TableCell>
                 </TableRow>
@@ -541,7 +910,7 @@ export const NodePoolPage = () => {
             </div>
           </div>
 
-          {/* Attach section */}
+          {/* Attach servers */}
           <div className="pt-4">
             <Form {...attachForm}>
               <form onSubmit={attachForm.handleSubmit(submitAttach)} className="space-y-3">
@@ -552,36 +921,44 @@ export const NodePoolPage = () => {
                     <FormItem>
                       <FormLabel>Attach more servers</FormLabel>
                       <div className="grid max-h-64 grid-cols-1 gap-2 overflow-auto rounded-xl border p-2 md:grid-cols-2">
-                        {attachableServers.length === 0 && (
-                          <div className="text-muted-foreground p-2 text-sm">
-                            No more servers available to attach
-                          </div>
-                        )}
-                        {attachableServers.map((s) => {
-                          const checked = field.value?.includes(s.id) || false
-                          return (
-                            <label
-                              key={s.id}
-                              className="hover:bg-accent flex cursor-pointer items-start gap-2 rounded p-1"
-                            >
-                              <Checkbox
-                                checked={checked}
-                                onCheckedChange={(v) => {
-                                  const next = new Set(field.value || [])
-                                  if (v === true) next.add(s.id)
-                                  else next.delete(s.id)
-                                  field.onChange(Array.from(next))
-                                }}
-                              />
-                              <div className="leading-tight">
-                                <div className="text-sm font-medium">{serverLabel(s)}</div>
-                                <div className="text-muted-foreground text-xs">
-                                  {truncateMiddle(s.id, 8)}
-                                </div>
-                              </div>
-                            </label>
+                        {(() => {
+                          const attachedIds = new Set(
+                            (manageTarget?.servers || []).map((s) => s.id)
                           )
-                        })}
+                          const attachableServers = allServers.filter((s) => !attachedIds.has(s.id))
+                          if (attachableServers.length === 0) {
+                            return (
+                              <div className="text-muted-foreground p-2 text-sm">
+                                No more servers available to attach
+                              </div>
+                            )
+                          }
+                          return attachableServers.map((s) => {
+                            const checked = field.value?.includes(s.id) || false
+                            return (
+                              <label
+                                key={s.id}
+                                className="hover:bg-accent flex cursor-pointer items-start gap-2 rounded p-1"
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(v) => {
+                                    const next = new Set(field.value || [])
+                                    if (v === true) next.add(s.id)
+                                    else next.delete(s.id)
+                                    field.onChange(Array.from(next))
+                                  }}
+                                />
+                                <div className="leading-tight">
+                                  <div className="text-sm font-medium">{serverLabel(s)}</div>
+                                  <div className="text-muted-foreground text-xs">
+                                    {truncateMiddle(s.id, 8)}
+                                  </div>
+                                </div>
+                              </label>
+                            )
+                          })
+                        })()}
                       </div>
                       <FormMessage />
                     </FormItem>
@@ -592,6 +969,398 @@ export const NodePoolPage = () => {
                   <Button type="submit" disabled={attachForm.formState.isSubmitting}>
                     <LinkIcon className="mr-2 h-4 w-4" />{" "}
                     {attachForm.formState.isSubmitting ? "Attaching…" : "Attach selected"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage labels dialog */}
+      <Dialog open={!!manageLabelsTarget} onOpenChange={(o) => !o && setManageLabelsTarget(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Manage labels for <span className="font-mono">{manageLabelsTarget?.name}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Attached labels list */}
+          <div className="space-y-3">
+            <div className="text-sm font-medium">Attached labels</div>
+
+            {labelsLoading ? (
+              <div className="text-muted-foreground rounded-md border p-3 text-sm">Loading…</div>
+            ) : labelsErr ? (
+              <div className="rounded-md border p-3 text-sm text-red-500">{labelsErr}</div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Key</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead className="w-[120px] text-right">Detach</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {attachedLabels.map((l) => (
+                      <TableRow key={l.id}>
+                        <TableCell className="font-mono text-sm">{l.key}</TableCell>
+                        <TableCell className="font-mono text-sm">{l.value}</TableCell>
+                        <TableCell>
+                          <div className="flex justify-end">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => detachLabel(l.id)}
+                            >
+                              <UnlinkIcon className="mr-2 h-4 w-4" /> Detach
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {attachedLabels.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-muted-foreground py-8 text-center">
+                          No labels attached yet.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+
+          {/* Attach labels */}
+          <div className="pt-4">
+            <Form {...attachLabelsForm}>
+              <form
+                onSubmit={attachLabelsForm.handleSubmit(submitAttachLabels)}
+                className="space-y-3"
+              >
+                <FormField
+                  control={attachLabelsForm.control}
+                  name="label_ids"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Attach more labels</FormLabel>
+                      <div className="grid max-h-64 grid-cols-1 gap-2 overflow-auto rounded-xl border p-2 md:grid-cols-2">
+                        {(() => {
+                          const attachedIds = new Set(attachedLabels.map((l) => l.id))
+                          const attachable = (allLabels as unknown as LabelBrief[]).filter(
+                            (l) => !attachedIds.has(l.id)
+                          )
+                          if (attachable.length === 0) {
+                            return (
+                              <div className="text-muted-foreground p-2 text-sm">
+                                No more labels available to attach
+                              </div>
+                            )
+                          }
+                          return attachable.map((l) => {
+                            const checked = field.value?.includes(l.id) || false
+                            return (
+                              <label
+                                key={l.id}
+                                className="hover:bg-accent flex cursor-pointer items-start gap-2 rounded p-1"
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(v) => {
+                                    const next = new Set(field.value || [])
+                                    if (v === true) next.add(l.id)
+                                    else next.delete(l.id)
+                                    field.onChange(Array.from(next))
+                                  }}
+                                />
+                                <div className="leading-tight">
+                                  <div className="text-sm font-medium">{labelKV(l)}</div>
+                                  <div className="text-muted-foreground text-xs">
+                                    {truncateMiddle(l.id, 8)}
+                                  </div>
+                                </div>
+                              </label>
+                            )
+                          })
+                        })()}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter className="gap-2">
+                  <Button type="submit" disabled={attachLabelsForm.formState.isSubmitting}>
+                    <LinkIcon className="mr-2 h-4 w-4" />{" "}
+                    {attachLabelsForm.formState.isSubmitting ? "Attaching…" : "Attach selected"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage taints dialog */}
+      <Dialog open={!!manageTaintsTarget} onOpenChange={(o) => !o && setManageTaintsTarget(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Manage taints for <span className="font-mono">{manageTaintsTarget?.name}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Attached taints list */}
+          <div className="space-y-3">
+            <div className="text-sm font-medium">Attached taints</div>
+
+            {taintsLoading ? (
+              <div className="text-muted-foreground rounded-md border p-3 text-sm">Loading…</div>
+            ) : taintsErr ? (
+              <div className="rounded-md border p-3 text-sm text-red-500">{taintsErr}</div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Key</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Effect</TableHead>
+                      <TableHead className="w-[120px] text-right">Detach</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {attachedTaints.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell className="font-mono text-sm">{t.key}</TableCell>
+                        <TableCell className="font-mono text-sm">{t.value}</TableCell>
+                        <TableCell className="font-mono text-sm">{t.effect}</TableCell>
+                        <TableCell>
+                          <div className="flex justify-end">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => detachTaint(t.id)}
+                            >
+                              <UnlinkIcon className="mr-2 h-4 w-4" /> Detach
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {attachedTaints.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-muted-foreground py-8 text-center">
+                          No taints attached yet.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+
+          {/* Attach taints */}
+          <div className="pt-4">
+            <Form {...attachTaintsForm}>
+              <form
+                onSubmit={attachTaintsForm.handleSubmit(submitAttachTaints)}
+                className="space-y-3"
+              >
+                <FormField
+                  control={attachTaintsForm.control}
+                  name="taint_ids"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Attach more taints</FormLabel>
+                      <div className="grid max-h-64 grid-cols-1 gap-2 overflow-auto rounded-xl border p-2 md:grid-cols-2">
+                        {(() => {
+                          const attachedIds = new Set(attachedTaints.map((t) => t.id))
+                          const attachable = (allTaints as unknown as TaintBrief[]).filter(
+                            (t) => !attachedIds.has(t.id)
+                          )
+                          if (attachable.length === 0) {
+                            return (
+                              <div className="text-muted-foreground p-2 text-sm">
+                                No more taints available to attach
+                              </div>
+                            )
+                          }
+                          return attachable.map((t) => {
+                            const checked = field.value?.includes(t.id) || false
+                            return (
+                              <label
+                                key={t.id}
+                                className="hover:bg-accent flex cursor-pointer items-start gap-2 rounded p-1"
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(v) => {
+                                    const next = new Set(field.value || [])
+                                    if (v === true) next.add(t.id)
+                                    else next.delete(t.id)
+                                    field.onChange(Array.from(next))
+                                  }}
+                                />
+                                <div className="leading-tight">
+                                  <div className="text-sm font-medium">{taintText(t)}</div>
+                                  <div className="text-muted-foreground text-xs">
+                                    {truncateMiddle(t.id, 8)}
+                                  </div>
+                                </div>
+                              </label>
+                            )
+                          })
+                        })()}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter className="gap-2">
+                  <Button type="submit" disabled={attachTaintsForm.formState.isSubmitting}>
+                    <LinkIcon className="mr-2 h-4 w-4" />{" "}
+                    {attachTaintsForm.formState.isSubmitting ? "Attaching…" : "Attach selected"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage annotations dialog */}
+      <Dialog
+        open={!!manageAnnotationsTarget}
+        onOpenChange={(o) => !o && setManageAnnotationsTarget(null)}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Manage annotations for{" "}
+              <span className="font-mono">{manageAnnotationsTarget?.name}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Attached annotations list */}
+          <div className="space-y-3">
+            <div className="text-sm font-medium">Attached annotations</div>
+
+            {annotationsLoading ? (
+              <div className="text-muted-foreground rounded-md border p-3 text-sm">Loading…</div>
+            ) : annotationsErr ? (
+              <div className="rounded-md border p-3 text-sm text-red-500">{annotationsErr}</div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead className="w-[120px] text-right">Detach</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {attachedAnnotations.map((a) => (
+                      <TableRow key={a.id}>
+                        <TableCell className="font-mono text-sm">{a.name}</TableCell>
+                        <TableCell className="font-mono text-sm">{a.value}</TableCell>
+                        <TableCell>
+                          <div className="flex justify-end">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => detachAnnotation(a.id)}
+                            >
+                              <UnlinkIcon className="mr-2 h-4 w-4" /> Detach
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {attachedAnnotations.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-muted-foreground py-8 text-center">
+                          No annotations attached yet.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+
+          {/* Attach annotations */}
+          <div className="pt-4">
+            <Form {...attachAnnotationsForm}>
+              <form
+                onSubmit={attachAnnotationsForm.handleSubmit(submitAttachAnnotations)}
+                className="space-y-3"
+              >
+                <FormField
+                  control={attachAnnotationsForm.control}
+                  name="annotation_ids"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Attach more annotations</FormLabel>
+                      <div className="grid max-h-64 grid-cols-1 gap-2 overflow-auto rounded-xl border p-2 md:grid-cols-2">
+                        {(() => {
+                          const attachedIds = new Set(attachedAnnotations.map((a) => a.id))
+                          const attachable = (
+                            allAnnotations as unknown as AnnotationBrief[]
+                          ).filter((a) => !attachedIds.has(a.id))
+                          if (attachable.length === 0) {
+                            return (
+                              <div className="text-muted-foreground p-2 text-sm">
+                                No more annotations available to attach
+                              </div>
+                            )
+                          }
+                          return attachable.map((a) => {
+                            const checked = field.value?.includes(a.id) || false
+                            return (
+                              <label
+                                key={a.id}
+                                className="hover:bg-accent flex cursor-pointer items-start gap-2 rounded p-1"
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(v) => {
+                                    const next = new Set(field.value || [])
+                                    if (v === true) next.add(a.id)
+                                    else next.delete(a.id)
+                                    field.onChange(Array.from(next))
+                                  }}
+                                />
+                                <div className="leading-tight">
+                                  <div className="text-sm font-medium">{annotationKV(a)}</div>
+                                  <div className="text-muted-foreground text-xs">
+                                    {truncateMiddle(a.id, 8)}
+                                  </div>
+                                </div>
+                              </label>
+                            )
+                          })
+                        })()}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter className="gap-2">
+                  <Button type="submit" disabled={attachAnnotationsForm.formState.isSubmitting}>
+                    <LinkIcon className="mr-2 h-4 w-4" />{" "}
+                    {attachAnnotationsForm.formState.isSubmitting
+                      ? "Attaching…"
+                      : "Attach selected"}
                   </Button>
                 </DialogFooter>
               </form>
