@@ -17,15 +17,20 @@ import (
 )
 
 type JobListItem struct {
-	ID          string     `json:"id"`
-	QueueName   string     `json:"queue_name"`
-	Status      string     `json:"status"`
-	RetryCount  int        `json:"retry_count"`
-	MaxRetry    int        `json:"max_retry"`
-	ScheduledAt time.Time  `json:"scheduled_at"`
-	StartedAt   *time.Time `json:"started_at,omitempty"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	LastError   *string    `json:"last_error,omitempty"`
+	ID           string     `json:"id"`
+	QueueName    string     `json:"queue_name"`
+	Status       string     `json:"status"`
+	RetryCount   int        `json:"retry_count"`
+	MaxRetry     int        `json:"max_retry"`
+	ScheduledAt  time.Time  `json:"scheduled_at"`
+	StartedAt    *time.Time `json:"started_at,omitempty"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+	LastError    *string    `json:"last_error,omitempty"`
+	ResultStatus string     `json:"result_status"`
+	Processed    int        `json:"processed"`
+	Ready        int        `json:"ready"`
+	Failed       int        `json:"failed"`
+	ElapsedMs    int        `json:"elapsed_ms"`
 }
 
 type EnqueueReq struct {
@@ -127,7 +132,14 @@ func GetActive(w http.ResponseWriter, r *http.Request) {
 
 	var rows []JobListItem
 	err := db.DB.Model(&models.Job{}).
-		Select("id, queue_name, status, retry_count, max_retry, scheduled_at, started_at, updated_at, last_error").
+		Select(`
+			id, queue_name, status, retry_count, max_retry, scheduled_at, started_at, updated_at, last_error,
+			COALESCE(result->>'status','')                  AS result_status,
+			COALESCE((result->>'processed')::int, 0)        AS processed,
+			COALESCE((result->>'ready')::int, 0)            AS ready,
+			COALESCE((result->>'failed')::int, 0)           AS failed,
+			COALESCE((result->>'elapsed_ms')::int, 0)       AS elapsed_ms
+		`).
 		Where("status = ?", "running").
 		Order("started_at DESC NULLS LAST, updated_at DESC").
 		Limit(limit).
@@ -160,7 +172,14 @@ func GetFailures(w http.ResponseWriter, r *http.Request) {
 
 	var rows []JobListItem
 	err := db.DB.Model(&models.Job{}).
-		Select("id, queue_name, status, retry_count, max_retry, scheduled_at, started_at, updated_at, last_error").
+		Select(`
+			id, queue_name, status, retry_count, max_retry, scheduled_at, started_at, updated_at, last_error,
+			COALESCE(result->>'status','')                  AS result_status,
+			COALESCE((result->>'processed')::int, 0)        AS processed,
+			COALESCE((result->>'ready')::int, 0)            AS ready,
+			COALESCE((result->>'failed')::int, 0)           AS failed,
+			COALESCE((result->>'elapsed_ms')::int, 0)       AS elapsed_ms
+		`).
 		Where("status = ?", "failed").
 		Order("updated_at DESC").
 		Limit(limit).

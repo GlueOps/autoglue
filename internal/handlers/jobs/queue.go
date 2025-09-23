@@ -31,11 +31,28 @@ func LoadPerQueue(db *gorm.DB) ([]QueueRollup, error) {
 		var rr, qd, qf, s24, f24 int64
 		var avgDur *float64
 
-		_ = db.Model(&models.Job{}).Where("queue_name = ? AND status = 'running'", q).Count(&rr).Error
-		_ = db.Model(&models.Job{}).Where("queue_name = ? AND status IN ('queued','scheduled','pending') AND scheduled_at <= ?", q, now).Count(&qd).Error
-		_ = db.Model(&models.Job{}).Where("queue_name = ? AND status IN ('queued','scheduled','pending') AND scheduled_at >  ?", q, now).Count(&qf).Error
-		_ = db.Model(&models.Job{}).Where("queue_name = ? AND status = 'success' AND updated_at >= ?", q, dayAgo).Count(&s24).Error
-		_ = db.Model(&models.Job{}).Where("queue_name = ? AND status = 'failed'  AND updated_at >= ?", q, dayAgo).Count(&f24).Error
+		_ = db.Model(&models.Job{}).
+			Where("queue_name = ? AND status = 'running'", q).
+			Count(&rr).Error
+
+		_ = db.Model(&models.Job{}).
+			Where("queue_name = ? AND status IN ('queued','scheduled','pending') AND scheduled_at <= ?", q, now).
+			Count(&qd).Error
+
+		_ = db.Model(&models.Job{}).
+			Where("queue_name = ? AND status IN ('queued','scheduled','pending') AND scheduled_at >  ?", q, now).
+			Count(&qf).Error
+
+		// Sum result.ready / result.failed over successes in last 24h
+		_ = db.Model(&models.Job{}).
+			Select("COALESCE(SUM((result->>'ready')::int), 0)").
+			Where("queue_name = ? AND status = 'success' AND updated_at >= ?", q, dayAgo).
+			Scan(&s24).Error
+
+		_ = db.Model(&models.Job{}).
+			Select("COALESCE(SUM((result->>'failed')::int), 0)").
+			Where("queue_name = ? AND status = 'success' AND updated_at >= ?", q, dayAgo).
+			Scan(&f24).Error
 
 		_ = db.
 			Model(&models.Job{}).
