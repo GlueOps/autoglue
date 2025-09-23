@@ -30,8 +30,9 @@ var serveCmd = &cobra.Command{
 	Long:  "Start the server",
 	Run: func(cmd *cobra.Command, args []string) {
 		db.Connect()
+		gdb := db.DB
 
-		jobs, err := bg.NewJobs()
+		jobs, err := bg.NewJobs(gdb)
 		if err != nil {
 			log.Fatalf("failed to init background jobs: %v", err)
 		}
@@ -44,23 +45,27 @@ var serveCmd = &cobra.Command{
 		}()
 		defer jobs.Stop()
 
-		// Enqueue one job immediately
-		/*
-			id := uuid.NewString()
-			if _, err := jobs.Enqueue(context.Background(), id, "bootstrap_bastion", bg.BastionBootstrapArgs{}); err != nil {
-				log.Fatalf("[enqueue] failed (job_id=%s): %v", id, err)
+		{
+			// schedule next 03:30 local time
+			now := time.Now()
+			next := time.Date(now.Year(), now.Month(), now.Day(), 3, 30, 0, 0, now.Location())
+			if !next.After(now) {
+				next = next.Add(24 * time.Hour)
 			}
-			log.Printf("[enqueue] queued (job_id=%s)", id)
 
-			// Verify the row exists
-			if got, err := jobs.Client.Get(context.Background(), id); err != nil {
-				log.Fatalf("[verify] Get failed (job_id=%s): %v", id, err)
-			} else if j, ok := got.(*job.Job); ok {
-				log.Printf("[verify] Get ok (job_id=%s, status=%s)", j.ID, j.Status)
-			} else {
-				log.Printf("[verify] Get ok (job_id=%s) but unexpected type %T", id, got)
+			_, err := jobs.Enqueue(
+				context.Background(),
+				uuid.NewString(),
+				"archer_cleanup",
+				bg.CleanupArgs{RetainDays: 7, Table: "jobs"},
+				archer.WithScheduleTime(next),
+				archer.WithMaxRetries(1),
+			)
+			if err != nil {
+				log.Printf("failed to enqueue archer_cleanup: %v", err)
 			}
-		*/
+		}
+
 		// Periodic scheduler
 		schedCtx, schedCancel := context.WithCancel(context.Background())
 		defer schedCancel()

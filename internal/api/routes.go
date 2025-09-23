@@ -8,6 +8,7 @@ import (
 	"github.com/glueops/autoglue/internal/handlers/authn"
 	"github.com/glueops/autoglue/internal/handlers/clusters"
 	"github.com/glueops/autoglue/internal/handlers/health"
+	"github.com/glueops/autoglue/internal/handlers/jobs"
 	"github.com/glueops/autoglue/internal/handlers/labels"
 	"github.com/glueops/autoglue/internal/handlers/nodepools"
 	"github.com/glueops/autoglue/internal/handlers/orgs"
@@ -34,6 +35,17 @@ func RegisterRoutes(r chi.Router) {
 				ad.Post("/users", authn.AdminCreateUser)
 				ad.Patch("/users/{userId}", authn.AdminUpdateUser)
 				ad.Delete("/users/{userId}", authn.AdminDeleteUser)
+			})
+
+			v1.Route("/jobs", func(j chi.Router) {
+				j.Use(authMW)
+				j.Get("/kpi", jobs.GetKPI)
+				j.Get("/queues", jobs.GetQueues)
+				j.Get("/active", jobs.GetActive)
+				j.Get("/failures", jobs.GetFailures)
+				j.Post("/{id}/retry", jobs.RetryNow)
+				j.Post("/{id}/cancel", jobs.Cancel)
+				j.Post("/{id}/enqueue", jobs.Enqueue)
 			})
 
 			v1.Route("/auth", func(a chi.Router) {

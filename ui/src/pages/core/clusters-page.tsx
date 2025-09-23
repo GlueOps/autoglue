@@ -74,8 +74,8 @@ const CreateClusterSchema = z.object({
     name: z.string().trim().min(2, "Name is too short"),
     provider: z.string().trim().min(2, "Provider is too short"),
     region: z.string().trim().min(1, "Region is required"),
-    node_pool_ids: z.array(z.string().uuid()).optional().default([]),
-    bastion_server_id: z.string().uuid().optional(),
+    node_pool_ids: z.array(z.uuid()).default([]).optional(),
+    bastion_server_id: z.uuid().optional(),
     cluster_load_balancer: z.string().optional(),
     control_load_balancer: z.string().optional(),
     kubeconfig: z.string().optional(),
@@ -88,7 +88,7 @@ const UpdateClusterSchema = z
         provider: z.string().trim().min(2, "Provider is too short").optional(),
         region: z.string().trim().min(1, "Region is required").optional(),
         status: z.string().trim().min(1, "Status is required").optional(),
-        bastion_server_id: z.string().uuid().or(z.literal("")).optional(),
+        bastion_server_id: z.uuid().or(z.literal("")).optional(),
         cluster_load_balancer: z.string().optional(),
         control_load_balancer: z.string().optional(),
         kubeconfig: z.string().optional(),
@@ -113,7 +113,7 @@ const AttachPoolsSchema = z.object({
 export type AttachPoolsValues = z.infer<typeof AttachPoolsSchema>
 
 const SetBastionSchema = z.object({
-    server_id: z.string().uuid({ message: "Enter a valid Server UUID" }),
+    server_id: z.uuid({ message: "Enter a valid Server UUID" }),
 })
 export type SetBastionValues = z.infer<typeof SetBastionSchema>
 

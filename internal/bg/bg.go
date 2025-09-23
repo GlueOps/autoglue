@@ -1,4 +1,3 @@
-// internal/bg/bg.go
 package bg
 
 import (
@@ -11,9 +10,12 @@ import (
 
 	"github.com/dyaksa/archer"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
 type Jobs struct{ Client *archer.Client }
+
+var BgJobs *Jobs
 
 func archerOptionsFromDSN(dsn string) (*archer.Options, error) {
 	u, err := url.Parse(dsn)
@@ -40,7 +42,7 @@ func archerOptionsFromDSN(dsn string) (*archer.Options, error) {
 	}, nil
 }
 
-func NewJobs() (*Jobs, error) {
+func NewJobs(gdb *gorm.DB) (*Jobs, error) {
 	opts, err := archerOptionsFromDSN(viper.GetString("database.dsn"))
 	if err != nil {
 		return nil, err
@@ -53,6 +55,10 @@ func NewJobs() (*Jobs, error) {
 	timeoutSec := viper.GetInt("archer.timeoutSec")
 	if timeoutSec <= 0 {
 		timeoutSec = 60
+	}
+	retainDays := viper.GetInt("archer.cleanup_retain_days")
+	if retainDays <= 0 {
+		retainDays = 7
 	}
 
 	// LOG what we’re connecting to (sanitized) so you can confirm DB/host
@@ -74,7 +80,15 @@ func NewJobs() (*Jobs, error) {
 		archer.WithTimeout(time.Duration(timeoutSec)*time.Second),
 	)
 
-	return &Jobs{Client: c}, nil
+	jobs := &Jobs{Client: c}
+
+	c.Register(
+		"archer_cleanup",
+		CleanupWorker(gdb, jobs, retainDays),
+		archer.WithInstances(1),
+		archer.WithTimeout(5*time.Minute),
+	)
+	return jobs, nil
 }
 
 func (j *Jobs) Start() error { return j.Client.Start() }

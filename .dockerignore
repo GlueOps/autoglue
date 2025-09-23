@@ -1,0 +1,7 @@
+postgres
+.idea
+docker-compose.yml
+atlas.hcl
+autoglue
+config.yaml
+.env
