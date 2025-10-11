@@ -1,7 +1,7 @@
 #################################
 # Builder: Go + Node in one
 #################################
-FROM golang:1.25-alpine@sha256:8280f72610be84e514284bc04de455365d698128e0aaea4e12e06c9b320b58ec AS builder
+FROM golang:1.25-alpine@sha256:06cdd34bd531b810650e47762c01e025eb9b1c7eadd191553b91c9f2d549fae8 AS builder
 
 RUN apk add --no-cache \
       git ca-certificates tzdata \
