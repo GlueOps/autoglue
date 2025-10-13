@@ -683,9 +683,9 @@
     zod-to-json-schema "^3.24.1"
 
 "@mswjs/interceptors@^0.39.1":
-  version "0.39.7"
-  resolved "https://registry.yarnpkg.com/@mswjs/interceptors/-/interceptors-0.39.7.tgz#a8860285ebe228c3043cde32c1843dd088e5276a"
-  integrity sha512-sURvQbbKsq5f8INV54YJgJEdk8oxBanqkTiXXd33rKmofFCwZLhLRszPduMZ9TA9b8/1CHc/IJmOlBHJk2Q5AQ==
+  version "0.39.8"
+  resolved "https://registry.yarnpkg.com/@mswjs/interceptors/-/interceptors-0.39.8.tgz#0a2cf4cf26a731214ca4156273121f67dff7ebf8"
+  integrity sha512-2+BzZbjRO7Ct61k8fMNHEtoKjeWI9pIlHFTqBwZ5icHpqszIgEZbjb1MW5Z0+bITTCTl3gk4PDBxs9tA/csXvA==
   dependencies:
     "@open-draft/deferred-promise" "^2.2.0"
     "@open-draft/logger" "^0.3.0"
