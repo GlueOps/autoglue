@@ -1,8 +1,6 @@
 module github.com/glueops/autoglue
 
-go 1.25
-
-toolchain go1.25.3
+go 1.25.3
 
 require (
 	github.com/dyaksa/archer v1.1.3
