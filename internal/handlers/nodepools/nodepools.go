@@ -16,6 +16,7 @@ import (
 )
 
 // ListNodePools godoc
+// @ID           ListNodePools
 // @Summary      List node pools (org scoped)
 // @Description  Returns node pools for the organization in X-Org-ID. Add `include=servers` to include attached servers. Filter by `q` (name contains).
 // @Tags         node-pools
@@ -61,6 +62,7 @@ func ListNodePools(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetNodePool godoc
+// @ID           GetNodePool
 // @Summary      Get node group by ID (org scoped)
 // @Description  Returns one node group. Add `include=servers` to include servers.
 // @Tags         node-pools
@@ -109,6 +111,7 @@ func GetNodePool(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateNodePool godoc
+// @ID           CreateNodePool
 // @Summary      Create node group (org scoped)
 // @Description  Creates a node group. Optionally attach initial servers.
 // @Tags         node-pools
@@ -172,6 +175,7 @@ func CreateNodePool(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateNodePool godoc
+// @ID           UpdateNodePool
 // @Summary      Update node pool (org scoped)
 // @Description  Partially update node pool fields.
 // @Tags         node-pools
@@ -228,6 +232,7 @@ func UpdateNodePool(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteNodePool godoc
+// @ID           DeleteNodePool
 // @Summary      Delete node pool (org scoped)
 // @Description  Permanently deletes the node pool.
 // @Tags         node-pools
@@ -263,6 +268,7 @@ func DeleteNodePool(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListNodePoolServers godoc
+// @ID           ListNodePoolServers
 // @Summary      List servers attached to a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -314,6 +320,7 @@ func ListNodePoolServers(w http.ResponseWriter, r *http.Request) {
 }
 
 // AttachNodePoolServers godoc
+// @ID           AttachNodePoolServers
 // @Summary      Attach servers to a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -383,6 +390,7 @@ func AttachNodePoolServers(w http.ResponseWriter, r *http.Request) {
 }
 
 // DetachNodePoolServer godoc
+// @ID           DetachNodePoolServer
 // @Summary      Detach one server from a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -440,6 +448,7 @@ func DetachNodePoolServer(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListNodePoolTaints godoc
+// @ID           ListNodePoolTaints
 // @Summary      List taints attached to a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -492,6 +501,7 @@ func ListNodePoolTaints(w http.ResponseWriter, r *http.Request) {
 }
 
 // AttachNodePoolTaints godoc
+// @ID           AttachNodePoolTaints
 // @Summary      Attach taints to a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -563,6 +573,7 @@ func AttachNodePoolTaints(w http.ResponseWriter, r *http.Request) {
 }
 
 // DetachNodePoolTaint godoc
+// @ID           DetachNodePoolTaint
 // @Summary      Detach one taint from a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -626,6 +637,7 @@ func DetachNodePoolTaint(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListNodePoolLabels godoc
+// @ID           ListNodePoolLabels
 // @Summary      List labels attached to a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -676,6 +688,7 @@ func ListNodePoolLabels(w http.ResponseWriter, r *http.Request) {
 }
 
 // AttachNodePoolLabels godoc
+// @ID           AttachNodePoolLabels
 // @Summary      Attach labels to a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -745,6 +758,7 @@ func AttachNodePoolLabels(w http.ResponseWriter, r *http.Request) {
 }
 
 // DetachNodePoolLabel godoc
+// @ID           DetachNodePoolLabel
 // @Summary      Detach one label from a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -808,6 +822,7 @@ func DetachNodePoolLabel(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListNodePoolAnnotations godoc
+// @ID           ListNodePoolAnnotations
 // @Summary      List annotations attached to a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -859,6 +874,7 @@ func ListNodePoolAnnotations(w http.ResponseWriter, r *http.Request) {
 }
 
 // AttachNodePoolAnnotations godoc
+// @ID           AttachNodePoolAnnotations
 // @Summary      Attach annotations to a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json
@@ -927,6 +943,7 @@ func AttachNodePoolAnnotations(w http.ResponseWriter, r *http.Request) {
 }
 
 // DetachNodePoolAnnotation godoc
+// @ID           DetachNodePoolAnnotation
 // @Summary      Detach one annotation from a node pool (org scoped)
 // @Tags         node-pools
 // @Accept       json

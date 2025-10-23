@@ -132,3 +132,4 @@ sketch
 
 .env
 config.yaml
+go_*_WhiteSpaceConflict/

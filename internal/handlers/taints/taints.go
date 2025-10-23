@@ -19,22 +19,23 @@ import (
 // ---------- Handlers ----------
 
 // ListTaints godoc
-// @Summary      List node taints (org scoped)
-// @Description  Returns node taints for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
-// @Tags         taints
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        key query string false "Exact key"
-// @Param        value query string false "Exact value"
-// @Param        q query string false "key contains (case-insensitive)"
-// @Param        include query string false "Optional: node_pools"
-// @Security     BearerAuth
-// @Success      200 {array}  taintResponse
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "failed to list node taints"
-// @Router       /api/v1/taints [get]
+// @ID 			ListTaints
+// @Summary     List node taints (org scoped)
+// @Description Returns node taints for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
+// @Tags        taints
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       key query string false "Exact key"
+// @Param       value query string false "Exact value"
+// @Param       q query string false "key contains (case-insensitive)"
+// @Param       include query string false "Optional: node_pools"
+// @Security    BearerAuth
+// @Success     200 {array}  taintResponse
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     500 {string} string "failed to list node taints"
+// @Router      /api/v1/taints [get]
 func ListTaints(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -73,22 +74,23 @@ func ListTaints(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetTaint godoc
-// @Summary      Get node taint by ID (org scoped)
-// @Description  Returns one taint. Add `include=node_pools` to include node pools.
-// @Tags         taints
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "Node Taint ID (UUID)"
-// @Param        include query string false "Optional: node_pools"
-// @Security     BearerAuth
-// @Success      200 {object} taintResponse
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "fetch failed"
-// @Router       /api/v1/taints/{id} [get]
+// @ID 			GetTaint
+// @Summary     Get node taint by ID (org scoped)
+// @Description Returns one taint. Add `include=node_pools` to include node pools.
+// @Tags        taints
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "Node Taint ID (UUID)"
+// @Param       include query string false "Optional: node_pools"
+// @Security    BearerAuth
+// @Success     200 {object} taintResponse
+// @Failure     400 {string} string "invalid id"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     404 {string} string "not found"
+// @Failure     500 {string} string "fetch failed"
+// @Router      /api/v1/taints/{id} [get]
 func GetTaint(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -122,6 +124,7 @@ func GetTaint(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateTaint godoc
+// @ID CreateTaint
 // @Summary      Create node taint (org scoped)
 // @Description  Creates a taint. Optionally link to node pools.
 // @Tags         taints
@@ -204,22 +207,23 @@ func CreateTaint(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateTaint godoc
-// @Summary      Update node taint (org scoped)
-// @Description  Partially update taint fields.
-// @Tags         taints
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "Node Taint ID (UUID)"
-// @Param        body body updateTaintRequest true "Fields to update"
-// @Security     BearerAuth
-// @Success      200 {object} taintResponse
-// @Failure      400 {string} string "invalid id / invalid json"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "update failed"
-// @Router       /api/v1/taints/{id} [patch]
+// @ID 			UpdateTaint
+// @Summary     Update node taint (org scoped)
+// @Description Partially update taint fields.
+// @Tags        taints
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "Node Taint ID (UUID)"
+// @Param       body body updateTaintRequest true "Fields to update"
+// @Security    BearerAuth
+// @Success     200 {object} taintResponse
+// @Failure     400 {string} string "invalid id / invalid json"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     404 {string} string "not found"
+// @Failure     500 {string} string "update failed"
+// @Router      /api/v1/taints/{id} [patch]
 func UpdateTaint(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -276,20 +280,21 @@ func UpdateTaint(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteTaint godoc
-// @Summary      Delete taint (org scoped)
-// @Description  Permanently deletes the taint.
-// @Tags         taints
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "Node Taint ID (UUID)"
-// @Security     BearerAuth
-// @Success      204 {string} string "No Content"
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "delete failed"
-// @Router       /api/v1/taints/{id} [delete]
+// @ID 			DeleteTaint
+// @Summary     Delete taint (org scoped)
+// @Description Permanently deletes the taint.
+// @Tags        taints
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "Node Taint ID (UUID)"
+// @Security    BearerAuth
+// @Success     204 {string} string "No Content"
+// @Failure     400 {string} string "invalid id"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     500 {string} string "delete failed"
+// @Router      /api/v1/taints/{id} [delete]
 func DeleteTaint(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -311,23 +316,24 @@ func DeleteTaint(w http.ResponseWriter, r *http.Request) {
 }
 
 // AddTaintToNodePool godoc
-// @Summary      Attach taint to node pools (org scoped)
-// @Description  Links the taint to one or more node pools in the same organization.
-// @Tags         taints
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "Taint ID (UUID)"
-// @Param        body body addTaintToPoolRequest true "IDs to attach"
-// @Param        include query string false "Optional: node_pools"
-// @Security     BearerAuth
-// @Success      200 {object} taintResponse
-// @Failure      400 {string} string "invalid id / invalid json / invalid node_pool_ids"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "attach failed"
-// @Router       /api/v1/taints/{id}/node_pools [post]
+// @ID 			AddTaintToNodePool
+// @Summary     Attach taint to node pools (org scoped)
+// @Description Links the taint to one or more node pools in the same organization.
+// @Tags        taints
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "Taint ID (UUID)"
+// @Param       body body addTaintToPoolRequest true "IDs to attach"
+// @Param       include query string false "Optional: node_pools"
+// @Security    BearerAuth
+// @Success     200 {object} taintResponse
+// @Failure     400 {string} string "invalid id / invalid json / invalid node_pool_ids"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     404 {string} string "not found"
+// @Failure     500 {string} string "attach failed"
+// @Router      /api/v1/taints/{id}/node_pools [post]
 func AddTaintToNodePool(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -415,22 +421,23 @@ func AddTaintToNodePool(w http.ResponseWriter, r *http.Request) {
 }
 
 // RemoveTaintFromNodePool godoc
-// @Summary      Detach taint from a node pool (org scoped)
-// @Description  Unlinks the taint from the specified node pool.
-// @Tags         taints
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "Taint ID (UUID)"
-// @Param        poolId path string true "Node Pool ID (UUID)"
-// @Security     BearerAuth
-// @Success      204 {string} string "No Content"
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "detach failed"
-// @Router       /api/v1/taints/{id}/node_pools/{poolId} [delete]
+// @ID 			RemoveTaintFromNodePool
+// @Summary     Detach taint from a node pool (org scoped)
+// @Description Unlinks the taint from the specified node pool.
+// @Tags        taints
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "Taint ID (UUID)"
+// @Param       poolId path string true "Node Pool ID (UUID)"
+// @Security    BearerAuth
+// @Success     204 {string} string "No Content"
+// @Failure     400 {string} string "invalid id"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     404 {string} string "not found"
+// @Failure     500 {string} string "detach failed"
+// @Router      /api/v1/taints/{id}/node_pools/{poolId} [delete]
 func RemoveTaintFromNodePool(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -479,22 +486,23 @@ func RemoveTaintFromNodePool(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListNodePoolsWithTaint godoc
-// @Summary      List node pools linked to a taint (org scoped)
-// @Description  Returns node pools attached to the taint. Supports `q` (name contains, case-insensitive).
-// @Tags         taints
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "Taint ID (UUID)"
-// @Param        q query string false "Name contains (case-insensitive)"
-// @Security     BearerAuth
-// @Success      200 {array}  nodePoolResponse
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "fetch failed"
-// @Router       /api/v1/taints/{id}/node_pools [get]
+// @ID 			ListNodePoolsWithTaint
+// @Summary     List node pools linked to a taint (org scoped)
+// @Description Returns node pools attached to the taint. Supports `q` (name contains, case-insensitive).
+// @Tags        taints
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "Taint ID (UUID)"
+// @Param       q query string false "Name contains (case-insensitive)"
+// @Security    BearerAuth
+// @Success     200 {array}  nodePoolResponse
+// @Failure     400 {string} string "invalid id"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     404 {string} string "not found"
+// @Failure     500 {string} string "fetch failed"
+// @Router      /api/v1/taints/{id}/node_pools [get]
 func ListNodePoolsWithTaint(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {

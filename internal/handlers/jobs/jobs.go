@@ -17,31 +17,31 @@ import (
 )
 
 type JobListItem struct {
-	ID           string     `json:"id"`
-	QueueName    string     `json:"queue_name"`
-	Status       string     `json:"status"`
-	RetryCount   int        `json:"retry_count"`
-	MaxRetry     int        `json:"max_retry"`
-	ScheduledAt  time.Time  `json:"scheduled_at"`
-	StartedAt    *time.Time `json:"started_at,omitempty"`
-	UpdatedAt    time.Time  `json:"updated_at"`
-	LastError    *string    `json:"last_error,omitempty"`
-	ResultStatus string     `json:"result_status"`
-	Processed    int        `json:"processed"`
-	Ready        int        `json:"ready"`
-	Failed       int        `json:"failed"`
-	ElapsedMs    int        `json:"elapsed_ms"`
+	ID           string     `json:"id" example:"8a6d0b6d-9c1a-4c1b-9b4c-2b5a6c7d8e9f"`
+	QueueName    string     `json:"queue_name" example:"emails"`
+	Status       string     `json:"status" example:"running"`
+	RetryCount   int        `json:"retry_count" example:"0"`
+	MaxRetry     int        `json:"max_retry" example:"3"`
+	ScheduledAt  time.Time  `json:"scheduled_at" example:"2025-10-23T12:00:00Z"`
+	StartedAt    *time.Time `json:"started_at,omitempty" example:"2025-10-23T12:00:01Z"`
+	UpdatedAt    time.Time  `json:"updated_at" example:"2025-10-23T12:00:03Z"`
+	LastError    *string    `json:"last_error,omitempty" example:""`
+	ResultStatus string     `json:"result_status" example:"ok"`
+	Processed    int        `json:"processed" example:"120"`
+	Ready        int        `json:"ready" example:"0"`
+	Failed       int        `json:"failed" example:"0"`
+	ElapsedMs    int        `json:"elapsed_ms" example:"2500"`
 }
 
 type EnqueueReq struct {
-	Queue      string          `json:"queue"`
-	Args       json.RawMessage `json:"args"` // keep raw and pass through to Archer
-	MaxRetries *int            `json:"max_retries,omitempty"`
-	ScheduleAt *time.Time      `json:"schedule_at,omitempty"`
+	Queue      string          `json:"queue" example:"emails"`
+	Args       json.RawMessage `json:"args" swaggertype:"object"`
+	MaxRetries *int            `json:"max_retries,omitempty" example:"3"`
+	ScheduleAt *time.Time      `json:"schedule_at,omitempty" example:"2025-10-23T12:34:56Z"`
 }
 
 type EnqueueResp struct {
-	ID string `json:"id"`
+	ID string `json:"id" example:"b1f6b3ec-9a3d-4a91-a0a3-2b7c5d9c2f4a"`
 }
 
 func parseLimit(r *http.Request, def int) int {
@@ -64,6 +64,7 @@ func isNotFoundErr(err error) bool {
 // ---------------------- READ ENDPOINTS ----------------------
 
 // GetKPI godoc
+// @ID           JobsGetKPI
 // @Summary      Jobs KPI
 // @Description  Aggregated counters across all queues
 // @Tags         jobs
@@ -88,6 +89,7 @@ func GetKPI(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetQueues godoc
+// @ID           JobsGetQueues
 // @Summary      Per-queue rollups
 // @Description  Counts and avg duration per queue (last 24h)
 // @Tags         jobs
@@ -112,6 +114,7 @@ func GetQueues(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetActive godoc
+// @ID           JobsGetActive
 // @Summary      Active jobs
 // @Description  Currently running jobs (limit default 100)
 // @Tags         jobs
@@ -152,6 +155,7 @@ func GetActive(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetFailures godoc
+// @ID           JobsGetFailures
 // @Summary      Recent failures
 // @Description  Failed jobs ordered by most recent (limit default 100)
 // @Tags         jobs
@@ -194,6 +198,7 @@ func GetFailures(w http.ResponseWriter, r *http.Request) {
 // ---------------------- MUTATION ENDPOINTS ----------------------
 
 // RetryNow godoc
+// @ID           JobsRetryNow
 // @Summary      Retry a job immediately
 // @Description  Calls Archer ScheduleNow on the job id
 // @Tags         jobs
@@ -231,6 +236,7 @@ func RetryNow(w http.ResponseWriter, r *http.Request) {
 }
 
 // Cancel godoc
+// @ID           JobsCancel
 // @Summary      Cancel a job
 // @Description  Cancels running or scheduled jobs
 // @Tags         jobs
@@ -266,6 +272,7 @@ func Cancel(w http.ResponseWriter, r *http.Request) {
 }
 
 // Enqueue godoc
+// @ID           JobsEnqueue
 // @Summary      Manually enqueue a job
 // @Description  Schedules a job on a queue with optional args/schedule
 // @Tags         jobs

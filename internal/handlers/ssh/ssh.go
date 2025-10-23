@@ -22,18 +22,19 @@ import (
 )
 
 // ListPublicKeys godoc
-// @Summary      List ssh keys (org scoped)
-// @Description  Returns ssh keys for the organization in X-Org-ID.
-// @Tags         ssh
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Security     BearerAuth
-// @Success      200 {array}  sshResponse
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "failed to list keys"
-// @Router       /api/v1/ssh [get]
+// @ID 			ListPublicKeys
+// @Summary     List ssh keys (org scoped)
+// @Description Returns ssh keys for the organization in X-Org-ID.
+// @Tags        ssh
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Security    BearerAuth
+// @Success     200 {array}  sshResponse
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     500 {string} string "failed to list keys"
+// @Router      /api/v1/ssh [get]
 func ListPublicKeys(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -65,21 +66,22 @@ func ListPublicKeys(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateSSHKey godoc
-// @Summary      Create ssh keypair (org scoped)
-// @Description  Generates an RSA keypair, saves it, and returns metadata. Optionally set `download` to "public", "private", or "both" to download files immediately.
-// @Tags         ssh
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        body body createSSHRequest true "Key generation options"
-// @Security     BearerAuth
-// @Success      201 {object} sshResponse
-// @Header       201 {string} Content-Disposition "When download is requested"
-// @Failure      400 {string} string "invalid json / invalid bits"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "generation/create failed"
-// @Router       /api/v1/ssh [post]
+// @ID 			CreateSSHKey
+// @Summary     Create ssh keypair (org scoped)
+// @Description Generates an RSA keypair, saves it, and returns metadata. Optionally set `download` to "public", "private", or "both" to download files immediately.
+// @Tags        ssh
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       body body createSSHRequest true "Key generation options"
+// @Security    BearerAuth
+// @Success     201 {object} sshResponse
+// @Header      201 {string} Content-Disposition "When download is requested"
+// @Failure     400 {string} string "invalid json / invalid bits"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     500 {string} string "generation/create failed"
+// @Router      /api/v1/ssh [post]
 func CreateSSHKey(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -176,23 +178,24 @@ func CreateSSHKey(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetSSHKey godoc
-// @Summary      Get ssh key by ID (org scoped)
-// @Description  Returns public key fields. Append `?reveal=true` to include the private key PEM.
-// @Tags         ssh
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "SSH Key ID (UUID)"
-// @Param        reveal query bool false "Reveal private key PEM"
-// @Security     BearerAuth
-// @Success      200 {object} sshResponse
-// @Success      200 {object} sshRevealResponse "When reveal=true"
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "fetch failed"
-// @Router       /api/v1/ssh/{id} [get]
+// @ID 			GetSSHKey
+// @Summary     Get ssh key by ID (org scoped)
+// @Description Returns public key fields. Append `?reveal=true` to include the private key PEM.
+// @Tags        ssh
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "SSH Key ID (UUID)"
+// @Param       reveal query bool false "Reveal private key PEM"
+// @Security    BearerAuth
+// @Success     200 {object} sshResponse
+// @Success     200 {object} sshRevealResponse "When reveal=true"
+// @Failure     400 {string} string "invalid id"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     404 {string} string "not found"
+// @Failure     500 {string} string "fetch failed"
+// @Router      /api/v1/ssh/{id} [get]
 func GetSSHKey(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -247,20 +250,21 @@ func GetSSHKey(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteSSHKey godoc
-// @Summary      Delete ssh keypair (org scoped)
-// @Description  Permanently deletes a keypair.
-// @Tags         ssh
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "SSH Key ID (UUID)"
-// @Security     BearerAuth
-// @Success      204 {string} string "No Content"
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "delete failed"
-// @Router       /api/v1/ssh/{id} [delete]
+// @ID 			DeleteSSHKey
+// @Summary     Delete ssh keypair (org scoped)
+// @Description Permanently deletes a keypair.
+// @Tags        ssh
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "SSH Key ID (UUID)"
+// @Security    BearerAuth
+// @Success     204 {string} string "No Content"
+// @Failure     400 {string} string "invalid id"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     500 {string} string "delete failed"
+// @Router      /api/v1/ssh/{id} [delete]
 func DeleteSSHKey(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -284,21 +288,22 @@ func DeleteSSHKey(w http.ResponseWriter, r *http.Request) {
 }
 
 // DownloadSSHKey godoc
-// @Summary      Download ssh key files by ID (org scoped)
-// @Description  Download `part=public|private|both` of the keypair. `both` returns a zip file.
-// @Tags         ssh
-// @Produce      text/plain
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "SSH Key ID (UUID)"
-// @Param        part query string true "Which part to download" Enums(public,private,both)
-// @Security     BearerAuth
-// @Success      200 {string} string "file content"
-// @Failure      400 {string} string "invalid id / invalid part"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "download failed"
-// @Router       /api/v1/ssh/{id}/download [get]
+// @ID 			DownloadSSHKey
+// @Summary     Download ssh key files by ID (org scoped)
+// @Description Download `part=public|private|both` of the keypair. `both` returns a zip file.
+// @Tags        ssh
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "SSH Key ID (UUID)"
+// @Param       part query string true "Which part to download" Enums(public,private,both)
+// @Security    BearerAuth
+// @Success     200 {string} string "file content"
+// @Failure     400 {string} string "invalid id / invalid part"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     404 {string} string "not found"
+// @Failure     500 {string} string "download failed"
+// @Router      /api/v1/ssh/{id}/download [get]
 func DownloadSSHKey(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {

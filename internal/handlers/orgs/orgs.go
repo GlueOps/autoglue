@@ -15,6 +15,7 @@ import (
 )
 
 // CreateOrganization godoc
+// @ID           CreateOrganization
 // @Summary      Create a new organization
 // @Description  Creates a new organization and assigns the authenticated user as an admin member
 // @Tags         organizations
@@ -67,6 +68,7 @@ func CreateOrganization(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListOrganizations godoc
+// @ID           ListOrganizations
 // @Summary      List organizations for user
 // @Tags         organizations
 // @Produce      json
@@ -93,17 +95,18 @@ func ListOrganizations(w http.ResponseWriter, r *http.Request) {
 }
 
 // InviteMember godoc
-// @Summary      Invite user to organization
-// @Tags         organizations
-// @Accept       json
-// @Produce      plain
-// @Param        body body InviteInput true "Invite input"
-// @Success      201 {string} string "invited"
-// @Failure      403 {string} string "forbidden"
-// @Failure 400 {string} string "bad request"
-// @Router       /api/v1/orgs/invite [post]
-// @Param X-Org-ID header string true "Organization context"
-// @Security     BearerAuth
+// @ID				InviteMember
+// @Summary			Invite user to organization
+// @Tags			organizations
+// @Accept			json
+// @Produce			json
+// @Param			body body InviteInput true "Invite input"
+// @Success			201 {string} string "invited"
+// @Failure			403 {string} string "forbidden"
+// @Failure 		400 {string} string "bad request"
+// @Router      	/api/v1/orgs/invite [post]
+// @Param X-Org-ID	header string true "Organization context"
+// @Security		BearerAuth
 func InviteMember(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil || auth.OrgRole != "admin" || auth.OrganizationID == uuid.Nil {
@@ -139,15 +142,16 @@ func InviteMember(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListMembers lists all members of the authenticated org
-// @Summary List organization members
-// @Description Returns a list of all members in the current organization
-// @Tags organizations
-// @Security BearerAuth
-// @Produce json
-// @Success 200 {array} models.Member
-// @Failure 401 {string} string "unauthorized"
-// @Router /api/v1/orgs/members [get]
-// @Param X-Org-ID header string true "Organization context"
+// @ID			ListMembers
+// @Summary		List organization members
+// @Description	Returns a list of all members in the current organization
+// @Tags		organizations
+// @Security	BearerAuth
+// @Produce		json
+// @Success 	200 {array} models.Member
+// @Failure 	401 {string} string "unauthorized"
+// @Router 		/api/v1/orgs/members [get]
+// @Param 		X-Org-ID header string true "Organization context"
 func ListMembers(w http.ResponseWriter, r *http.Request) {
 	authCtx := middleware.GetAuthContext(r)
 	if authCtx == nil || authCtx.OrganizationID == uuid.Nil {
@@ -164,13 +168,14 @@ func ListMembers(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteMember godoc
-// @Summary      Remove member from organization
-// @Tags         organizations
-// @Param        userId path string true "User ID"
-// @Success      204 {string} string "deleted"
-// @Failure      403 {string} string "forbidden"
-// @Router       /api/v1/orgs/members/{userId} [delete]
-// @Security     BearerAuth
+// @ID			DeleteMember
+// @Summary		Remove member from organization
+// @Tags		organizations
+// @Param		userId path string true "User ID"
+// @Success		204 {string} string "deleted"
+// @Failure		403 {string} string "forbidden"
+// @Router		/api/v1/orgs/members/{userId} [delete]
+// @Security	BearerAuth
 func DeleteMember(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil || auth.OrgRole != "admin" {
@@ -189,16 +194,17 @@ func DeleteMember(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateOrganization godoc
-// @Summary      Update organization metadata
-// @Tags         organizations
-// @Accept       json
-// @Produce      json
-// @Param        orgId path string true "Org ID"
-// @Param        body body OrgInput true "Organization data"
-// @Success      200 {object} models.Organization
-// @Failure      403 {string} string "forbidden"
-// @Router       /api/v1/orgs/{orgId} [patch]
-// @Security     BearerAuth
+// @ID 			UpdateOrganization
+// @Summary		Update organization metadata
+// @Tags		organizations
+// @Accept		json
+// @Produce		json
+// @Param		orgId path string true "Org ID"
+// @Param		body body OrgInput true "Organization data"
+// @Success		200 {object} models.Organization
+// @Failure		403 {string} string "forbidden"
+// @Router		/api/v1/orgs/{orgId} [patch]
+// @Security	BearerAuth
 func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil || auth.OrgRole != "admin" {
@@ -222,13 +228,14 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteOrganization godoc
-// @Summary      Delete organization
-// @Tags         organizations
-// @Param        orgId path string true "Organization ID"
-// @Success      204 {string} string "deleted"
-// @Failure      403 {string} string "forbidden"
-// @Router       /api/v1/orgs/{orgId} [delete]
-// @Security     BearerAuth
+// @ID 			DeleteOrganization
+// @Summary		Delete organization
+// @Tags		organizations
+// @Param		orgId path string true "Organization ID"
+// @Success		204 {string} string "deleted"
+// @Failure		403 {string} string "forbidden"
+// @Router		/api/v1/orgs/{orgId} [delete]
+// @Security	BearerAuth
 func DeleteOrganization(w http.ResponseWriter, r *http.Request) {
 	auth := middleware.GetAuthContext(r)
 	if auth == nil {

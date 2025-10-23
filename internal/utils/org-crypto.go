@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/glueops/autoglue/internal/db"
@@ -54,7 +55,7 @@ func EncryptAndUpsertCredential(orgID uuid.UUID, provider, plaintext string) err
 	var cred models.Credential
 	err = db.DB.Where("organization_id = ? AND provider = ?", orgID, provider).
 		First(&cred).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 

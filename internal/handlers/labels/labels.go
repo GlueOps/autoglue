@@ -16,6 +16,7 @@ import (
 )
 
 // ListLabels godoc
+// @ID           ListLabels
 // @Summary      List node labels (org scoped)
 // @Description  Returns node labels for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node groups.
 // @Tags         labels
@@ -69,6 +70,7 @@ func ListLabels(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetLabel godoc
+// @ID           GetLabel
 // @Summary      Get label by ID (org scoped)
 // @Description  Returns one label. Add `include=node_pools` to include node groups.
 // @Tags         labels
@@ -119,6 +121,7 @@ func GetLabel(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateLabel godoc
+// @ID           CreateLabel
 // @Summary      Create label (org scoped)
 // @Description  Creates a label. Optionally link to node pools.
 // @Tags         labels
@@ -184,6 +187,7 @@ func CreateLabel(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateLabel godoc
+// @ID           UpdateLabel
 // @Summary      Update label (org scoped)
 // @Description  Partially update label fields.
 // @Tags         labels
@@ -243,6 +247,7 @@ func UpdateLabel(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteLabel godoc
+// @ID           DeleteLabel
 // @Summary      Delete label (org scoped)
 // @Description  Permanently deletes the label.
 // @Tags         labels
@@ -279,6 +284,7 @@ func DeleteLabel(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListNodePoolsWithLabel godoc
+// @ID           ListNodePoolsWithLabel
 // @Summary      List node pools linked to a label (org scoped)
 // @Description  Returns node pools attached to the label. Supports `q` (name contains, case-insensitive).
 // @Tags         labels
@@ -344,6 +350,7 @@ func ListNodePoolsWithLabel(w http.ResponseWriter, r *http.Request) {
 }
 
 // AddLabelToNodePool godoc
+// @ID           AddLabelToNodePool
 // @Summary      Attach label to node pools (org scoped)
 // @Description  Links the label to one or more node pools in the same organization.
 // @Tags         labels
@@ -429,6 +436,7 @@ func AddLabelToNodePool(w http.ResponseWriter, r *http.Request) {
 }
 
 // RemoveLabelFromNodePool godoc
+// @ID           RemoveLabelFromNodePool
 // @Summary      Detach label from a node pool (org scoped)
 // @Description  Unlinks the label from the specified node pool.
 // @Tags         labels

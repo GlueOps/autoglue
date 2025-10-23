@@ -5,3 +5,4 @@ atlas.hcl
 autoglue
 config.yaml
 .env
+sdk/

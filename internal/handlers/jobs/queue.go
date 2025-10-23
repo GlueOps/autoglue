@@ -8,13 +8,13 @@ import (
 )
 
 type QueueRollup struct {
-	QueueName       string
-	Running         int64
-	QueuedDue       int64
-	QueuedFuture    int64
-	Success24h      int64
-	Failed24h       int64
-	AvgDurationSecs float64
+	QueueName       string  `json:"queue_name" example:"emails"`
+	Running         int64   `json:"running" example:"2"`
+	QueuedDue       int64   `json:"queued_due" example:"7"`
+	QueuedFuture    int64   `json:"queued_future" example:"3"`
+	Success24h      int64   `json:"success_24h" example:"124"`
+	Failed24h       int64   `json:"failed_24h" example:"1"`
+	AvgDurationSecs float64 `json:"avg_duration_secs" swaggertype:"number" format:"double" example:"1.234"`
 }
 
 func LoadPerQueue(db *gorm.DB) ([]QueueRollup, error) {

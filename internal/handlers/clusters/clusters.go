@@ -15,6 +15,7 @@ import (
 )
 
 // ListClusters godoc
+// @ID           ListClusters
 // @Summary      List clusters (org scoped)
 // @Description  Returns clusters for the organization in X-Org-ID. Add `include=node_pools,bastion` to expand. Filter by `q` (name contains).
 // @Tags         clusters
@@ -68,6 +69,7 @@ func ListClusters(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateCluster godoc
+// @ID           CreateCluster
 // @Summary      Create cluster (org scoped)
 // @Description  Creates a cluster and optionally links node pools and a bastion server. If `kubeconfig` is provided, it will be encrypted per-organization and stored securely (never returned).
 // @Tags         clusters
@@ -181,6 +183,7 @@ func CreateCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetCluster godoc
+// @ID           GetCluster
 // @Summary      Get cluster by ID (org scoped)
 // @Description  Returns one cluster. Add `include=node_pools,bastion` to expand.
 // @Tags         clusters
@@ -237,6 +240,7 @@ func GetCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateCluster godoc
+// @ID           UpdateCluster
 // @Summary      Update cluster (org scoped). If `kubeconfig` is provided and non-empty, it will be encrypted per-organization and stored (never returned). Sending an empty string for `kubeconfig` is ignored (no change).
 // @Tags         clusters
 // @Security     BearerAuth
@@ -337,6 +341,7 @@ func UpdateCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteCluster godoc
+// @ID           DeleteCluster
 // @Summary      Delete cluster (org scoped)
 // @Tags         clusters
 // @Security     BearerAuth
@@ -368,6 +373,7 @@ func DeleteCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListClusterNodePools godoc
+// @ID           ListClusterNodePools
 // @Summary      List node pools attached to a cluster (org scoped)
 // @Tags         clusters
 // @Security     BearerAuth
@@ -431,6 +437,7 @@ func ListClusterNodePools(w http.ResponseWriter, r *http.Request) {
 // Attach/Detach NodePools
 
 // AttachNodePools godoc
+// @ID           AttachNodePools
 // @Summary      Attach node pools to cluster (org scoped)
 // @Tags         clusters
 // @Security     BearerAuth
@@ -494,6 +501,7 @@ func AttachNodePools(w http.ResponseWriter, r *http.Request) {
 }
 
 // DetachNodePool godoc
+// @ID           DetachNodePool
 // @Summary      Detach one node pool from a cluster (org scoped)
 // @Tags         clusters
 // @Security     BearerAuth
@@ -548,6 +556,7 @@ func DetachNodePool(w http.ResponseWriter, r *http.Request) {
 // Bastion subresource
 
 // GetBastion godoc
+// @ID           GetBastion
 // @Summary      Get cluster bastion (org scoped)
 // @Tags         clusters
 // @Security     BearerAuth
@@ -596,6 +605,7 @@ func GetBastion(w http.ResponseWriter, r *http.Request) {
 }
 
 // PutBastion godoc
+// @ID           PutBastion
 // @Summary      Set/replace cluster bastion (org scoped)
 // @Tags         clusters
 // @Security     BearerAuth
@@ -646,6 +656,7 @@ func PutBastion(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteBastion godoc
+// @ID           DeleteBastion
 // @Summary      Clear cluster bastion (org scoped)
 // @Tags         clusters
 // @Security     BearerAuth

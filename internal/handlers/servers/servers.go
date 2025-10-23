@@ -16,20 +16,21 @@ import (
 )
 
 // ListServers godoc
-// @Summary      List servers (org scoped)
-// @Description  Returns servers for the organization in X-Org-ID. Optional filters: status, role.
-// @Tags         servers
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        status query string false "Filter by status (pending|provisioning|ready|failed)"
-// @Param        role query string false "Filter by role"
-// @Security     BearerAuth
-// @Success      200 {array}  serverResponse
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "failed to list servers"
-// @Router       /api/v1/servers [get]
+// @ID			ListServers
+// @Summary		List servers (org scoped)
+// @Description	Returns servers for the organization in X-Org-ID. Optional filters: status, role.
+// @Tags		servers
+// @Accept		json
+// @Produce		json
+// @Param		X-Org-ID header string true "Organization UUID"
+// @Param		status query string false "Filter by status (pending|provisioning|ready|failed)"
+// @Param		role query string false "Filter by role"
+// @Security	BearerAuth
+// @Success		200 {array}  serverResponse
+// @Failure		401 {string} string "Unauthorized"
+// @Failure		403 {string} string "organization required"
+// @Failure		500 {string} string "failed to list servers"
+// @Router		/api/v1/servers [get]
 func ListServers(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -64,21 +65,22 @@ func ListServers(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetServer godoc
-// @Summary      Get server by ID (org scoped)
-// @Description  Returns one server in the given organization.
-// @Tags         servers
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "Server ID (UUID)"
-// @Security     BearerAuth
-// @Success      200 {object} serverResponse
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "fetch failed"
-// @Router       /api/v1/servers/{id} [get]
+// @ID				GetServer
+// @Summary      	Get server by ID (org scoped)
+// @Description 	Returns one server in the given organization.
+// @Tags         	servers
+// @Accept       	json
+// @Produce      	json
+// @Param        	X-Org-ID header string true "Organization UUID"
+// @Param        	id path string true "Server ID (UUID)"
+// @Security     	BearerAuth
+// @Success      	200 {object} serverResponse
+// @Failure      	400 {string} string "invalid id"
+// @Failure      	401 {string} string "Unauthorized"
+// @Failure      	403 {string} string "organization required"
+// @Failure      	404 {string} string "not found"
+// @Failure      	500 {string} string "fetch failed"
+// @Router       	/api/v1/servers/{id} [get]
 func GetServer(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -106,20 +108,21 @@ func GetServer(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateServer godoc
-// @Summary      Create server (org scoped)
-// @Description  Creates a server bound to the org in X-Org-ID. Validates that ssh_key_id belongs to the org.
-// @Tags         servers
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        body body createServerRequest true "Server payload"
-// @Security     BearerAuth
-// @Success      201 {object} serverResponse
-// @Failure      400 {string} string "invalid json / missing fields / invalid status / invalid ssh_key_id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "create failed"
-// @Router       /api/v1/servers [post]
+// @ID 			CreateServer
+// @Summary		Create server (org scoped)
+// @Description	Creates a server bound to the org in X-Org-ID. Validates that ssh_key_id belongs to the org.
+// @Tags		servers
+// @Accept		json
+// @Produce		json
+// @Param		X-Org-ID header string true "Organization UUID"
+// @Param		body body createServerRequest true "Server payload"
+// @Security	BearerAuth
+// @Success		201 {object} serverResponse
+// @Failure		400 {string} string "invalid json / missing fields / invalid status / invalid ssh_key_id"
+// @Failure		401 {string} string "Unauthorized"
+// @Failure		403 {string} string "organization required"
+// @Failure		500 {string} string "create failed"
+// @Router		/api/v1/servers [post]
 func CreateServer(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -173,22 +176,23 @@ func CreateServer(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateServer godoc
-// @Summary      Update server (org scoped)
-// @Description  Partially update fields; changing ssh_key_id validates ownership.
-// @Tags         servers
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "Server ID (UUID)"
-// @Param        body body updateServerRequest true "Fields to update"
-// @Security     BearerAuth
-// @Success      200 {object} serverResponse
-// @Failure      400 {string} string "invalid id / invalid json / invalid status / invalid ssh_key_id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "update failed"
-// @Router       /api/v1/servers/{id} [patch]
+// @ID 			UpdateServer
+// @Summary     Update server (org scoped)
+// @Description Partially update fields; changing ssh_key_id validates ownership.
+// @Tags        servers
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "Server ID (UUID)"
+// @Param       body body updateServerRequest true "Fields to update"
+// @Security    BearerAuth
+// @Success     200 {object} serverResponse
+// @Failure     400 {string} string "invalid id / invalid json / invalid status / invalid ssh_key_id"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     404 {string} string "not found"
+// @Failure     500 {string} string "update failed"
+// @Router      /api/v1/servers/{id} [patch]
 func UpdateServer(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {
@@ -259,20 +263,21 @@ func UpdateServer(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteServer godoc
-// @Summary      Delete server (org scoped)
-// @Description  Permanently deletes the server.
-// @Tags         servers
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string true "Organization UUID"
-// @Param        id path string true "Server ID (UUID)"
-// @Security     BearerAuth
-// @Success      204 {string} string "No Content"
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "delete failed"
-// @Router       /api/v1/servers/{id} [delete]
+// @ID 			DeleteServer
+// @Summary     Delete server (org scoped)
+// @Description Permanently deletes the server.
+// @Tags        servers
+// @Accept      json
+// @Produce     json
+// @Param       X-Org-ID header string true "Organization UUID"
+// @Param       id path string true "Server ID (UUID)"
+// @Security    BearerAuth
+// @Success     204 {string} string "No Content"
+// @Failure     400 {string} string "invalid id"
+// @Failure     401 {string} string "Unauthorized"
+// @Failure     403 {string} string "organization required"
+// @Failure     500 {string} string "delete failed"
+// @Router      /api/v1/servers/{id} [delete]
 func DeleteServer(w http.ResponseWriter, r *http.Request) {
 	ac := middleware.GetAuthContext(r)
 	if ac == nil || ac.OrganizationID == uuid.Nil {

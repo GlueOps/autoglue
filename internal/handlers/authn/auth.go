@@ -19,6 +19,7 @@ import (
 )
 
 // Register godoc
+// @ID           Register
 // @Summary      Register a new user
 // @Description  Registers a new user and stores credentials
 // @Tags         auth
@@ -48,6 +49,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 // Login godoc
+// @ID           Login
 // @Summary      Authenticate and return a token
 // @Description  Authenticates a user and returns a JWT bearer token
 // @Tags         auth
@@ -95,6 +97,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Refresh godoc
+// @ID           Refresh
 // @Summary      Refresh access token
 // @Description  Use a refresh token to obtain a new access token
 // @Tags         auth
@@ -130,6 +133,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 }
 
 // Logout godoc
+// @ID           Logout
 // @Summary      Logout user
 // @Description  Revoke a refresh token
 // @Tags         auth
@@ -153,6 +157,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 // Me godoc
+// @ID           Me
 // @Summary      Get authenticated user info
 // @Description  Returns the authenticated user's profile and auth context
 // @Tags         auth
@@ -220,6 +225,7 @@ func Me(w http.ResponseWriter, r *http.Request) {
 }
 
 // Introspect godoc
+// @ID           Introspect
 // @Summary      Introspect a token
 // @Description  Returns whether the token is active and basic metadata
 // @Tags         auth
@@ -266,11 +272,12 @@ func Introspect(w http.ResponseWriter, r *http.Request) {
 }
 
 // RequestPasswordReset godoc
+// @ID           RequestPasswordReset
 // @Summary      Request password reset
 // @Description  Sends a reset token to the user's email address
 // @Tags         auth
 // @Accept       json
-// @Produce      plain
+// @Produce      json
 // @Param        body  body  map[string]string true "email"
 // @Success      204   {string} string "no content"
 // @Router       /api/v1/auth/password/forgot [post]
@@ -307,11 +314,12 @@ func RequestPasswordReset(w http.ResponseWriter, r *http.Request) {
 }
 
 // ConfirmPasswordReset godoc
+// @ID           ConfirmPasswordReset
 // @Summary      Confirm password reset
 // @Description  Resets the password using a valid reset token
 // @Tags         auth
 // @Accept       json
-// @Produce      plain
+// @Produce      json
 // @Param        body  body  map[string]string true "token, new_password"
 // @Success      204   {string} string "no content"
 // @Failure      400   {string} string "bad request"
@@ -355,11 +363,12 @@ func ConfirmPasswordReset(w http.ResponseWriter, r *http.Request) {
 }
 
 // ChangePassword godoc
+// @ID           ChangePassword
 // @Summary      Change password
 // @Description  Changes the password for the authenticated user
 // @Tags         auth
 // @Accept       json
-// @Produce      plain
+// @Produce      json
 // @Param        body  body  map[string]string true "current_password, new_password"
 // @Success      204   {string} string "no content"
 // @Failure      400   {string} string "bad request"
@@ -407,10 +416,11 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 // VerifyEmail godoc
+// @ID           VerifyEmail
 // @Summary      Verify email address
 // @Description  Verifies the user's email using a token (often from an emailed link)
 // @Tags         auth
-// @Produce      plain
+// @Produce      json
 // @Param        token  query  string  true  "verification token"
 // @Success      204    {string} string "no content"
 // @Failure      400    {string} string "bad request"
@@ -438,11 +448,12 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 }
 
 // ResendVerification godoc
+// @ID           ResendVerification
 // @Summary      Resend email verification
 // @Description  Sends a new email verification token if needed
 // @Tags         auth
 // @Accept       json
-// @Produce      plain
+// @Produce      json
 // @Param        body  body  map[string]string true "email"
 // @Success      204   {string} string "no content"
 // @Router       /api/v1/auth/verify/resend [post]
@@ -476,10 +487,11 @@ func ResendVerification(w http.ResponseWriter, r *http.Request) {
 }
 
 // LogoutAll godoc
+// @ID           LogoutAll
 // @Summary      Logout from all sessions
 // @Description  Revokes all active refresh tokens for the authenticated user
 // @Tags         auth
-// @Produce      plain
+// @Produce      json
 // @Success      204   {string} string "no content"
 // @Security     BearerAuth
 // @Router       /api/v1/auth/logout_all [post]
@@ -494,6 +506,7 @@ func LogoutAll(w http.ResponseWriter, r *http.Request) {
 }
 
 // RotateRefreshToken godoc
+// @ID           RotateRefreshToken
 // @Summary      Rotate refresh token
 // @Description  Exchanges a valid refresh token for a new access and refresh token, revoking the old one
 // @Tags         auth
@@ -543,6 +556,7 @@ func RotateRefreshToken(w http.ResponseWriter, r *http.Request) {
 }
 
 // AdminListUsers godoc
+// @ID           AdminListUsers
 // @Summary      Admin: list all users
 // @Description  Returns paginated list of users (admin only)
 // @Tags         admin
@@ -623,6 +637,7 @@ func AdminListUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 // AdminCreateUser godoc
+// @ID           AdminCreateUser
 // @Summary      Admin: create user
 // @Tags         admin
 // @Accept       json
@@ -690,6 +705,7 @@ func AdminCreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // AdminUpdateUser godoc
+// @ID           AdminUpdateUser
 // @Summary      Admin: update user
 // @Tags         admin
 // @Accept       json
@@ -788,8 +804,10 @@ func AdminUpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // AdminDeleteUser godoc
+// @ID           AdminDeleteUser
 // @Summary      Admin: delete user
 // @Tags         admin
+// @Produce      json
 // @Param        userId path string true "User ID"
 // @Success      204 {string} string "no content"
 // @Failure      400 {string} string "bad request"

@@ -91,6 +91,7 @@ func ensureNodePoolsBelongToOrg(orgID uuid.UUID, ids []uuid.UUID) error {
 /* -------------------------------- Routes -------------------------------- */
 
 // ListAnnotations godoc
+// @ID           ListAnnotations
 // @Summary      List annotations (org scoped)
 // @Description  Returns annotations for the organization in X-Org-ID. Filters: `name`, `value`, and `q` (name contains). Add `include=node_pools` to include linked node pools.
 // @Tags         annotations
@@ -144,6 +145,7 @@ func ListAnnotations(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAnnotation godoc
+// @ID           GetAnnotation
 // @Summary      Get annotation by ID (org scoped)
 // @Description  Returns one annotation. Add `include=node_pools` to include node pools.
 // @Tags         annotations
@@ -194,6 +196,7 @@ func GetAnnotation(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateAnnotation godoc
+// @ID           CreateAnnotation
 // @Summary      Create annotation (org scoped)
 // @Description  Creates an annotation. Optionally link to node pools.
 // @Tags         annotations
@@ -257,6 +260,7 @@ func CreateAnnotation(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateAnnotation godoc
+// @ID           UpdateAnnotation
 // @Summary      Update annotation (org scoped)
 // @Description  Partially update annotation fields.
 // @Tags         annotations
@@ -316,6 +320,7 @@ func UpdateAnnotation(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteAnnotation godoc
+// @ID           DeleteAnnotation
 // @Summary      Delete annotation (org scoped)
 // @Description  Permanently deletes the annotation.
 // @Tags         annotations
@@ -352,6 +357,7 @@ func DeleteAnnotation(w http.ResponseWriter, r *http.Request) {
 }
 
 // AddAnnotationToNodePools godoc
+// @ID           AddAnnotationToNodePools
 // @Summary      Attach annotation to node pools (org scoped)
 // @Description  Links the annotation to one or more node pools in the same organization.
 // @Tags         annotations
@@ -432,6 +438,7 @@ func AddAnnotationToNodePools(w http.ResponseWriter, r *http.Request) {
 }
 
 // RemoveAnnotationFromNodePool godoc
+// @ID           RemoveAnnotationFromNodePool
 // @Summary      Detach annotation from a node pool (org scoped)
 // @Description  Unlinks the annotation from the specified node pool.
 // @Tags         annotations
@@ -439,7 +446,7 @@ func AddAnnotationToNodePools(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        X-Org-ID header string true "Organization UUID"
 // @Param        id path string true "Annotation ID (UUID)"
-// / @Param       poolId path string true "Node Pool ID (UUID)"
+// @Param        poolId path string true "Node Pool ID (UUID)"
 // @Security     BearerAuth
 // @Success      204 {string} string "No Content"
 // @Failure      400 {string} string "invalid id"
@@ -495,6 +502,7 @@ func RemoveAnnotationFromNodePool(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListNodePoolsWithAnnotation godoc
+// @ID           ListNodePoolsWithAnnotation
 // @Summary      List node pools linked to an annotation (org scoped)
 // @Description  Returns node pools attached to the annotation. Supports `q` (name contains, case-insensitive).
 // @Tags         annotations
