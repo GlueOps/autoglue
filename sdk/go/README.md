@@ -83,6 +83,11 @@ Class | Method | HTTP request | Description
 *AuthAPI* | [**GetJWKS**](docs/AuthAPI.md#getjwks) | **Get** /.well-known/jwks.json | Get JWKS
 *AuthAPI* | [**Logout**](docs/AuthAPI.md#logout) | **Post** /auth/logout | Revoke refresh token family (logout everywhere)
 *AuthAPI* | [**Refresh**](docs/AuthAPI.md#refresh) | **Post** /auth/refresh | Rotate refresh token
+*LabelsAPI* | [**CreateLabel**](docs/LabelsAPI.md#createlabel) | **Post** /labels | Create label (org scoped)
+*LabelsAPI* | [**DeleteLabel**](docs/LabelsAPI.md#deletelabel) | **Delete** /labels/{id} | Delete label (org scoped)
+*LabelsAPI* | [**GetLabel**](docs/LabelsAPI.md#getlabel) | **Get** /labels/{id} | Get label by ID (org scoped)
+*LabelsAPI* | [**ListLabels**](docs/LabelsAPI.md#listlabels) | **Get** /labels | List node labels (org scoped)
+*LabelsAPI* | [**UpdateLabel**](docs/LabelsAPI.md#updatelabel) | **Patch** /labels/{id} | Update label (org scoped)
 *MeAPI* | [**GetMe**](docs/MeAPI.md#getme) | **Get** /me | Get current user profile
 *MeAPI* | [**UpdateMe**](docs/MeAPI.md#updateme) | **Patch** /me | Update current user profile
 *MeAPIKeysAPI* | [**CreateUserAPIKey**](docs/MeAPIKeysAPI.md#createuserapikey) | **Post** /me/api-keys | Create a new user API key
@@ -119,11 +124,13 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [DtoAuthStartResponse](docs/DtoAuthStartResponse.md)
+ - [DtoCreateLabelRequest](docs/DtoCreateLabelRequest.md)
  - [DtoCreateSSHRequest](docs/DtoCreateSSHRequest.md)
  - [DtoCreateServerRequest](docs/DtoCreateServerRequest.md)
  - [DtoCreateTaintRequest](docs/DtoCreateTaintRequest.md)
  - [DtoJWK](docs/DtoJWK.md)
  - [DtoJWKS](docs/DtoJWKS.md)
+ - [DtoLabelResponse](docs/DtoLabelResponse.md)
  - [DtoLogoutRequest](docs/DtoLogoutRequest.md)
  - [DtoRefreshRequest](docs/DtoRefreshRequest.md)
  - [DtoServerResponse](docs/DtoServerResponse.md)
@@ -131,6 +138,7 @@ Class | Method | HTTP request | Description
  - [DtoSshRevealResponse](docs/DtoSshRevealResponse.md)
  - [DtoTaintResponse](docs/DtoTaintResponse.md)
  - [DtoTokenPair](docs/DtoTokenPair.md)
+ - [DtoUpdateLabelRequest](docs/DtoUpdateLabelRequest.md)
  - [DtoUpdateServerRequest](docs/DtoUpdateServerRequest.md)
  - [DtoUpdateTaintRequest](docs/DtoUpdateTaintRequest.md)
  - [HandlersCreateUserKeyRequest](docs/HandlersCreateUserKeyRequest.md)

@@ -35,6 +35,7 @@ func NewRuntime() *Runtime {
 		&models.SshKey{},
 		&models.Server{},
 		&models.Taint{},
+		&models.Label{},
 	)
 	if err != nil {
 		log.Fatalf("Error initializing database: %v", err)

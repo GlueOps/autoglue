@@ -6,6 +6,13 @@ definitions:
         example: https://accounts.google.com/o/oauth2/v2/auth?client_id=...
         type: string
     type: object
+  dto.CreateLabelRequest:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+    type: object
   dto.CreateSSHRequest:
     properties:
       bits:
@@ -76,6 +83,15 @@ definitions:
         items:
           $ref: '#/definitions/dto.JWK'
         type: array
+    type: object
+  dto.LabelResponse:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
     type: object
   dto.LogoutRequest:
     properties:
@@ -174,6 +190,13 @@ definitions:
         type: string
       token_type:
         example: Bearer
+        type: string
+    type: object
+  dto.UpdateLabelRequest:
+    properties:
+      key:
+        type: string
+      value:
         type: string
     type: object
   dto.UpdateServerRequest:
@@ -541,6 +564,255 @@ paths:
       summary: Rotate refresh token
       tags:
       - Auth
+  /labels:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns node labels for the organization in X-Org-ID. Filters:
+        `key`, `value`, and `q` (key contains). Add `include=node_pools` to include
+        linked node groups.'
+      operationId: ListLabels
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Exact key
+        in: query
+        name: key
+        type: string
+      - description: Exact value
+        in: query
+        name: value
+        type: string
+      - description: Key contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.LabelResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list node taints
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List node labels (org scoped)
+      tags:
+      - Labels
+    post:
+      consumes:
+      - application/json
+      description: Creates a label.
+      operationId: CreateLabel
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Label payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateLabelRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.LabelResponse'
+        "400":
+          description: invalid json / missing fields / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Create label (org scoped)
+      tags:
+      - Labels
+  /labels/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the label.
+      operationId: DeleteLabel
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Delete label (org scoped)
+      tags:
+      - Labels
+    get:
+      consumes:
+      - application/json
+      description: Returns one label.
+      operationId: GetLabel
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LabelResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Get label by ID (org scoped)
+      tags:
+      - Labels
+    patch:
+      consumes:
+      - application/json
+      description: Partially update label fields.
+      operationId: UpdateLabel
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Label ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateLabelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LabelResponse'
+        "400":
+          description: invalid id / invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Update label (org scoped)
+      tags:
+      - Labels
   /me:
     get:
       operationId: GetMe

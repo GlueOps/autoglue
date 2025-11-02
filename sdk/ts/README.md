@@ -50,6 +50,11 @@ All URIs are relative to _http://localhost:8080/api/v1_
 | _AuthApi_      | [**getJWKS**](docs/AuthApi.md#getjwks)                        | **GET** /.well-known/jwks.json          | Get JWKS                                        |
 | _AuthApi_      | [**logout**](docs/AuthApi.md#logout)                          | **POST** /auth/logout                   | Revoke refresh token family (logout everywhere) |
 | _AuthApi_      | [**refresh**](docs/AuthApi.md#refresh)                        | **POST** /auth/refresh                  | Rotate refresh token                            |
+| _LabelsApi_    | [**createLabel**](docs/LabelsApi.md#createlabel)              | **POST** /labels                        | Create label (org scoped)                       |
+| _LabelsApi_    | [**deleteLabel**](docs/LabelsApi.md#deletelabel)              | **DELETE** /labels/{id}                 | Delete label (org scoped)                       |
+| _LabelsApi_    | [**getLabel**](docs/LabelsApi.md#getlabel)                    | **GET** /labels/{id}                    | Get label by ID (org scoped)                    |
+| _LabelsApi_    | [**listLabels**](docs/LabelsApi.md#listlabels)                | **GET** /labels                         | List node labels (org scoped)                   |
+| _LabelsApi_    | [**updateLabel**](docs/LabelsApi.md#updatelabel)              | **PATCH** /labels/{id}                  | Update label (org scoped)                       |
 | _MeApi_        | [**getMe**](docs/MeApi.md#getme)                              | **GET** /me                             | Get current user profile                        |
 | _MeApi_        | [**updateMe**](docs/MeApi.md#updateme)                        | **PATCH** /me                           | Update current user profile                     |
 | _MeAPIKeysApi_ | [**createUserAPIKey**](docs/MeAPIKeysApi.md#createuserapikey) | **POST** /me/api-keys                   | Create a new user API key                       |
@@ -85,11 +90,13 @@ All URIs are relative to _http://localhost:8080/api/v1_
 ### Models
 
 - [DtoAuthStartResponse](docs/DtoAuthStartResponse.md)
+- [DtoCreateLabelRequest](docs/DtoCreateLabelRequest.md)
 - [DtoCreateSSHRequest](docs/DtoCreateSSHRequest.md)
 - [DtoCreateServerRequest](docs/DtoCreateServerRequest.md)
 - [DtoCreateTaintRequest](docs/DtoCreateTaintRequest.md)
 - [DtoJWK](docs/DtoJWK.md)
 - [DtoJWKS](docs/DtoJWKS.md)
+- [DtoLabelResponse](docs/DtoLabelResponse.md)
 - [DtoLogoutRequest](docs/DtoLogoutRequest.md)
 - [DtoRefreshRequest](docs/DtoRefreshRequest.md)
 - [DtoServerResponse](docs/DtoServerResponse.md)
@@ -97,6 +104,7 @@ All URIs are relative to _http://localhost:8080/api/v1_
 - [DtoSshRevealResponse](docs/DtoSshRevealResponse.md)
 - [DtoTaintResponse](docs/DtoTaintResponse.md)
 - [DtoTokenPair](docs/DtoTokenPair.md)
+- [DtoUpdateLabelRequest](docs/DtoUpdateLabelRequest.md)
 - [DtoUpdateServerRequest](docs/DtoUpdateServerRequest.md)
 - [DtoUpdateTaintRequest](docs/DtoUpdateTaintRequest.md)
 - [HandlersCreateUserKeyRequest](docs/HandlersCreateUserKeyRequest.md)

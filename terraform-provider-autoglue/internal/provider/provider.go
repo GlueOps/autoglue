@@ -48,11 +48,13 @@ func (p *AutoglueProvider) Configure(ctx context.Context, req provider.Configure
 func (p *AutoglueProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewSshDataSource,
+		NewServersDataSource,
 	}
 }
 
 func (p *AutoglueProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewSshResource,
+		NewServerResource,
 	}
 }

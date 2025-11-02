@@ -5,7 +5,7 @@ provider "glueops/autoglue/autoglue" {
   version     = "0.0.1"
   constraints = "0.0.1"
   hashes = [
-    "h1:XW1zYWB6NTuE7jgJwWAkZeBBhL3Me36KE4Puy6lN6+o=",
+    "h1:K5xMCf5zxZVCurwzkSEAaMv70dzBlVU8VN/q72sNyD0=",
   ]
 }
 

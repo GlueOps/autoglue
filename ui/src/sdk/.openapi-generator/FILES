@@ -4,11 +4,13 @@
 README.md
 docs/AuthApi.md
 docs/DtoAuthStartResponse.md
+docs/DtoCreateLabelRequest.md
 docs/DtoCreateSSHRequest.md
 docs/DtoCreateServerRequest.md
 docs/DtoCreateTaintRequest.md
 docs/DtoJWK.md
 docs/DtoJWKS.md
+docs/DtoLabelResponse.md
 docs/DtoLogoutRequest.md
 docs/DtoRefreshRequest.md
 docs/DtoServerResponse.md
@@ -16,6 +18,7 @@ docs/DtoSshResponse.md
 docs/DtoSshRevealResponse.md
 docs/DtoTaintResponse.md
 docs/DtoTokenPair.md
+docs/DtoUpdateLabelRequest.md
 docs/DtoUpdateServerRequest.md
 docs/DtoUpdateTaintRequest.md
 docs/HandlersCreateUserKeyRequest.md
@@ -28,6 +31,7 @@ docs/HandlersOrgKeyCreateResp.md
 docs/HandlersOrgUpdateReq.md
 docs/HandlersUpdateMeRequest.md
 docs/HandlersUserAPIKeyOut.md
+docs/LabelsApi.md
 docs/MeAPIKeysApi.md
 docs/MeApi.md
 docs/ModelsAPIKey.md
@@ -41,6 +45,7 @@ docs/TaintsApi.md
 docs/UtilsErrorResponse.md
 package.json
 src/apis/AuthApi.ts
+src/apis/LabelsApi.ts
 src/apis/MeAPIKeysApi.ts
 src/apis/MeApi.ts
 src/apis/OrgsApi.ts
@@ -50,11 +55,13 @@ src/apis/TaintsApi.ts
 src/apis/index.ts
 src/index.ts
 src/models/DtoAuthStartResponse.ts
+src/models/DtoCreateLabelRequest.ts
 src/models/DtoCreateSSHRequest.ts
 src/models/DtoCreateServerRequest.ts
 src/models/DtoCreateTaintRequest.ts
 src/models/DtoJWK.ts
 src/models/DtoJWKS.ts
+src/models/DtoLabelResponse.ts
 src/models/DtoLogoutRequest.ts
 src/models/DtoRefreshRequest.ts
 src/models/DtoServerResponse.ts
@@ -62,6 +69,7 @@ src/models/DtoSshResponse.ts
 src/models/DtoSshRevealResponse.ts
 src/models/DtoTaintResponse.ts
 src/models/DtoTokenPair.ts
+src/models/DtoUpdateLabelRequest.ts
 src/models/DtoUpdateServerRequest.ts
 src/models/DtoUpdateTaintRequest.ts
 src/models/HandlersCreateUserKeyRequest.ts

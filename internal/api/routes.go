@@ -136,6 +136,15 @@ func NewRouter(db *gorm.DB) http.Handler {
 				s.Patch("/{id}", handlers.UpdateTaint(db))
 				s.Delete("/{id}", handlers.DeleteTaint(db))
 			})
+
+			v1.Route("/labels", func(s chi.Router) {
+				s.Use(authOrg)
+				s.Get("/", handlers.ListLabels(db))
+				s.Post("/", handlers.CreateLabel(db))
+				s.Get("/{id}", handlers.GetLabel(db))
+				s.Patch("/{id}", handlers.UpdateLabel(db))
+				s.Delete("/{id}", handlers.DeleteLabel(db))
+			})
 		})
 	})
 	if config.IsDebug() {

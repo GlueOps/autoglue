@@ -363,6 +363,7 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 		}
 
 		if mode == "json" {
+			prefix := keyFilenamePrefix(key.PublicKey)
 			resp := dto.SshMaterialJSON{
 				ID:          key.ID.String(),
 				Name:        key.Name,
@@ -372,7 +373,7 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 			case "public":
 				pub := key.PublicKey
 				resp.PublicKey = &pub
-				resp.Filenames = []string{fmt.Sprintf("id_rsa_%s.pub", key.ID.String())}
+				resp.Filenames = []string{fmt.Sprintf("%s_%s.pub", prefix, key.ID.String())}
 				utils.WriteJSON(w, http.StatusOK, resp)
 				return
 
@@ -383,7 +384,7 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 					return
 				}
 				resp.PrivatePEM = &plain
-				resp.Filenames = []string{fmt.Sprintf("id_rsa_%s.pem", key.ID.String())}
+				resp.Filenames = []string{fmt.Sprintf("%s_%s.pem", prefix, key.ID.String())}
 				utils.WriteJSON(w, http.StatusOK, resp)
 				return
 
@@ -396,16 +397,16 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 
 				var buf bytes.Buffer
 				zw := zip.NewWriter(&buf)
-				_ = toZipFile(fmt.Sprintf("id_rsa_%s.pem", key.ID.String()), []byte(plain), zw)
-				_ = toZipFile(fmt.Sprintf("id_rsa_%s.pub", key.ID.String()), []byte(key.PublicKey), zw)
+				_ = toZipFile(fmt.Sprintf("%s_%s.pem", prefix, key.ID.String()), []byte(plain), zw)
+				_ = toZipFile(fmt.Sprintf("%s_%s.pub", prefix, key.ID.String()), []byte(key.PublicKey), zw)
 				_ = zw.Close()
 
 				b64 := utils.EncodeB64(buf.Bytes())
 				resp.ZipBase64 = &b64
 				resp.Filenames = []string{
-					fmt.Sprintf("id_rsa_%s.zip", key.ID.String()),
-					fmt.Sprintf("id_rsa_%s.pem", key.ID.String()),
-					fmt.Sprintf("id_rsa_%s.pub", key.ID.String()),
+					fmt.Sprintf("%s_%s.zip", prefix, key.ID.String()),
+					fmt.Sprintf("%s_%s.pem", prefix, key.ID.String()),
+					fmt.Sprintf("%s_%s.pub", prefix, key.ID.String()),
 				}
 				utils.WriteJSON(w, http.StatusOK, resp)
 				return
@@ -512,12 +513,18 @@ func toZipFile(filename string, content []byte, zw *zip.Writer) error {
 }
 
 func keyFilenamePrefix(pubAuth string) string {
-	// OpenSSH authorized keys start with the algorithm name
-	if strings.HasPrefix(pubAuth, "ssh-ed25519 ") {
-		return "id_ed25519"
+	pk, _, _, _, err := ssh.ParseAuthorizedKey([]byte(pubAuth))
+	if err != nil {
+		return "id_key"
 	}
-	// default to RSA
-	return "id_rsa"
+	switch pk.Type() {
+	case "ssh-ed25519":
+		return "id_ed25519"
+	case "ssh-rsa":
+		return "id_rsa"
+	default:
+		return "id_key"
+	}
 }
 
 func GenerateEd25519PEMAndAuthorized(comment string) (privPEM string, authorized string, err error) {

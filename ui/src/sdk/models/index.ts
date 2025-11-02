@@ -1,11 +1,13 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './DtoAuthStartResponse';
+export * from './DtoCreateLabelRequest';
 export * from './DtoCreateSSHRequest';
 export * from './DtoCreateServerRequest';
 export * from './DtoCreateTaintRequest';
 export * from './DtoJWK';
 export * from './DtoJWKS';
+export * from './DtoLabelResponse';
 export * from './DtoLogoutRequest';
 export * from './DtoRefreshRequest';
 export * from './DtoServerResponse';
@@ -13,6 +15,7 @@ export * from './DtoSshResponse';
 export * from './DtoSshRevealResponse';
 export * from './DtoTaintResponse';
 export * from './DtoTokenPair';
+export * from './DtoUpdateLabelRequest';
 export * from './DtoUpdateServerRequest';
 export * from './DtoUpdateTaintRequest';
 export * from './HandlersCreateUserKeyRequest';

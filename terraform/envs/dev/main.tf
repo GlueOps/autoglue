@@ -27,3 +27,47 @@ output "ssh_public_keys" {
 output "ssh_written_files" {
   value = { for k, m in module.ssh : k => m.written_files }
 }
+
+module "servers" {
+  source = "../../modules/servers"
+  # Wire the SSH key IDs so servers can reference them by name
+  ssh_key_ids = { for k, m in module.ssh : k => m.id }
+
+  servers = {
+    bastion = {
+      hostname           = "bastion-01"
+      private_ip_address = "10.0.0.10"
+      public_ip_address = "54.12.34.56" # required for role=bastion
+      role               = "bastion"
+      ssh_user           = "ubuntu"
+      ssh_key_ref = "bastionKey"  # points to module.ssh["bastionKey"].id
+      status             = "pending"
+    }
+
+    manager1 = {
+      hostname           = "k3s-mgr-01"
+      private_ip_address = "10.0.1.11"
+      role               = "manager"
+      ssh_user           = "ubuntu"
+      ssh_key_ref        = "clusterKey"
+      status             = "pending"
+    }
+
+    agent1 = {
+      hostname           = "k3s-agent-01"
+      private_ip_address = "10.0.2.21"
+      role               = "agent"
+      ssh_user           = "ubuntu"
+      ssh_key_ref        = "clusterKey"
+      status             = "pending"
+    }
+  }
+}
+
+output "server_ids" {
+  value = module.servers.ids
+}
+
+output "server_statuses" {
+  value = module.servers.statuses
+}
