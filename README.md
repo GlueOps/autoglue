@@ -2,41 +2,8 @@
 
 ## Setup Env
 create .env file:
-```
-DB_USER=autoglue
-DB_PASSWORD=autoglue
-DB_NAME=autoglue
-
-BIND_ADDRESS=127.0.0.1
-BIND_PORT=8080
-
-DATABASE_URL=postgres://autoglue:autoglue@localhost:5432/autoglue
-
-# Used to switch between dev proxy and spa handler
-# dev proxy - proxy binds port 5173 (vite) to BIND_PORT at /
-# spa handler - requires ui build and serves embedded from build result
-UI_DEV=true
-
-# in development - removes hsts in security middleware, any other value - hsts gets enabled
-ENV=development
-
-# Enables or disables /debug/pprof
-DEBUG=true
-
-# Enables or disables embedded swagger ui
-SWAGGER=true
-
-JWT_ISSUER=http://localhost:8080
-JWT_AUDIENCE=autoglue-ui
-# optional - 32 bytes base64url (no padding); use only if you want to encrypt private PEM in DB
-# openssl rand -base64 32 | tr '+/' '-_' | tr -d '='
-JWT_PRIVATE_ENC_KEY=IQp53NFkJvbfgLgZc-wo1CNLYRndJA-g5u13HFAn4rI
-
-OAUTH_REDIRECT_BASE=http://localhost:8080
-GOOGLE_CLIENT_ID=742299367132-na2i6spu7doukkqtk52vcqd6p94ijupi.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
-#GITHUB_CLIENT_ID=...
-#GITHUB_CLIENT_SECRET=...
+```bash
+cp .env.example .env
 ```
 
 ## Bring up Database:
