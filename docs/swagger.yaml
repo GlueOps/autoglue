@@ -1,0 +1,1731 @@
+basePath: /api/v1
+definitions:
+  dto.AuthStartResponse:
+    properties:
+      auth_url:
+        example: https://accounts.google.com/o/oauth2/v2/auth?client_id=...
+        type: string
+    type: object
+  dto.CreateSSHRequest:
+    properties:
+      bits:
+        description: Only for RSA
+        type: integer
+      comment:
+        example: deploy@autoglue
+        type: string
+      name:
+        type: string
+      type:
+        description: '"rsa" (default) or "ed25519"'
+        type: string
+    type: object
+  dto.CreateServerRequest:
+    properties:
+      hostname:
+        type: string
+      private_ip_address:
+        type: string
+      public_ip_address:
+        type: string
+      role:
+        example: master|worker|bastion
+        type: string
+      ssh_key_id:
+        type: string
+      ssh_user:
+        type: string
+      status:
+        example: pending|provisioning|ready|failed
+        type: string
+    type: object
+  dto.CreateTaintRequest:
+    properties:
+      effect:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  dto.JWK:
+    properties:
+      alg:
+        example: RS256
+        type: string
+      e:
+        example: AQAB
+        type: string
+      kid:
+        example: 7c6f1d0a-7a98-4e6a-9dbf-6b1af4b9f345
+        type: string
+      kty:
+        example: RSA
+        type: string
+      "n":
+        type: string
+      use:
+        example: sig
+        type: string
+      x:
+        type: string
+    type: object
+  dto.JWKS:
+    properties:
+      keys:
+        items:
+          $ref: '#/definitions/dto.JWK'
+        type: array
+    type: object
+  dto.LogoutRequest:
+    properties:
+      refresh_token:
+        example: m0l9o8rT3t0V8d3eFf...
+        type: string
+    type: object
+  dto.RefreshRequest:
+    properties:
+      refresh_token:
+        example: m0l9o8rT3t0V8d3eFf...
+        type: string
+    type: object
+  dto.ServerResponse:
+    properties:
+      created_at:
+        type: string
+      hostname:
+        type: string
+      id:
+        type: string
+      organization_id:
+        type: string
+      private_ip_address:
+        type: string
+      public_ip_address:
+        type: string
+      role:
+        type: string
+      ssh_key_id:
+        type: string
+      ssh_user:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.SshResponse:
+    properties:
+      created_at:
+        type: string
+      fingerprint:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organization_id:
+        type: string
+      public_key:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.SshRevealResponse:
+    properties:
+      created_at:
+        type: string
+      fingerprint:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organization_id:
+        type: string
+      private_key:
+        type: string
+      public_key:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.TaintResponse:
+    properties:
+      effect:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  dto.TokenPair:
+    properties:
+      access_token:
+        example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ij...
+        type: string
+      expires_in:
+        example: 3600
+        type: integer
+      refresh_token:
+        example: m0l9o8rT3t0V8d3eFf....
+        type: string
+      token_type:
+        example: Bearer
+        type: string
+    type: object
+  dto.UpdateServerRequest:
+    properties:
+      hostname:
+        type: string
+      private_ip_address:
+        type: string
+      public_ip_address:
+        type: string
+      role:
+        example: master|worker|bastion
+        type: string
+      ssh_key_id:
+        type: string
+      ssh_user:
+        type: string
+      status:
+        example: pending|provisioning|ready|failed
+        type: string
+    type: object
+  dto.UpdateTaintRequest:
+    properties:
+      effect:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  handlers.createUserKeyRequest:
+    properties:
+      expires_in_hours:
+        description: optional TTL
+        type: integer
+      name:
+        type: string
+    type: object
+  handlers.meResponse:
+    properties:
+      avatar_url:
+        type: string
+      created_at:
+        format: date-time
+        type: string
+      display_name:
+        type: string
+      emails:
+        items:
+          $ref: '#/definitions/models.UserEmail'
+        type: array
+      id:
+        description: 'example: 3fa85f64-5717-4562-b3fc-2c963f66afa6'
+        format: uuid
+        type: string
+      is_disabled:
+        type: boolean
+      organizations:
+        items:
+          $ref: '#/definitions/models.Organization'
+        type: array
+      primary_email:
+        type: string
+      updated_at:
+        format: date-time
+        type: string
+    type: object
+  handlers.memberOut:
+    properties:
+      email:
+        type: string
+      role:
+        description: owner/admin/member
+        type: string
+      user_id:
+        format: uuid
+        type: string
+    type: object
+  handlers.memberUpsertReq:
+    properties:
+      role:
+        example: member
+        type: string
+      user_id:
+        format: uuid
+        type: string
+    type: object
+  handlers.orgCreateReq:
+    properties:
+      domain:
+        example: acme.com
+        type: string
+      name:
+        example: Acme Corp
+        type: string
+    type: object
+  handlers.orgKeyCreateReq:
+    properties:
+      expires_in_hours:
+        example: 720
+        type: integer
+      name:
+        example: automation-bot
+        type: string
+    type: object
+  handlers.orgKeyCreateResp:
+    properties:
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      org_key:
+        description: 'shown once:'
+        type: string
+      org_secret:
+        description: 'shown once:'
+        type: string
+      scope:
+        description: '"org"'
+        type: string
+    type: object
+  handlers.orgUpdateReq:
+    properties:
+      domain:
+        type: string
+      name:
+        type: string
+    type: object
+  handlers.updateMeRequest:
+    properties:
+      display_name:
+        type: string
+    type: object
+  handlers.userAPIKeyOut:
+    properties:
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      id:
+        format: uuid
+        type: string
+      last_used_at:
+        type: string
+      name:
+        type: string
+      plain:
+        description: 'Shown only on create:'
+        type: string
+      scope:
+        description: '"user"'
+        type: string
+    type: object
+  models.APIKey:
+    properties:
+      created_at:
+        format: date-time
+        type: string
+      expires_at:
+        format: date-time
+        type: string
+      id:
+        format: uuid
+        type: string
+      last_used_at:
+        format: date-time
+        type: string
+      name:
+        type: string
+      org_id:
+        format: uuid
+        type: string
+      prefix:
+        type: string
+      revoked:
+        type: boolean
+      scope:
+        type: string
+      updated_at:
+        format: date-time
+        type: string
+      user_id:
+        format: uuid
+        type: string
+    type: object
+  models.Organization:
+    properties:
+      created_at:
+        format: date-time
+        type: string
+      domain:
+        type: string
+      id:
+        description: 'example: 3fa85f64-5717-4562-b3fc-2c963f66afa6'
+        format: uuid
+        type: string
+      name:
+        type: string
+      updated_at:
+        format: date-time
+        type: string
+    type: object
+  models.User:
+    properties:
+      avatar_url:
+        type: string
+      created_at:
+        format: date-time
+        type: string
+      display_name:
+        type: string
+      id:
+        description: 'example: 3fa85f64-5717-4562-b3fc-2c963f66afa6'
+        format: uuid
+        type: string
+      is_disabled:
+        type: boolean
+      primary_email:
+        type: string
+      updated_at:
+        format: date-time
+        type: string
+    type: object
+  models.UserEmail:
+    properties:
+      created_at:
+        format: date-time
+        type: string
+      email:
+        type: string
+      id:
+        description: 'example: 3fa85f64-5717-4562-b3fc-2c963f66afa6'
+        format: uuid
+        type: string
+      is_primary:
+        type: boolean
+      is_verified:
+        type: boolean
+      updated_at:
+        format: date-time
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        format: uuid
+        type: string
+    type: object
+  utils.ErrorResponse:
+    properties:
+      code:
+        description: |-
+          A machine-readable error code, e.g. "validation_error"
+          example: validation_error
+        type: string
+      message:
+        description: |-
+          Human-readable message
+          example: slug is required
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: GlueOps
+  description: API for managing K3s clusters across cloud providers
+  title: AutoGlue API
+  version: "1.0"
+paths:
+  /.well-known/jwks.json:
+    get:
+      description: Returns the JSON Web Key Set for token verification
+      operationId: getJWKS
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.JWKS'
+      summary: Get JWKS
+      tags:
+      - Auth
+  /auth/{provider}/callback:
+    get:
+      operationId: AuthCallback
+      parameters:
+      - description: google|github
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TokenPair'
+      summary: Handle social login callback
+      tags:
+      - Auth
+  /auth/{provider}/start:
+    post:
+      description: Returns provider authorization URL for the frontend to redirect
+      operationId: AuthStart
+      parameters:
+      - description: google|github
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthStartResponse'
+      summary: Begin social login
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      operationId: Logout
+      parameters:
+      - description: Refresh token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LogoutRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Revoke refresh token family (logout everywhere)
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      operationId: Refresh
+      parameters:
+      - description: Refresh token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TokenPair'
+      summary: Rotate refresh token
+      tags:
+      - Auth
+  /me:
+    get:
+      operationId: GetMe
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.meResponse'
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      summary: Get current user profile
+      tags:
+      - Me
+    patch:
+      consumes:
+      - application/json
+      operationId: UpdateMe
+      parameters:
+      - description: Patch profile
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.updateMeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      summary: Update current user profile
+      tags:
+      - Me
+  /me/api-keys:
+    get:
+      operationId: ListUserAPIKeys
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.userAPIKeyOut'
+            type: array
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      summary: List my API keys
+      tags:
+      - Me / API Keys
+    post:
+      consumes:
+      - application/json
+      description: Returns the plaintext key once. Store it securely on the client
+        side.
+      operationId: CreateUserAPIKey
+      parameters:
+      - description: Key options
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createUserKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.userAPIKeyOut'
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      summary: Create a new user API key
+      tags:
+      - Me / API Keys
+  /me/api-keys/{id}:
+    delete:
+      operationId: DeleteUserAPIKey
+      parameters:
+      - description: Key ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Delete a user API key
+      tags:
+      - Me / API Keys
+  /orgs:
+    get:
+      operationId: listMyOrgs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Organization'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List organizations I belong to
+      tags:
+      - Orgs
+    post:
+      consumes:
+      - application/json
+      operationId: createOrg
+      parameters:
+      - description: Org payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.orgCreateReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Organization'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create organization
+      tags:
+      - Orgs
+  /orgs/{id}:
+    delete:
+      operationId: deleteOrg
+      parameters:
+      - description: Org ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete organization (owner)
+      tags:
+      - Orgs
+    get:
+      operationId: getOrg
+      parameters:
+      - description: Org ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Organization'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get organization
+      tags:
+      - Orgs
+    patch:
+      consumes:
+      - application/json
+      operationId: updateOrg
+      parameters:
+      - description: Org ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.orgUpdateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Organization'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update organization (owner/admin)
+      tags:
+      - Orgs
+  /orgs/{id}/api-keys:
+    get:
+      operationId: listOrgKeys
+      parameters:
+      - description: Org ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.APIKey'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List org-scoped API keys (no secrets)
+      tags:
+      - Orgs
+    post:
+      consumes:
+      - application/json
+      operationId: createOrgKey
+      parameters:
+      - description: Org ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Key name + optional expiry
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.orgKeyCreateReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.orgKeyCreateResp'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create org key/secret pair (owner/admin)
+      tags:
+      - Orgs
+  /orgs/{id}/api-keys/{key_id}:
+    delete:
+      operationId: deleteOrgKey
+      parameters:
+      - description: Org ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Key ID (UUID)
+        in: path
+        name: key_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete org key (owner/admin)
+      tags:
+      - Orgs
+  /orgs/{id}/members:
+    get:
+      operationId: listMembers
+      parameters:
+      - description: Org ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.memberOut'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List members in org
+      tags:
+      - Orgs
+    post:
+      consumes:
+      - application/json
+      operationId: addOrUpdateMember
+      parameters:
+      - description: Org ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User & role
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.memberUpsertReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.memberOut'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add or update a member (owner/admin)
+      tags:
+      - Orgs
+  /orgs/{id}/members/{user_id}:
+    delete:
+      operationId: removeMember
+      parameters:
+      - description: Org ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User ID (UUID)
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Removed
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove a member (owner/admin)
+      tags:
+      - Orgs
+  /servers:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns servers for the organization in X-Org-ID. Optional filters:
+        status, role.'
+      operationId: ListServers
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Filter by status (pending|provisioning|ready|failed)
+        in: query
+        name: status
+        type: string
+      - description: Filter by role
+        in: query
+        name: role
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ServerResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list servers
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List servers (org scoped)
+      tags:
+      - Servers
+    post:
+      consumes:
+      - application/json
+      description: Creates a server bound to the org in X-Org-ID. Validates that ssh_key_id
+        belongs to the org.
+      operationId: CreateServer
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Server payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateServerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ServerResponse'
+        "400":
+          description: invalid json / missing fields / invalid status / invalid ssh_key_id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Create server (org scoped)
+      tags:
+      - Servers
+  /servers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the server.
+      operationId: DeleteServer
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Server ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Delete server (org scoped)
+      tags:
+      - Servers
+    get:
+      consumes:
+      - application/json
+      description: Returns one server in the given organization.
+      operationId: GetServer
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Server ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ServerResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Get server by ID (org scoped)
+      tags:
+      - Servers
+    patch:
+      consumes:
+      - application/json
+      description: Partially update fields; changing ssh_key_id validates ownership.
+      operationId: UpdateServer
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Server ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateServerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ServerResponse'
+        "400":
+          description: invalid id / invalid json / invalid status / invalid ssh_key_id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Update server (org scoped)
+      tags:
+      - Servers
+  /ssh:
+    get:
+      consumes:
+      - application/json
+      description: Returns ssh keys for the organization in X-Org-ID.
+      operationId: ListPublicSshKeys
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.SshResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list keys
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List ssh keys (org scoped)
+      tags:
+      - Ssh
+    post:
+      consumes:
+      - application/json
+      description: Generates an RSA or ED25519 keypair, saves it, and returns metadata.
+        For RSA you may set bits (2048/3072/4096). Default is 4096. ED25519 ignores
+        bits.
+      operationId: CreateSSHKey
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Key generation options
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateSSHRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.SshResponse'
+        "400":
+          description: invalid json / invalid bits
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: generation/create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Create ssh keypair (org scoped)
+      tags:
+      - Ssh
+  /ssh/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes a keypair.
+      operationId: DeleteSSHKey
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: SSH Key ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Delete ssh keypair (org scoped)
+      tags:
+      - Ssh
+    get:
+      consumes:
+      - application/json
+      description: Returns public key fields. Append `?reveal=true` to include the
+        private key PEM.
+      operationId: GetSSHKey
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: SSH Key ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reveal private key PEM
+        in: query
+        name: reveal
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: When reveal=true
+          schema:
+            $ref: '#/definitions/dto.SshRevealResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Get ssh key by ID (org scoped)
+      tags:
+      - Ssh
+  /ssh/{id}/download:
+    get:
+      description: Download `part=public|private|both` of the keypair. `both` returns
+        a zip file.
+      operationId: DownloadSSHKey
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        required: true
+        type: string
+      - description: SSH Key ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Which part to download
+        enum:
+        - public
+        - private
+        - both
+        in: query
+        name: part
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: file content
+          schema:
+            type: string
+        "400":
+          description: invalid id / invalid part
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: download failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Download ssh key files by ID (org scoped)
+      tags:
+      - Ssh
+  /taints:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns node taints for the organization in X-Org-ID. Filters:
+        `key`, `value`, and `q` (key contains). Add `include=node_pools` to include
+        linked node pools.'
+      operationId: ListTaints
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Exact key
+        in: query
+        name: key
+        type: string
+      - description: Exact value
+        in: query
+        name: value
+        type: string
+      - description: key contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.TaintResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list node taints
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List node pool taints (org scoped)
+      tags:
+      - Taints
+    post:
+      consumes:
+      - application/json
+      description: Creates a taint.
+      operationId: CreateTaint
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Taint payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTaintRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.TaintResponse'
+        "400":
+          description: invalid json / missing fields / invalid node_pool_ids
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Create node taint (org scoped)
+      tags:
+      - Taints
+  /taints/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes the taint.
+      operationId: DeleteTaint
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Node Taint ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: delete failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Delete taint (org scoped)
+      tags:
+      - Taints
+    get:
+      consumes:
+      - application/json
+      operationId: GetTaint
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Node Taint ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TaintResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Get node taint by ID (org scoped)
+      tags:
+      - Taints
+    patch:
+      consumes:
+      - application/json
+      description: Partially update taint fields.
+      operationId: UpdateTaint
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Node Taint ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTaintRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TaintResponse'
+        "400":
+          description: invalid id / invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: update failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Update node taint (org scoped)
+      tags:
+      - Taints
+schemes:
+- http
+- https
+securityDefinitions:
+  ApiKeyAuth:
+    description: User API key
+    in: header
+    name: X-API-KEY
+    type: apiKey
+  BearerAuth:
+    description: Bearer token authentication
+    in: header
+    name: Authorization
+    type: apiKey
+  OrgKeyAuth:
+    description: Org-level key/secret authentication
+    in: header
+    name: X-ORG-KEY
+    type: apiKey
+  OrgSecretAuth:
+    description: Org-level secret
+    in: header
+    name: X-ORG-SECRET
+    type: apiKey
+swagger: "2.0"
