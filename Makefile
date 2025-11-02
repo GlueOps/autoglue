@@ -12,7 +12,7 @@ GIT_USER     ?= glueops
 MODULE_PATH  ?= $(GIT_HOST)/$(GIT_USER)/$(BIN)
 
 # SDK / module settings (Go)
-SDK_REPO     ?= $(BIN)-sdk                  # repo name used for module path
+SDK_REPO     ?= $(BIN)-sdk-go               # repo name used for module path
 SDK_OUTDIR   ?= sdk/go                      # output directory (inside repo)
 SDK_PKG      ?= ${BIN}                      # package name inside the SDK
 

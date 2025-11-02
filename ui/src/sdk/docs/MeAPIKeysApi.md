@@ -24,11 +24,11 @@ Returns the plaintext key once. Store it securely on the client side.
 import {
   Configuration,
   MeAPIKeysApi,
-} from '@glueops/autoglue-sdk';
-import type { CreateUserAPIKeyRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { CreateUserAPIKeyRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: ApiKeyAuth
     apiKey: "YOUR API KEY",
@@ -95,11 +95,11 @@ Delete a user API key
 import {
   Configuration,
   MeAPIKeysApi,
-} from '@glueops/autoglue-sdk';
-import type { DeleteUserAPIKeyRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { DeleteUserAPIKeyRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -164,11 +164,11 @@ List my API keys
 import {
   Configuration,
   MeAPIKeysApi,
-} from '@glueops/autoglue-sdk';
-import type { ListUserAPIKeysRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { ListUserAPIKeysRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: ApiKeyAuth
     apiKey: "YOUR API KEY",

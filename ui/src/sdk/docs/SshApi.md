@@ -26,11 +26,11 @@ Generates an RSA or ED25519 keypair, saves it, and returns metadata. For RSA you
 import {
   Configuration,
   SshApi,
-} from '@glueops/autoglue-sdk';
-import type { CreateSSHKeyRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { CreateSSHKeyRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -108,11 +108,11 @@ Permanently deletes a keypair.
 import {
   Configuration,
   SshApi,
-} from '@glueops/autoglue-sdk';
-import type { DeleteSSHKeyRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { DeleteSSHKeyRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -190,11 +190,11 @@ Download &#x60;part&#x3D;public|private|both&#x60; of the keypair. &#x60;both&#x
 import {
   Configuration,
   SshApi,
-} from '@glueops/autoglue-sdk';
-import type { DownloadSSHKeyRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { DownloadSSHKeyRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -276,11 +276,11 @@ Returns public key fields. Append &#x60;?reveal&#x3D;true&#x60; to include the p
 import {
   Configuration,
   SshApi,
-} from '@glueops/autoglue-sdk';
-import type { GetSSHKeyRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { GetSSHKeyRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -362,11 +362,11 @@ Returns ssh keys for the organization in X-Org-ID.
 import {
   Configuration,
   SshApi,
-} from '@glueops/autoglue-sdk';
-import type { ListPublicSshKeysRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { ListPublicSshKeysRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",

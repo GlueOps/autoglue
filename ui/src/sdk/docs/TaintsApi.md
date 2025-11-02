@@ -26,11 +26,11 @@ Creates a taint.
 import {
   Configuration,
   TaintsApi,
-} from '@glueops/autoglue-sdk';
-import type { CreateTaintRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { CreateTaintRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -108,11 +108,11 @@ Permanently deletes the taint.
 import {
   Configuration,
   TaintsApi,
-} from '@glueops/autoglue-sdk';
-import type { DeleteTaintRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { DeleteTaintRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -188,11 +188,11 @@ Get node taint by ID (org scoped)
 import {
   Configuration,
   TaintsApi,
-} from '@glueops/autoglue-sdk';
-import type { GetTaintRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { GetTaintRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -271,11 +271,11 @@ Returns node taints for the organization in X-Org-ID. Filters: &#x60;key&#x60;, 
 import {
   Configuration,
   TaintsApi,
-} from '@glueops/autoglue-sdk';
-import type { ListTaintsRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { ListTaintsRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -358,11 +358,11 @@ Partially update taint fields.
 import {
   Configuration,
   TaintsApi,
-} from '@glueops/autoglue-sdk';
-import type { UpdateTaintRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { UpdateTaintRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",

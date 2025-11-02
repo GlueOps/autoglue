@@ -26,11 +26,11 @@ Creates a label.
 import {
   Configuration,
   LabelsApi,
-} from '@glueops/autoglue-sdk';
-import type { CreateLabelRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { CreateLabelRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -108,11 +108,11 @@ Permanently deletes the label.
 import {
   Configuration,
   LabelsApi,
-} from '@glueops/autoglue-sdk';
-import type { DeleteLabelRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { DeleteLabelRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -190,11 +190,11 @@ Returns one label.
 import {
   Configuration,
   LabelsApi,
-} from '@glueops/autoglue-sdk';
-import type { GetLabelRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { GetLabelRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -273,11 +273,11 @@ Returns node labels for the organization in X-Org-ID. Filters: &#x60;key&#x60;, 
 import {
   Configuration,
   LabelsApi,
-} from '@glueops/autoglue-sdk';
-import type { ListLabelsRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { ListLabelsRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -360,11 +360,11 @@ Partially update label fields.
 import {
   Configuration,
   LabelsApi,
-} from '@glueops/autoglue-sdk';
-import type { UpdateLabelRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { UpdateLabelRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",

@@ -21,11 +21,11 @@ Get current user profile
 import {
   Configuration,
   MeApi,
-} from '@glueops/autoglue-sdk';
-import type { GetMeRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { GetMeRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: ApiKeyAuth
     apiKey: "YOUR API KEY",
@@ -84,11 +84,11 @@ Update current user profile
 import {
   Configuration,
   MeApi,
-} from '@glueops/autoglue-sdk';
-import type { UpdateMeRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { UpdateMeRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: ApiKeyAuth
     apiKey: "YOUR API KEY",

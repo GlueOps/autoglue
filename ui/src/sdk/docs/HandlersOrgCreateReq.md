@@ -12,7 +12,7 @@ Name | Type
 ## Example
 
 ```typescript
-import type { HandlersOrgCreateReq } from '@glueops/autoglue-sdk'
+import type { HandlersOrgCreateReq } from '@glueops/autoglue-sdk-go'
 
 // TODO: Update the object below with actual values
 const example = {

@@ -24,11 +24,11 @@ Handle social login callback
 import {
   Configuration,
   AuthApi,
-} from '@glueops/autoglue-sdk';
-import type { AuthCallbackRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { AuthCallbackRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const api = new AuthApi();
 
   const body = {
@@ -91,11 +91,11 @@ Returns provider authorization URL for the frontend to redirect
 import {
   Configuration,
   AuthApi,
-} from '@glueops/autoglue-sdk';
-import type { AuthStartRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { AuthStartRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const api = new AuthApi();
 
   const body = {
@@ -158,11 +158,11 @@ Returns the JSON Web Key Set for token verification
 import {
   Configuration,
   AuthApi,
-} from '@glueops/autoglue-sdk';
-import type { GetJWKSRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { GetJWKSRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const api = new AuthApi();
 
   try {
@@ -215,11 +215,11 @@ Revoke refresh token family (logout everywhere)
 import {
   Configuration,
   AuthApi,
-} from '@glueops/autoglue-sdk';
-import type { LogoutRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { LogoutRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const api = new AuthApi();
 
   const body = {
@@ -280,11 +280,11 @@ Rotate refresh token
 import {
   Configuration,
   AuthApi,
-} from '@glueops/autoglue-sdk';
-import type { RefreshRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { RefreshRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const api = new AuthApi();
 
   const body = {

@@ -26,11 +26,11 @@ Creates a server bound to the org in X-Org-ID. Validates that ssh_key_id belongs
 import {
   Configuration,
   ServersApi,
-} from '@glueops/autoglue-sdk';
-import type { CreateServerRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { CreateServerRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -108,11 +108,11 @@ Permanently deletes the server.
 import {
   Configuration,
   ServersApi,
-} from '@glueops/autoglue-sdk';
-import type { DeleteServerRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { DeleteServerRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -190,11 +190,11 @@ Returns one server in the given organization.
 import {
   Configuration,
   ServersApi,
-} from '@glueops/autoglue-sdk';
-import type { GetServerRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { GetServerRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -273,11 +273,11 @@ Returns servers for the organization in X-Org-ID. Optional filters: status, role
 import {
   Configuration,
   ServersApi,
-} from '@glueops/autoglue-sdk';
-import type { ListServersRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { ListServersRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",
@@ -357,11 +357,11 @@ Partially update fields; changing ssh_key_id validates ownership.
 import {
   Configuration,
   ServersApi,
-} from '@glueops/autoglue-sdk';
-import type { UpdateServerRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { UpdateServerRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: OrgKeyAuth
     apiKey: "YOUR API KEY",

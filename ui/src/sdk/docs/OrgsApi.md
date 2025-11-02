@@ -30,11 +30,11 @@ Add or update a member (owner/admin)
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { AddOrUpdateMemberRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { AddOrUpdateMemberRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -103,11 +103,11 @@ Create organization
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { CreateOrgRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { CreateOrgRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -175,11 +175,11 @@ Create org key/secret pair (owner/admin)
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { CreateOrgKeyRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { CreateOrgKeyRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -248,11 +248,11 @@ Delete organization (owner)
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { DeleteOrgRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { DeleteOrgRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -319,11 +319,11 @@ Delete org key (owner/admin)
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { DeleteOrgKeyRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { DeleteOrgKeyRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -392,11 +392,11 @@ Get organization
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { GetOrgRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { GetOrgRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -463,11 +463,11 @@ List members in org
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { ListMembersRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { ListMembersRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -533,11 +533,11 @@ List organizations I belong to
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { ListMyOrgsRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { ListMyOrgsRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -595,11 +595,11 @@ List org-scoped API keys (no secrets)
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { ListOrgKeysRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { ListOrgKeysRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -665,11 +665,11 @@ Remove a member (owner/admin)
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { RemoveMemberRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { RemoveMemberRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",
@@ -738,11 +738,11 @@ Update organization (owner/admin)
 import {
   Configuration,
   OrgsApi,
-} from '@glueops/autoglue-sdk';
-import type { UpdateOrgRequest } from '@glueops/autoglue-sdk';
+} from '@glueops/autoglue-sdk-go';
+import type { UpdateOrgRequest } from '@glueops/autoglue-sdk-go';
 
 async function example() {
-  console.log("🚀 Testing @glueops/autoglue-sdk SDK...");
+  console.log("🚀 Testing @glueops/autoglue-sdk-go SDK...");
   const config = new Configuration({ 
     // To configure API key authorization: BearerAuth
     apiKey: "YOUR API KEY",

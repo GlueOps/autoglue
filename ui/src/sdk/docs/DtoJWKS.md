@@ -11,7 +11,7 @@ Name | Type
 ## Example
 
 ```typescript
-import type { DtoJWKS } from '@glueops/autoglue-sdk'
+import type { DtoJWKS } from '@glueops/autoglue-sdk-go'
 
 // TODO: Update the object below with actual values
 const example = {
