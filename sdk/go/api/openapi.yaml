@@ -1852,13 +1852,22 @@ components:
       type: object
     dto.LabelResponse:
       example:
+        updated_at: updated_at
+        organization_id: organization_id
+        created_at: created_at
         id: id
         value: value
         key: key
       properties:
+        created_at:
+          type: string
         id:
           type: string
         key:
+          type: string
+        organization_id:
+          type: string
+        updated_at:
           type: string
         value:
           type: string

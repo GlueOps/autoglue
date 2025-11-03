@@ -50,6 +50,7 @@ func (p *AutoglueProvider) DataSources(_ context.Context) []func() datasource.Da
 		NewSshDataSource,
 		NewServersDataSource,
 		NewTaintsDataSource,
+		NewLabelsDataSource,
 	}
 }
 
@@ -58,5 +59,6 @@ func (p *AutoglueProvider) Resources(_ context.Context) []func() resource.Resour
 		NewSshResource,
 		NewServerResource,
 		NewTaintResource,
+		NewLabelResource,
 	}
 }

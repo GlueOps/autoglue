@@ -24,6 +24,12 @@ export interface DtoLabelResponse {
      * @type {string}
      * @memberof DtoLabelResponse
      */
+    created_at?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DtoLabelResponse
+     */
     id?: string;
     /**
      * 
@@ -31,6 +37,18 @@ export interface DtoLabelResponse {
      * @memberof DtoLabelResponse
      */
     key?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DtoLabelResponse
+     */
+    organization_id?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DtoLabelResponse
+     */
+    updated_at?: string;
     /**
      * 
      * @type {string}
@@ -56,8 +74,11 @@ export function DtoLabelResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
+        'created_at': json['created_at'] == null ? undefined : json['created_at'],
         'id': json['id'] == null ? undefined : json['id'],
         'key': json['key'] == null ? undefined : json['key'],
+        'organization_id': json['organization_id'] == null ? undefined : json['organization_id'],
+        'updated_at': json['updated_at'] == null ? undefined : json['updated_at'],
         'value': json['value'] == null ? undefined : json['value'],
     };
 }
@@ -73,8 +94,11 @@ export function DtoLabelResponseToJSONTyped(value?: DtoLabelResponse | null, ign
 
     return {
         
+        'created_at': value['created_at'],
         'id': value['id'],
         'key': value['key'],
+        'organization_id': value['organization_id'],
+        'updated_at': value['updated_at'],
         'value': value['value'],
     };
 }

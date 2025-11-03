@@ -86,9 +86,15 @@ definitions:
     type: object
   dto.LabelResponse:
     properties:
+      created_at:
+        type: string
       id:
         type: string
       key:
+        type: string
+      organization_id:
+        type: string
+      updated_at:
         type: string
       value:
         type: string
