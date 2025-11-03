@@ -134,3 +134,6 @@ sketch
 config.yaml
 go_*_WhiteSpaceConflict/
 notes.txt
+
+.terraform
+.terraform.lock*

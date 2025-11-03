@@ -1,6 +1,15 @@
 import { orgStore } from "@/auth/org.ts"
 import { authStore } from "@/auth/store.ts"
-import { Configuration, MeApi, MeAPIKeysApi, OrgsApi, ServersApi, SshApi, TaintsApi } from "@/sdk"
+import {
+  Configuration,
+  LabelsApi,
+  MeApi,
+  MeAPIKeysApi,
+  OrgsApi,
+  ServersApi,
+  SshApi,
+  TaintsApi,
+} from "@/sdk"
 
 export const API_BASE = "/api/v1"
 
@@ -74,4 +83,8 @@ export function makeServersApi() {
 
 export function makeTaintsApi() {
   return makeApiClient(TaintsApi)
+}
+
+export function makeLabelsApi() {
+  return makeApiClient(LabelsApi)
 }

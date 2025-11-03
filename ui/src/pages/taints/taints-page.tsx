@@ -137,7 +137,9 @@ export const TaintsPage = () => {
     })
     setUpdateOpen(true)
   }
+
   // --- Delete ---
+
   const deleteMut = useMutation({
     mutationFn: (id: string) => taintsApi.deleteTaint(id),
     onSuccess: async () => {
@@ -167,6 +169,7 @@ export const TaintsPage = () => {
 
   if (taintsQ.isLoading) return <div className="p-6">Loading taints…</div>
   if (taintsQ.error) return <div className="p-6 text-red-500">Error loading taints.</div>
+
   return (
     <div className="space-y-4 p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

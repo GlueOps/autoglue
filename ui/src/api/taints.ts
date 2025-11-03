@@ -12,6 +12,10 @@ export const taintsApi = {
     withRefresh(async () => {
       return await taints.createTaint({ body })
     }),
+  getTaint: (id: string) =>
+    withRefresh(async () => {
+      return await taints.getTaint({ id })
+    }),
   deleteTaint: (id: string) =>
     withRefresh(async () => {
       await taints.deleteTaint({ id })

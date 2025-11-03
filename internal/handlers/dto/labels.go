@@ -3,9 +3,12 @@ package dto
 import "github.com/google/uuid"
 
 type LabelResponse struct {
-	ID    uuid.UUID `json:"id"`
-	Key   string    `json:"key"`
-	Value string    `json:"value"`
+	ID             uuid.UUID `json:"id"`
+	OrganizationID uuid.UUID `json:"organization_id"`
+	Key            string    `json:"key"`
+	Value          string    `json:"value"`
+	CreatedAt      string    `json:"created_at,omitempty"`
+	UpdatedAt      string    `json:"updated_at,omitempty"`
 }
 
 type CreateLabelRequest struct {

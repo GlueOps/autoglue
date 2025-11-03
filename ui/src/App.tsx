@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom"
 
 import { ProtectedRoute } from "@/components/protected-route.tsx"
 import { Login } from "@/pages/auth/login.tsx"
+import { LabelsPage } from "@/pages/labels/labels-page.tsx"
 import { MePage } from "@/pages/me/me-page.tsx"
 import { OrgApiKeys } from "@/pages/org/api-keys.tsx"
 import { OrgMembers } from "@/pages/org/members.tsx"
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/ssh" element={<SshPage />} />
           <Route path="/servers" element={<ServerPage />} />
           <Route path="/taints" element={<TaintsPage />} />
+          <Route path="/labels" element={<LabelsPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Login />} />
