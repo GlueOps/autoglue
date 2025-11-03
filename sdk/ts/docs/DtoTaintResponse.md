@@ -2,12 +2,15 @@
 
 ## Properties
 
-| Name     | Type   |
-| -------- | ------ |
-| `effect` | string |
-| `id`     | string |
-| `key`    | string |
-| `value`  | string |
+| Name              | Type   |
+| ----------------- | ------ |
+| `created_at`      | string |
+| `effect`          | string |
+| `id`              | string |
+| `key`             | string |
+| `organization_id` | string |
+| `updated_at`      | string |
+| `value`           | string |
 
 ## Example
 
@@ -16,9 +19,12 @@ import type { DtoTaintResponse } from "@glueops/autoglue-sdk-go";
 
 // TODO: Update the object below with actual values
 const example = {
+  created_at: null,
   effect: null,
   id: null,
   key: null,
+  organization_id: null,
+  updated_at: null,
   value: null,
 } satisfies DtoTaintResponse;
 

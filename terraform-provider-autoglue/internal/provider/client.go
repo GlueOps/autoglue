@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/glueops/autoglue-sdk"
+	"github.com/glueops/autoglue-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 

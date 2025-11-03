@@ -24,6 +24,12 @@ export interface DtoTaintResponse {
    * @type {string}
    * @memberof DtoTaintResponse
    */
+  created_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof DtoTaintResponse
+   */
   effect?: string;
   /**
    *
@@ -37,6 +43,18 @@ export interface DtoTaintResponse {
    * @memberof DtoTaintResponse
    */
   key?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof DtoTaintResponse
+   */
+  organization_id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof DtoTaintResponse
+   */
+  updated_at?: string;
   /**
    *
    * @type {string}
@@ -66,9 +84,13 @@ export function DtoTaintResponseFromJSONTyped(
     return json;
   }
   return {
+    created_at: json["created_at"] == null ? undefined : json["created_at"],
     effect: json["effect"] == null ? undefined : json["effect"],
     id: json["id"] == null ? undefined : json["id"],
     key: json["key"] == null ? undefined : json["key"],
+    organization_id:
+      json["organization_id"] == null ? undefined : json["organization_id"],
+    updated_at: json["updated_at"] == null ? undefined : json["updated_at"],
     value: json["value"] == null ? undefined : json["value"],
   };
 }
@@ -86,9 +108,12 @@ export function DtoTaintResponseToJSONTyped(
   }
 
   return {
+    created_at: value["created_at"],
     effect: value["effect"],
     id: value["id"],
     key: value["key"],
+    organization_id: value["organization_id"],
+    updated_at: value["updated_at"],
     value: value["value"],
   };
 }

@@ -168,11 +168,17 @@ definitions:
     type: object
   dto.TaintResponse:
     properties:
+      created_at:
+        type: string
       effect:
         type: string
       id:
         type: string
       key:
+        type: string
+      organization_id:
+        type: string
+      updated_at:
         type: string
       value:
         type: string

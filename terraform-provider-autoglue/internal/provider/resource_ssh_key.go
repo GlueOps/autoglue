@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/glueops/autoglue-sdk"
+	"github.com/glueops/autoglue-sdk-go"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"

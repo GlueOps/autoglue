@@ -3,7 +3,7 @@ module github.com/glueops/terraform-provider-gsot
 go 1.25.3
 
 require (
-	github.com/glueops/autoglue-sdk v0.0.0-00010101000000-000000000000
+	github.com/glueops/autoglue-sdk-go v0.0.0-00010101000000-000000000000
 	github.com/hashicorp/terraform-plugin-framework v1.16.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 )
@@ -33,4 +33,4 @@ require (
 	google.golang.org/protobuf v1.36.9 // indirect
 )
 
-replace github.com/glueops/autoglue-sdk => ../sdk/go
+replace github.com/glueops/autoglue-sdk-go => ../sdk/go

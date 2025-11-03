@@ -49,6 +49,7 @@ func (p *AutoglueProvider) DataSources(_ context.Context) []func() datasource.Da
 	return []func() datasource.DataSource{
 		NewSshDataSource,
 		NewServersDataSource,
+		NewTaintsDataSource,
 	}
 }
 
@@ -56,5 +57,6 @@ func (p *AutoglueProvider) Resources(_ context.Context) []func() resource.Resour
 	return []func() resource.Resource{
 		NewSshResource,
 		NewServerResource,
+		NewTaintResource,
 	}
 }

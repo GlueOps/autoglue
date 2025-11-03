@@ -1967,16 +1967,25 @@ components:
       type: object
     dto.TaintResponse:
       example:
+        updated_at: updated_at
         effect: effect
+        organization_id: organization_id
+        created_at: created_at
         id: id
         value: value
         key: key
       properties:
+        created_at:
+          type: string
         effect:
           type: string
         id:
           type: string
         key:
+          type: string
+        organization_id:
+          type: string
+        updated_at:
           type: string
         value:
           type: string

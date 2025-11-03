@@ -19,10 +19,13 @@ var _ MappedNullable = &DtoTaintResponse{}
 
 // DtoTaintResponse struct for DtoTaintResponse
 type DtoTaintResponse struct {
-	Effect *string `json:"effect,omitempty"`
-	Id     *string `json:"id,omitempty"`
-	Key    *string `json:"key,omitempty"`
-	Value  *string `json:"value,omitempty"`
+	CreatedAt      *string `json:"created_at,omitempty"`
+	Effect         *string `json:"effect,omitempty"`
+	Id             *string `json:"id,omitempty"`
+	Key            *string `json:"key,omitempty"`
+	OrganizationId *string `json:"organization_id,omitempty"`
+	UpdatedAt      *string `json:"updated_at,omitempty"`
+	Value          *string `json:"value,omitempty"`
 }
 
 // NewDtoTaintResponse instantiates a new DtoTaintResponse object
@@ -40,6 +43,38 @@ func NewDtoTaintResponse() *DtoTaintResponse {
 func NewDtoTaintResponseWithDefaults() *DtoTaintResponse {
 	this := DtoTaintResponse{}
 	return &this
+}
+
+// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
+func (o *DtoTaintResponse) GetCreatedAt() string {
+	if o == nil || IsNil(o.CreatedAt) {
+		var ret string
+		return ret
+	}
+	return *o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DtoTaintResponse) GetCreatedAtOk() (*string, bool) {
+	if o == nil || IsNil(o.CreatedAt) {
+		return nil, false
+	}
+	return o.CreatedAt, true
+}
+
+// HasCreatedAt returns a boolean if a field has been set.
+func (o *DtoTaintResponse) HasCreatedAt() bool {
+	if o != nil && !IsNil(o.CreatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreatedAt gets a reference to the given string and assigns it to the CreatedAt field.
+func (o *DtoTaintResponse) SetCreatedAt(v string) {
+	o.CreatedAt = &v
 }
 
 // GetEffect returns the Effect field value if set, zero value otherwise.
@@ -138,6 +173,70 @@ func (o *DtoTaintResponse) SetKey(v string) {
 	o.Key = &v
 }
 
+// GetOrganizationId returns the OrganizationId field value if set, zero value otherwise.
+func (o *DtoTaintResponse) GetOrganizationId() string {
+	if o == nil || IsNil(o.OrganizationId) {
+		var ret string
+		return ret
+	}
+	return *o.OrganizationId
+}
+
+// GetOrganizationIdOk returns a tuple with the OrganizationId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DtoTaintResponse) GetOrganizationIdOk() (*string, bool) {
+	if o == nil || IsNil(o.OrganizationId) {
+		return nil, false
+	}
+	return o.OrganizationId, true
+}
+
+// HasOrganizationId returns a boolean if a field has been set.
+func (o *DtoTaintResponse) HasOrganizationId() bool {
+	if o != nil && !IsNil(o.OrganizationId) {
+		return true
+	}
+
+	return false
+}
+
+// SetOrganizationId gets a reference to the given string and assigns it to the OrganizationId field.
+func (o *DtoTaintResponse) SetOrganizationId(v string) {
+	o.OrganizationId = &v
+}
+
+// GetUpdatedAt returns the UpdatedAt field value if set, zero value otherwise.
+func (o *DtoTaintResponse) GetUpdatedAt() string {
+	if o == nil || IsNil(o.UpdatedAt) {
+		var ret string
+		return ret
+	}
+	return *o.UpdatedAt
+}
+
+// GetUpdatedAtOk returns a tuple with the UpdatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DtoTaintResponse) GetUpdatedAtOk() (*string, bool) {
+	if o == nil || IsNil(o.UpdatedAt) {
+		return nil, false
+	}
+	return o.UpdatedAt, true
+}
+
+// HasUpdatedAt returns a boolean if a field has been set.
+func (o *DtoTaintResponse) HasUpdatedAt() bool {
+	if o != nil && !IsNil(o.UpdatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetUpdatedAt gets a reference to the given string and assigns it to the UpdatedAt field.
+func (o *DtoTaintResponse) SetUpdatedAt(v string) {
+	o.UpdatedAt = &v
+}
+
 // GetValue returns the Value field value if set, zero value otherwise.
 func (o *DtoTaintResponse) GetValue() string {
 	if o == nil || IsNil(o.Value) {
@@ -180,6 +279,9 @@ func (o DtoTaintResponse) MarshalJSON() ([]byte, error) {
 
 func (o DtoTaintResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.CreatedAt) {
+		toSerialize["created_at"] = o.CreatedAt
+	}
 	if !IsNil(o.Effect) {
 		toSerialize["effect"] = o.Effect
 	}
@@ -188,6 +290,12 @@ func (o DtoTaintResponse) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Key) {
 		toSerialize["key"] = o.Key
+	}
+	if !IsNil(o.OrganizationId) {
+		toSerialize["organization_id"] = o.OrganizationId
+	}
+	if !IsNil(o.UpdatedAt) {
+		toSerialize["updated_at"] = o.UpdatedAt
 	}
 	if !IsNil(o.Value) {
 		toSerialize["value"] = o.Value
