@@ -78,11 +78,14 @@ All URIs are relative to *http://localhost:8080/api/v1*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*AnnotationsAPI* | [**GetAnnotation**](docs/AnnotationsAPI.md#getannotation) | **Get** /annotations/{id} | Get annotation by ID (org scoped)
+*AnnotationsAPI* | [**ListAnnotations**](docs/AnnotationsAPI.md#listannotations) | **Get** /annotations | List annotations (org scoped)
 *AuthAPI* | [**AuthCallback**](docs/AuthAPI.md#authcallback) | **Get** /auth/{provider}/callback | Handle social login callback
 *AuthAPI* | [**AuthStart**](docs/AuthAPI.md#authstart) | **Post** /auth/{provider}/start | Begin social login
 *AuthAPI* | [**GetJWKS**](docs/AuthAPI.md#getjwks) | **Get** /.well-known/jwks.json | Get JWKS
 *AuthAPI* | [**Logout**](docs/AuthAPI.md#logout) | **Post** /auth/logout | Revoke refresh token family (logout everywhere)
 *AuthAPI* | [**Refresh**](docs/AuthAPI.md#refresh) | **Post** /auth/refresh | Rotate refresh token
+*HealthAPI* | [**HealthCheckOperationId**](docs/HealthAPI.md#healthcheckoperationid) | **Get** /healthz | Basic health check
 *LabelsAPI* | [**CreateLabel**](docs/LabelsAPI.md#createlabel) | **Post** /labels | Create label (org scoped)
 *LabelsAPI* | [**DeleteLabel**](docs/LabelsAPI.md#deletelabel) | **Delete** /labels/{id} | Delete label (org scoped)
 *LabelsAPI* | [**GetLabel**](docs/LabelsAPI.md#getlabel) | **Get** /labels/{id} | Get label by ID (org scoped)
@@ -123,6 +126,7 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [DtoAnnotationResponse](docs/DtoAnnotationResponse.md)
  - [DtoAuthStartResponse](docs/DtoAuthStartResponse.md)
  - [DtoCreateLabelRequest](docs/DtoCreateLabelRequest.md)
  - [DtoCreateSSHRequest](docs/DtoCreateSSHRequest.md)
@@ -142,6 +146,7 @@ Class | Method | HTTP request | Description
  - [DtoUpdateServerRequest](docs/DtoUpdateServerRequest.md)
  - [DtoUpdateTaintRequest](docs/DtoUpdateTaintRequest.md)
  - [HandlersCreateUserKeyRequest](docs/HandlersCreateUserKeyRequest.md)
+ - [HandlersHealthStatus](docs/HandlersHealthStatus.md)
  - [HandlersMeResponse](docs/HandlersMeResponse.md)
  - [HandlersMemberOut](docs/HandlersMemberOut.md)
  - [HandlersMemberUpsertReq](docs/HandlersMemberUpsertReq.md)

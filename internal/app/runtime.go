@@ -22,6 +22,7 @@ func NewRuntime() *Runtime {
 	d := db.Open(cfg.DbURL)
 
 	err = db.Run(d,
+		&models.Job{},
 		&models.MasterKey{},
 		&models.SigningKey{},
 		&models.User{},

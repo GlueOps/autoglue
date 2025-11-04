@@ -554,7 +554,10 @@ export const ServerPage = () => {
                       </TableCell>
                       <TableCell className="capitalize">
                         <span
-                          className={cn(k.role === "bastion" && "rounded bg-amber-50 px-2 py-0.5")}
+                          className={cn(
+                            k.role === "bastion" &&
+                              "rounded bg-amber-50 px-2 py-0.5 dark:bg-amber-900"
+                          )}
                         >
                           {k.role}
                         </span>

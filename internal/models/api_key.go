@@ -18,6 +18,6 @@ type APIKey struct {
 	Revoked    bool       `gorm:"not null;default:false" json:"revoked"`
 	Prefix     *string    `json:"prefix,omitempty"`
 	LastUsedAt *time.Time `json:"last_used_at,omitempty" format:"date-time"`
-	CreatedAt  time.Time  `gorm:"not null;default:now()" json:"created_at" format:"date-time"`
-	UpdatedAt  time.Time  `gorm:"not null;default:now()" json:"updated_at" format:"date-time"`
+	CreatedAt  time.Time  `json:"created_at,omitempty" gorm:"type:timestamptz;column:created_at;not null;default:now()" format:"date-time"`
+	UpdatedAt  time.Time  `json:"updated_at,omitempty" gorm:"type:timestamptz;autoUpdateTime;column:updated_at;not null;default:now()" format:"date-time"`
 }

@@ -69,6 +69,8 @@ func NewRouter(db *gorm.DB) http.Handler {
 			// Also serving a versioned JWKS for swagger, which uses BasePath
 			v1.Get("/.well-known/jwks.json", handlers.JWKSHandler)
 
+			v1.Get("/healthz", handlers.HealthCheck)
+
 			v1.Route("/auth", func(a chi.Router) {
 				a.Post("/{provider}/start", handlers.AuthStart(db))
 				a.Get("/{provider}/callback", handlers.AuthCallback(db))

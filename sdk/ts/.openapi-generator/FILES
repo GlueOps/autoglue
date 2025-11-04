@@ -2,7 +2,9 @@
 .npmignore
 .openapi-generator-ignore
 README.md
+docs/AnnotationsApi.md
 docs/AuthApi.md
+docs/DtoAnnotationResponse.md
 docs/DtoAuthStartResponse.md
 docs/DtoCreateLabelRequest.md
 docs/DtoCreateSSHRequest.md
@@ -22,6 +24,7 @@ docs/DtoUpdateLabelRequest.md
 docs/DtoUpdateServerRequest.md
 docs/DtoUpdateTaintRequest.md
 docs/HandlersCreateUserKeyRequest.md
+docs/HandlersHealthStatus.md
 docs/HandlersMeResponse.md
 docs/HandlersMemberOut.md
 docs/HandlersMemberUpsertReq.md
@@ -31,6 +34,7 @@ docs/HandlersOrgKeyCreateResp.md
 docs/HandlersOrgUpdateReq.md
 docs/HandlersUpdateMeRequest.md
 docs/HandlersUserAPIKeyOut.md
+docs/HealthApi.md
 docs/LabelsApi.md
 docs/MeAPIKeysApi.md
 docs/MeApi.md
@@ -44,7 +48,9 @@ docs/SshApi.md
 docs/TaintsApi.md
 docs/UtilsErrorResponse.md
 package.json
+src/apis/AnnotationsApi.ts
 src/apis/AuthApi.ts
+src/apis/HealthApi.ts
 src/apis/LabelsApi.ts
 src/apis/MeAPIKeysApi.ts
 src/apis/MeApi.ts
@@ -54,6 +60,7 @@ src/apis/SshApi.ts
 src/apis/TaintsApi.ts
 src/apis/index.ts
 src/index.ts
+src/models/DtoAnnotationResponse.ts
 src/models/DtoAuthStartResponse.ts
 src/models/DtoCreateLabelRequest.ts
 src/models/DtoCreateSSHRequest.ts
@@ -73,6 +80,7 @@ src/models/DtoUpdateLabelRequest.ts
 src/models/DtoUpdateServerRequest.ts
 src/models/DtoUpdateTaintRequest.ts
 src/models/HandlersCreateUserKeyRequest.ts
+src/models/HandlersHealthStatus.ts
 src/models/HandlersMeResponse.ts
 src/models/HandlersMemberOut.ts
 src/models/HandlersMemberUpsertReq.ts

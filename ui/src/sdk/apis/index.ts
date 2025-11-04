@@ -1,6 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './AnnotationsApi';
 export * from './AuthApi';
+export * from './HealthApi';
 export * from './LabelsApi';
 export * from './MeApi';
 export * from './MeAPIKeysApi';

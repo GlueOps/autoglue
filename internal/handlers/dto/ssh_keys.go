@@ -1,6 +1,8 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	"github.com/glueops/autoglue/internal/common"
+)
 
 type CreateSSHRequest struct {
 	Name    string  `json:"name"`
@@ -10,13 +12,13 @@ type CreateSSHRequest struct {
 }
 
 type SshResponse struct {
-	ID             uuid.UUID `json:"id"`
-	OrganizationID uuid.UUID `json:"organization_id"`
-	Name           string    `json:"name"`
-	PublicKey      string    `json:"public_key"`
-	Fingerprint    string    `json:"fingerprint"`
-	CreatedAt      string    `json:"created_at,omitempty"`
-	UpdatedAt      string    `json:"updated_at,omitempty"`
+	common.AuditFields
+	Name                string `json:"name"`
+	PublicKey           string `json:"public_key"`
+	Fingerprint         string `json:"fingerprint"`
+	EncryptedPrivateKey string `json:"-"`
+	PrivateIV           string `json:"-"`
+	PrivateTag          string `json:"-"`
 }
 
 type SshRevealResponse struct {

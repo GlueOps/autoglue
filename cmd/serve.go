@@ -12,10 +12,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dyaksa/archer"
 	"github.com/glueops/autoglue/internal/api"
 	"github.com/glueops/autoglue/internal/app"
 	"github.com/glueops/autoglue/internal/auth"
+	"github.com/glueops/autoglue/internal/bg"
 	"github.com/glueops/autoglue/internal/config"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +32,83 @@ var serveCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		jobs, err := bg.NewJobs(rt.DB, cfg.DbURL)
+		if err != nil {
+			log.Fatalf("failed to init background jobs: %v", err)
+		}
+
+		// Start workers in background ONCE
+		go func() {
+			if err := jobs.Start(); err != nil {
+				log.Fatalf("failed to start background jobs: %v", err)
+			}
+		}()
+		defer jobs.Stop()
+
+		// daily cleanups
+		{
+			// schedule next 03:30 local time
+			next := time.Now().Truncate(24 * time.Hour).Add(24 * time.Hour).Add(3*time.Hour + 30*time.Minute)
+			_, _ = jobs.Enqueue(
+				context.Background(),
+				uuid.NewString(),
+				"archer_cleanup",
+				bg.CleanupArgs{RetainDays: 7, Table: "jobs"},
+				archer.WithScheduleTime(next),
+				archer.WithMaxRetries(1),
+			)
+
+			// schedule next 03:45 local time
+			next2 := time.Now().Truncate(24 * time.Hour).Add(24 * time.Hour).Add(3*time.Hour + 45*time.Minute)
+			_, _ = jobs.Enqueue(
+				context.Background(),
+				uuid.NewString(),
+				"tokens_cleanup",
+				bg.TokensCleanupArgs{},
+				archer.WithScheduleTime(next2),
+				archer.WithMaxRetries(1),
+			)
+		}
+
+		// Periodic scheduler
+		schedCtx, schedCancel := context.WithCancel(context.Background())
+		defer schedCancel()
+
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					_, err := jobs.Enqueue(
+						context.Background(),
+						uuid.NewString(),
+						"bootstrap_bastion",
+						bg.BastionBootstrapArgs{},
+						archer.WithMaxRetries(3),
+						// while debugging, avoid extra schedule delay:
+						archer.WithScheduleTime(time.Now().Add(10*time.Second)),
+					)
+					if err != nil {
+						log.Printf("failed to enqueue bootstrap_bastion: %v", err)
+					}
+					/*
+						_, _ = jobs.Enqueue(
+							context.Background(),
+							uuid.NewString(),
+							"tokens_cleanup",
+							bg.TokensCleanupArgs{},
+							archer.WithMaxRetries(3),
+							archer.WithScheduleTime(time.Now().Add(10*time.Second)),
+						)
+					*/
+				case <-schedCtx.Done():
+					return
+				}
+			}
+		}()
 
 		_ = auth.Refresh(rt.DB, rt.Cfg.JWTPrivateEncKey)
 		go func() {

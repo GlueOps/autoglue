@@ -3,7 +3,9 @@
 .travis.yml
 README.md
 api/openapi.yaml
+api_annotations.go
 api_auth.go
+api_health.go
 api_labels.go
 api_me.go
 api_me_api_keys.go
@@ -13,7 +15,9 @@ api_ssh.go
 api_taints.go
 client.go
 configuration.go
+docs/AnnotationsAPI.md
 docs/AuthAPI.md
+docs/DtoAnnotationResponse.md
 docs/DtoAuthStartResponse.md
 docs/DtoCreateLabelRequest.md
 docs/DtoCreateSSHRequest.md
@@ -33,6 +37,7 @@ docs/DtoUpdateLabelRequest.md
 docs/DtoUpdateServerRequest.md
 docs/DtoUpdateTaintRequest.md
 docs/HandlersCreateUserKeyRequest.md
+docs/HandlersHealthStatus.md
 docs/HandlersMeResponse.md
 docs/HandlersMemberOut.md
 docs/HandlersMemberUpsertReq.md
@@ -42,6 +47,7 @@ docs/HandlersOrgKeyCreateResp.md
 docs/HandlersOrgUpdateReq.md
 docs/HandlersUpdateMeRequest.md
 docs/HandlersUserAPIKeyOut.md
+docs/HealthAPI.md
 docs/LabelsAPI.md
 docs/MeAPI.md
 docs/MeAPIKeysAPI.md
@@ -57,6 +63,7 @@ docs/UtilsErrorResponse.md
 git_push.sh
 go.mod
 go.sum
+model_dto_annotation_response.go
 model_dto_auth_start_response.go
 model_dto_create_label_request.go
 model_dto_create_server_request.go
@@ -76,6 +83,7 @@ model_dto_update_label_request.go
 model_dto_update_server_request.go
 model_dto_update_taint_request.go
 model_handlers_create_user_key_request.go
+model_handlers_health_status.go
 model_handlers_me_response.go
 model_handlers_member_out.go
 model_handlers_member_upsert_req.go
@@ -91,7 +99,9 @@ model_models_user.go
 model_models_user_email.go
 model_utils_error_response.go
 response.go
+test/api_annotations_test.go
 test/api_auth_test.go
+test/api_health_test.go
 test/api_labels_test.go
 test/api_me_api_keys_test.go
 test/api_me_test.go

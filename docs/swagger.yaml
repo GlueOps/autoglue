@@ -1,5 +1,20 @@
 basePath: /api/v1
 definitions:
+  dto.AnnotationResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+      organization_id:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: string
+    type: object
   dto.AuthStartResponse:
     properties:
       auth_url:
@@ -237,6 +252,12 @@ definitions:
       key:
         type: string
       value:
+        type: string
+    type: object
+  handlers.HealthStatus:
+    properties:
+      status:
+        example: ok
         type: string
     type: object
   handlers.createUserKeyRequest:
@@ -495,6 +516,114 @@ paths:
       summary: Get JWKS
       tags:
       - Auth
+  /annotations:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns annotations for the organization in X-Org-ID. Filters:
+        `name`, `value`, and `q` (name contains). Add `include=node_pools` to include
+        linked node pools.'
+      operationId: ListAnnotations
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Exact name
+        in: query
+        name: name
+        type: string
+      - description: Exact value
+        in: query
+        name: value
+        type: string
+      - description: name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AnnotationResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list annotations
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List annotations (org scoped)
+      tags:
+      - Annotations
+  /annotations/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Returns one annotation. Add `include=node_pools` to include node
+        pools.
+      operationId: GetAnnotation
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Optional: node_pools'
+        in: query
+        name: include
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AnnotationResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: fetch failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Get annotation by ID (org scoped)
+      tags:
+      - Annotations
   /auth/{provider}/callback:
     get:
       operationId: AuthCallback
@@ -576,6 +705,22 @@ paths:
       summary: Rotate refresh token
       tags:
       - Auth
+  /healthz:
+    get:
+      consumes:
+      - application/json
+      description: Returns 200 OK when the service is up
+      operationId: HealthCheck               // operationId
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HealthStatus'
+      summary: Basic health check
+      tags:
+      - Health
   /labels:
     get:
       consumes:

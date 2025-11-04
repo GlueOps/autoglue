@@ -1,5 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './DtoAnnotationResponse';
 export * from './DtoAuthStartResponse';
 export * from './DtoCreateLabelRequest';
 export * from './DtoCreateSSHRequest';
@@ -19,6 +20,7 @@ export * from './DtoUpdateLabelRequest';
 export * from './DtoUpdateServerRequest';
 export * from './DtoUpdateTaintRequest';
 export * from './HandlersCreateUserKeyRequest';
+export * from './HandlersHealthStatus';
 export * from './HandlersMeResponse';
 export * from './HandlersMemberOut';
 export * from './HandlersMemberUpsertReq';

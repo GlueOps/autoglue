@@ -23,6 +23,133 @@ paths:
       summary: Get JWKS
       tags:
       - Auth
+  /annotations:
+    get:
+      description: "Returns annotations for the organization in X-Org-ID. Filters:\
+        \ `name`, `value`, and `q` (name contains). Add `include=node_pools` to include\
+        \ linked node pools."
+      operationId: ListAnnotations
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Exact name
+        in: query
+        name: name
+        schema:
+          type: string
+      - description: Exact value
+        in: query
+        name: value
+        schema:
+          type: string
+      - description: name contains (case-insensitive)
+        in: query
+        name: q
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/dto.AnnotationResponse"
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: failed to list annotations
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List annotations (org scoped)
+      tags:
+      - Annotations
+  /annotations/{id}:
+    get:
+      description: Returns one annotation. Add `include=node_pools` to include node
+        pools.
+      operationId: GetAnnotation
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: "Optional: node_pools"
+        in: query
+        name: include
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dto.AnnotationResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: fetch failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Get annotation by ID (org scoped)
+      tags:
+      - Annotations
   /auth/logout:
     post:
       operationId: Logout
@@ -103,6 +230,20 @@ paths:
       summary: Begin social login
       tags:
       - Auth
+  /healthz:
+    get:
+      description: Returns 200 OK when the service is up
+      operationId: HealthCheck               // operationId
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/handlers.HealthStatus"
+          description: OK
+      summary: Basic health check
+      tags:
+      - Health
   /labels:
     get:
       description: "Returns node labels for the organization in X-Org-ID. Filters:\
@@ -1740,6 +1881,28 @@ paths:
       x-codegen-request-body-name: body
 components:
   schemas:
+    dto.AnnotationResponse:
+      example:
+        updated_at: updated_at
+        organization_id: organization_id
+        created_at: created_at
+        id: id
+        value: value
+        key: key
+      properties:
+        created_at:
+          type: string
+        id:
+          type: string
+        key:
+          type: string
+        organization_id:
+          type: string
+        updated_at:
+          type: string
+        value:
+          type: string
+      type: object
     dto.AuthStartResponse:
       example:
         auth_url: https://accounts.google.com/o/oauth2/v2/auth?client_id=...
@@ -2052,6 +2215,14 @@ components:
         key:
           type: string
         value:
+          type: string
+      type: object
+    handlers.HealthStatus:
+      example:
+        status: ok
+      properties:
+        status:
+          example: ok
           type: string
       type: object
     handlers.createUserKeyRequest:

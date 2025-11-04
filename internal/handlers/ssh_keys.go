@@ -13,9 +13,9 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/glueops/autoglue/internal/api/httpmiddleware"
+	"github.com/glueops/autoglue/internal/common"
 	"github.com/glueops/autoglue/internal/handlers/dto"
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
@@ -49,23 +49,16 @@ func ListPublicSshKeys(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		var rows []models.SshKey
-		if err := db.Where("organization_id = ?", orgID).Order("created_at DESC").Find(&rows).Error; err != nil {
+		var out []dto.SshResponse
+		if err := db.
+			Model(&models.SshKey{}).
+			Where("organization_id = ?", orgID).
+			// avoid selecting encrypted columns here
+			Select("id", "organization_id", "name", "public_key", "fingerprint", "created_at", "updated_at").
+			Order("created_at DESC").
+			Scan(&out).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to list ssh keys")
 			return
-		}
-
-		out := make([]dto.SshResponse, 0, len(rows))
-		for _, row := range rows {
-			out = append(out, dto.SshResponse{
-				ID:             row.ID,
-				OrganizationID: row.OrganizationID,
-				Name:           row.Name,
-				PublicKey:      row.PublicKey,
-				Fingerprint:    row.Fingerprint,
-				CreatedAt:      row.CreatedAt.UTC().Format(time.RFC3339),
-				UpdatedAt:      row.UpdatedAt.UTC().Format(time.RFC3339),
-			})
 		}
 
 		utils.WriteJSON(w, http.StatusOK, out)
@@ -160,7 +153,9 @@ func CreateSSHKey(db *gorm.DB) http.HandlerFunc {
 		fp := ssh.FingerprintSHA256(parsed)
 
 		key := models.SshKey{
-			OrganizationID:      orgID,
+			AuditFields: common.AuditFields{
+				OrganizationID: orgID,
+			},
 			Name:                req.Name,
 			PublicKey:           pubAuth,
 			EncryptedPrivateKey: cipher,
@@ -175,13 +170,10 @@ func CreateSSHKey(db *gorm.DB) http.HandlerFunc {
 		}
 
 		utils.WriteJSON(w, http.StatusCreated, dto.SshResponse{
-			ID:             key.ID,
-			OrganizationID: key.OrganizationID,
-			Name:           key.Name,
-			PublicKey:      key.PublicKey,
-			Fingerprint:    key.Fingerprint,
-			CreatedAt:      key.CreatedAt.UTC().Format(time.RFC3339),
-			UpdatedAt:      key.UpdatedAt.UTC().Format(time.RFC3339),
+			AuditFields: key.AuditFields,
+			Name:        key.Name,
+			PublicKey:   key.PublicKey,
+			Fingerprint: key.Fingerprint,
 		})
 	}
 }
@@ -221,30 +213,47 @@ func GetSSHKey(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		var key models.SshKey
-		if err := db.Where("id = ? AND organization_id = ?", id, orgID).First(&key).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
+		reveal := strings.EqualFold(r.URL.Query().Get("reveal"), "true")
+
+		if !reveal {
+			var out dto.SshResponse
+			if err := db.
+				Model(&models.SshKey{}).
+				Where("id = ? AND organization_id = ?", id, orgID).
+				Select("id", "organization_id", "name", "public_key", "fingerprint", "created_at", "updated_at").
+				Limit(1).
+				Scan(&out).Error; err != nil {
+				utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to get ssh key")
+				return
+			}
+			if out.ID == uuid.Nil {
 				utils.WriteError(w, http.StatusNotFound, "ssh_key_not_found", "ssh key not found")
 				return
 			}
+			utils.WriteJSON(w, http.StatusOK, out)
+			return
+		}
+
+		var secret dto.SshResponse
+		if err := db.
+			Model(&models.SshKey{}).
+			Where("id = ? AND organization_id = ?", id, orgID).
+			// include the encrypted bits too
+			Select("id", "organization_id", "name", "public_key", "fingerprint",
+				"encrypted_private_key", "private_iv", "private_tag",
+				"created_at", "updated_at").
+			Limit(1).
+			Scan(&secret).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to get ssh key")
 			return
 		}
 
-		if r.URL.Query().Get("reveal") != "true" {
-			utils.WriteJSON(w, http.StatusOK, dto.SshResponse{
-				ID:             key.ID,
-				OrganizationID: key.OrganizationID,
-				Name:           key.Name,
-				PublicKey:      key.PublicKey,
-				Fingerprint:    key.Fingerprint,
-				CreatedAt:      key.CreatedAt.UTC().Format(time.RFC3339),
-				UpdatedAt:      key.UpdatedAt.UTC().Format(time.RFC3339),
-			})
+		if secret.ID == uuid.Nil {
+			utils.WriteError(w, http.StatusNotFound, "ssh_key_not_found", "ssh key not found")
 			return
 		}
 
-		plain, err := utils.DecryptForOrg(orgID, key.EncryptedPrivateKey, key.PrivateIV, key.PrivateTag, db)
+		plain, err := utils.DecryptForOrg(orgID, secret.EncryptedPrivateKey, secret.PrivateIV, secret.PrivateTag, db)
 		if err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to decrypt ssh key")
 			return
@@ -252,13 +261,10 @@ func GetSSHKey(db *gorm.DB) http.HandlerFunc {
 
 		utils.WriteJSON(w, http.StatusOK, dto.SshRevealResponse{
 			SshResponse: dto.SshResponse{
-				ID:             key.ID,
-				OrganizationID: key.OrganizationID,
-				Name:           key.Name,
-				PublicKey:      key.PublicKey,
-				Fingerprint:    key.Fingerprint,
-				CreatedAt:      key.CreatedAt.UTC().Format(time.RFC3339),
-				UpdatedAt:      key.UpdatedAt.UTC().Format(time.RFC3339),
+				AuditFields: secret.AuditFields,
+				Name:        secret.Name,
+				PublicKey:   secret.PublicKey,
+				Fingerprint: secret.Fingerprint,
 			},
 			PrivateKey: plain,
 		})
@@ -297,9 +303,14 @@ func DeleteSSHKey(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		if err := db.Where("id = ? AND organization_id = ?", id, orgID).
-			Delete(&models.SshKey{}).Error; err != nil {
+		res := db.Where("id = ? AND organization_id = ?", id, orgID).
+			Delete(&models.SshKey{})
+		if res.Error != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to delete ssh key")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "ssh_key_not_found", "ssh key not found")
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)

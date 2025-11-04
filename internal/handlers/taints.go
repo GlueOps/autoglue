@@ -55,23 +55,10 @@ func ListTaints(db *gorm.DB) http.HandlerFunc {
 			q = q.Where(`key ILIKE ?`, "%"+needle+"%")
 		}
 
-		var rows []models.Taint
-		if err := q.Order("created_at DESC").Find(&rows).Error; err != nil {
+		var out []dto.TaintResponse
+		if err := q.Model(&models.Taint{}).Order("created_at DESC").Find(&out).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
-		}
-
-		out := make([]dto.TaintResponse, 0, len(rows))
-		for _, row := range rows {
-			out = append(out, dto.TaintResponse{
-				ID:             row.ID,
-				Key:            row.Key,
-				Value:          row.Value,
-				Effect:         row.Effect,
-				OrganizationID: row.OrganizationID,
-				CreatedAt:      row.CreatedAt.UTC().Format(time.RFC3339),
-				UpdatedAt:      row.UpdatedAt.UTC().Format(time.RFC3339),
-			})
 		}
 		utils.WriteJSON(w, http.StatusOK, out)
 	}
@@ -109,8 +96,8 @@ func GetTaint(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		var row models.Taint
-		if err := db.Where("id = ? AND organization_id = ?", id, orgID).First(&row).Error; err != nil {
+		var out dto.TaintResponse
+		if err := db.Model(&models.Taint{}).Where("id = ? AND organization_id = ?", id, orgID).First(&out).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				utils.WriteError(w, http.StatusNotFound, "not_found", "not_found")
 				return
@@ -118,15 +105,7 @@ func GetTaint(db *gorm.DB) http.HandlerFunc {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
-		out := dto.TaintResponse{
-			ID:             row.ID,
-			Key:            row.Key,
-			Value:          row.Value,
-			Effect:         row.Effect,
-			OrganizationID: row.OrganizationID,
-			CreatedAt:      row.CreatedAt.UTC().Format(time.RFC3339),
-			UpdatedAt:      row.UpdatedAt.UTC().Format(time.RFC3339),
-		}
+
 		utils.WriteJSON(w, http.StatusOK, out)
 	}
 }
