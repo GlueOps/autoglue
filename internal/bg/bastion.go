@@ -53,7 +53,7 @@ func BastionBootstrapWorker(db *gorm.DB) archer.WorkerFn {
 			return nil, err
 		}
 
-		log.Printf("[bastion] level=INFO job=%s step=start count=%d", jobID, len(servers))
+		// log.Printf("[bastion] level=INFO job=%s step=start count=%d", jobID, len(servers))
 
 		proc, ok, fail := 0, 0, 0
 		var failedIDs []uuid.UUID
@@ -63,7 +63,7 @@ func BastionBootstrapWorker(db *gorm.DB) archer.WorkerFn {
 
 		for i := range servers {
 			s := &servers[i]
-			hostStart := time.Now()
+			// hostStart := time.Now()
 			proc++
 
 			// 1) Defensive IP check
@@ -133,8 +133,8 @@ func BastionBootstrapWorker(db *gorm.DB) archer.WorkerFn {
 			}
 
 			ok++
-			logHostInfo(jobID, s, "done", "host completed",
-				"elapsed_ms", time.Since(hostStart).Milliseconds())
+			//  logHostInfo(jobID, s, "done", "host completed",
+			//	  "elapsed_ms", time.Since(hostStart).Milliseconds())
 		}
 
 		res := BastionBootstrapResult{
@@ -147,8 +147,8 @@ func BastionBootstrapWorker(db *gorm.DB) archer.WorkerFn {
 			Failures:     failures,
 		}
 
-		log.Printf("[bastion] level=INFO job=%s step=finish processed=%d ready=%d failed=%d elapsed_ms=%d",
-			jobID, proc, ok, fail, res.ElapsedMs)
+		// log.Printf("[bastion] level=INFO job=%s step=finish processed=%d ready=%d failed=%d elapsed_ms=%d",
+		// 	jobID, proc, ok, fail, res.ElapsedMs)
 
 		return res, nil
 	}
@@ -186,7 +186,6 @@ func logHostInfo(jobID string, s *models.Server, step, msg string, kv ...any) {
 
 // ----- SSH & command execution -----
 
-// returns combined stdout/stderr so caller can log it on error
 // returns combined stdout/stderr so caller can log it on error
 func sshInstallDockerWithOutput(ctx context.Context, host, user string, privateKeyPEM []byte) (string, error) {
 	signer, err := ssh.ParsePrivateKey(privateKeyPEM)

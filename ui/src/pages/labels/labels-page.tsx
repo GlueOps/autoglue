@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react"
 import { labelsApi } from "@/api/labels.ts"
-import { taintsApi } from "@/api/taints.ts"
-import type { DtoLabelResponse, DtoTaintResponse } from "@/sdk"
+import type { DtoLabelResponse } from "@/sdk"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { CircleSlash2, Pencil, Plus, Search, Tags } from "lucide-react"
@@ -29,13 +28,6 @@ import {
   FormMessage,
 } from "@/components/ui/form.tsx"
 import { Input } from "@/components/ui/input.tsx"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select.tsx"
 import {
   Table,
   TableBody,

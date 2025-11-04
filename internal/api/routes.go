@@ -9,6 +9,7 @@ import (
 
 	"github.com/glueops/autoglue/docs"
 	"github.com/glueops/autoglue/internal/api/httpmiddleware"
+	"github.com/glueops/autoglue/internal/bg"
 	"github.com/glueops/autoglue/internal/config"
 	"github.com/glueops/autoglue/internal/handlers"
 	"github.com/glueops/autoglue/internal/web"
@@ -26,7 +27,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
-func NewRouter(db *gorm.DB) http.Handler {
+func NewRouter(db *gorm.DB, jobs *bg.Jobs) http.Handler {
 	zerolog.TimeFieldFormat = time.RFC3339
 
 	l := log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "15:04:05"})
@@ -76,6 +77,17 @@ func NewRouter(db *gorm.DB) http.Handler {
 				a.Get("/{provider}/callback", handlers.AuthCallback(db))
 				a.Post("/refresh", handlers.Refresh(db))
 				a.Post("/logout", handlers.Logout(db))
+			})
+
+			v1.Route("/admin/archer", func(a chi.Router) {
+				a.Use(authUser)
+				a.Use(httpmiddleware.RequirePlatformAdmin())
+
+				a.Get("/jobs", handlers.AdminListArcherJobs(db))
+				a.Post("/jobs", handlers.AdminEnqueueArcherJob(db, jobs))
+				a.Post("/jobs/{id}/retry", handlers.AdminRetryArcherJob(db))
+				a.Post("/jobs/{id}/cancel", handlers.AdminCancelArcherJob(db))
+				a.Get("/queues", handlers.AdminListArcherQueues(db))
 			})
 
 			v1.Route("/me", func(me chi.Router) {
@@ -139,13 +151,22 @@ func NewRouter(db *gorm.DB) http.Handler {
 				s.Delete("/{id}", handlers.DeleteTaint(db))
 			})
 
-			v1.Route("/labels", func(s chi.Router) {
-				s.Use(authOrg)
-				s.Get("/", handlers.ListLabels(db))
-				s.Post("/", handlers.CreateLabel(db))
-				s.Get("/{id}", handlers.GetLabel(db))
-				s.Patch("/{id}", handlers.UpdateLabel(db))
-				s.Delete("/{id}", handlers.DeleteLabel(db))
+			v1.Route("/labels", func(l chi.Router) {
+				l.Use(authOrg)
+				l.Get("/", handlers.ListLabels(db))
+				l.Post("/", handlers.CreateLabel(db))
+				l.Get("/{id}", handlers.GetLabel(db))
+				l.Patch("/{id}", handlers.UpdateLabel(db))
+				l.Delete("/{id}", handlers.DeleteLabel(db))
+			})
+
+			v1.Route("/annotations", func(a chi.Router) {
+				a.Use(authOrg)
+				a.Get("/", handlers.ListAnnotations(db))
+				a.Post("/", handlers.CreateAnnotation(db))
+				a.Get("/{id}", handlers.GetAnnotation(db))
+				a.Patch("/{id}", handlers.UpdateAnnotation(db))
+				a.Delete("/{id}", handlers.DeleteAnnotation(db))
 			})
 		})
 	})

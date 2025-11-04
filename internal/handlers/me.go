@@ -40,7 +40,7 @@ func GetMe(db *gorm.DB) http.HandlerFunc {
 		}
 
 		var emails []models.UserEmail
-		_ = db.Where("user_id = ?", user.ID).Order("is_primary desc, created_at asc").Find(&emails).Error
+		_ = db.Preload("User").Where("user_id = ?", user.ID).Order("is_primary desc, created_at asc").Find(&emails).Error
 
 		var orgs []models.Organization
 		{

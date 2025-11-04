@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **CreatedAt** | Pointer to **time.Time** |  | [optional] 
 **DisplayName** | Pointer to **string** |  | [optional] 
 **Id** | Pointer to **string** | example: 3fa85f64-5717-4562-b3fc-2c963f66afa6 | [optional] 
+**IsAdmin** | Pointer to **bool** |  | [optional] 
 **IsDisabled** | Pointer to **bool** |  | [optional] 
 **PrimaryEmail** | Pointer to **string** |  | [optional] 
 **UpdatedAt** | Pointer to **time.Time** |  | [optional] 
@@ -130,6 +131,31 @@ SetId sets Id field to given value.
 `func (o *ModelsUser) HasId() bool`
 
 HasId returns a boolean if a field has been set.
+
+### GetIsAdmin
+
+`func (o *ModelsUser) GetIsAdmin() bool`
+
+GetIsAdmin returns the IsAdmin field if non-nil, zero value otherwise.
+
+### GetIsAdminOk
+
+`func (o *ModelsUser) GetIsAdminOk() (*bool, bool)`
+
+GetIsAdminOk returns a tuple with the IsAdmin field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetIsAdmin
+
+`func (o *ModelsUser) SetIsAdmin(v bool)`
+
+SetIsAdmin sets IsAdmin field to given value.
+
+### HasIsAdmin
+
+`func (o *ModelsUser) HasIsAdmin() bool`
+
+HasIsAdmin returns a boolean if a field has been set.
 
 ### GetIsDisabled
 

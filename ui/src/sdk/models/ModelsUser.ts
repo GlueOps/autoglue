@@ -48,6 +48,12 @@ export interface ModelsUser {
      * @type {boolean}
      * @memberof ModelsUser
      */
+    is_admin?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ModelsUser
+     */
     is_disabled?: boolean;
     /**
      * 
@@ -84,6 +90,7 @@ export function ModelsUserFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'created_at': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
         'display_name': json['display_name'] == null ? undefined : json['display_name'],
         'id': json['id'] == null ? undefined : json['id'],
+        'is_admin': json['is_admin'] == null ? undefined : json['is_admin'],
         'is_disabled': json['is_disabled'] == null ? undefined : json['is_disabled'],
         'primary_email': json['primary_email'] == null ? undefined : json['primary_email'],
         'updated_at': json['updated_at'] == null ? undefined : (new Date(json['updated_at'])),
@@ -105,6 +112,7 @@ export function ModelsUserToJSONTyped(value?: ModelsUser | null, ignoreDiscrimin
         'created_at': value['created_at'] == null ? value['created_at'] : value['created_at'].toISOString(),
         'display_name': value['display_name'],
         'id': value['id'],
+        'is_admin': value['is_admin'],
         'is_disabled': value['is_disabled'],
         'primary_email': value['primary_email'],
         'updated_at': value['updated_at'] == null ? value['updated_at'] : value['updated_at'].toISOString(),

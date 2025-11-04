@@ -9,6 +9,7 @@
 | `display_name`  | string                                                   |
 | `emails`        | [Array&lt;ModelsUserEmail&gt;](ModelsUserEmail.md)       |
 | `id`            | string                                                   |
+| `is_admin`      | boolean                                                  |
 | `is_disabled`   | boolean                                                  |
 | `organizations` | [Array&lt;ModelsOrganization&gt;](ModelsOrganization.md) |
 | `primary_email` | string                                                   |
@@ -26,6 +27,7 @@ const example = {
   display_name: null,
   emails: null,
   id: null,
+  is_admin: null,
   is_disabled: null,
   organizations: null,
   primary_email: null,

@@ -13,16 +13,33 @@
  */
 
 import * as runtime from "../runtime";
-import type { DtoAnnotationResponse } from "../models/index";
+import type {
+  DtoAnnotationResponse,
+  DtoCreateAnnotationRequest,
+  DtoUpdateAnnotationRequest,
+} from "../models/index";
 import {
   DtoAnnotationResponseFromJSON,
   DtoAnnotationResponseToJSON,
+  DtoCreateAnnotationRequestFromJSON,
+  DtoCreateAnnotationRequestToJSON,
+  DtoUpdateAnnotationRequestFromJSON,
+  DtoUpdateAnnotationRequestToJSON,
 } from "../models/index";
+
+export interface CreateAnnotationRequest {
+  body: DtoCreateAnnotationRequest;
+  xOrgID?: string;
+}
+
+export interface DeleteAnnotationRequest {
+  id: string;
+  xOrgID?: string;
+}
 
 export interface GetAnnotationRequest {
   id: string;
   xOrgID?: string;
-  include?: string;
 }
 
 export interface ListAnnotationsRequest {
@@ -32,10 +49,165 @@ export interface ListAnnotationsRequest {
   q?: string;
 }
 
+export interface UpdateAnnotationRequest {
+  id: string;
+  body: DtoUpdateAnnotationRequest;
+  xOrgID?: string;
+}
+
 /**
  *
  */
 export class AnnotationsApi extends runtime.BaseAPI {
+  /**
+   * Creates an annotation.
+   * Create annotation (org scoped)
+   */
+  async createAnnotationRaw(
+    requestParameters: CreateAnnotationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<DtoAnnotationResponse>> {
+    if (requestParameters["body"] == null) {
+      throw new runtime.RequiredError(
+        "body",
+        'Required parameter "body" was null or undefined when calling createAnnotation().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (requestParameters["xOrgID"] != null) {
+      headerParameters["X-Org-ID"] = String(requestParameters["xOrgID"]);
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-ORG-KEY"] =
+        await this.configuration.apiKey("X-ORG-KEY"); // OrgKeyAuth authentication
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-ORG-SECRET"] =
+        await this.configuration.apiKey("X-ORG-SECRET"); // OrgSecretAuth authentication
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["Authorization"] =
+        await this.configuration.apiKey("Authorization"); // BearerAuth authentication
+    }
+
+    let urlPath = `/annotations`;
+
+    const response = await this.request(
+      {
+        path: urlPath,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: DtoCreateAnnotationRequestToJSON(requestParameters["body"]),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DtoAnnotationResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Creates an annotation.
+   * Create annotation (org scoped)
+   */
+  async createAnnotation(
+    requestParameters: CreateAnnotationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<DtoAnnotationResponse> {
+    const response = await this.createAnnotationRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Permanently deletes the annotation.
+   * Delete annotation (org scoped)
+   */
+  async deleteAnnotationRaw(
+    requestParameters: DeleteAnnotationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<string>> {
+    if (requestParameters["id"] == null) {
+      throw new runtime.RequiredError(
+        "id",
+        'Required parameter "id" was null or undefined when calling deleteAnnotation().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (requestParameters["xOrgID"] != null) {
+      headerParameters["X-Org-ID"] = String(requestParameters["xOrgID"]);
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-ORG-KEY"] =
+        await this.configuration.apiKey("X-ORG-KEY"); // OrgKeyAuth authentication
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-ORG-SECRET"] =
+        await this.configuration.apiKey("X-ORG-SECRET"); // OrgSecretAuth authentication
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["Authorization"] =
+        await this.configuration.apiKey("Authorization"); // BearerAuth authentication
+    }
+
+    let urlPath = `/annotations/{id}`;
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"])),
+    );
+
+    const response = await this.request(
+      {
+        path: urlPath,
+        method: "DELETE",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    if (this.isJsonMime(response.headers.get("content-type"))) {
+      return new runtime.JSONApiResponse<string>(response);
+    } else {
+      return new runtime.TextApiResponse(response) as any;
+    }
+  }
+
+  /**
+   * Permanently deletes the annotation.
+   * Delete annotation (org scoped)
+   */
+  async deleteAnnotation(
+    requestParameters: DeleteAnnotationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<string> {
+    const response = await this.deleteAnnotationRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
   /**
    * Returns one annotation. Add `include=node_pools` to include node pools.
    * Get annotation by ID (org scoped)
@@ -52,10 +224,6 @@ export class AnnotationsApi extends runtime.BaseAPI {
     }
 
     const queryParameters: any = {};
-
-    if (requestParameters["include"] != null) {
-      queryParameters["include"] = requestParameters["include"];
-    }
 
     const headerParameters: runtime.HTTPHeaders = {};
 
@@ -183,6 +351,90 @@ export class AnnotationsApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<Array<DtoAnnotationResponse>> {
     const response = await this.listAnnotationsRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Partially update annotation fields.
+   * Update annotation (org scoped)
+   */
+  async updateAnnotationRaw(
+    requestParameters: UpdateAnnotationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<DtoAnnotationResponse>> {
+    if (requestParameters["id"] == null) {
+      throw new runtime.RequiredError(
+        "id",
+        'Required parameter "id" was null or undefined when calling updateAnnotation().',
+      );
+    }
+
+    if (requestParameters["body"] == null) {
+      throw new runtime.RequiredError(
+        "body",
+        'Required parameter "body" was null or undefined when calling updateAnnotation().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (requestParameters["xOrgID"] != null) {
+      headerParameters["X-Org-ID"] = String(requestParameters["xOrgID"]);
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-ORG-KEY"] =
+        await this.configuration.apiKey("X-ORG-KEY"); // OrgKeyAuth authentication
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-ORG-SECRET"] =
+        await this.configuration.apiKey("X-ORG-SECRET"); // OrgSecretAuth authentication
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["Authorization"] =
+        await this.configuration.apiKey("Authorization"); // BearerAuth authentication
+    }
+
+    let urlPath = `/annotations/{id}`;
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"])),
+    );
+
+    const response = await this.request(
+      {
+        path: urlPath,
+        method: "PATCH",
+        headers: headerParameters,
+        query: queryParameters,
+        body: DtoUpdateAnnotationRequestToJSON(requestParameters["body"]),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DtoAnnotationResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Partially update annotation fields.
+   * Update annotation (org scoped)
+   */
+  async updateAnnotation(
+    requestParameters: UpdateAnnotationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<DtoAnnotationResponse> {
+    const response = await this.updateAnnotationRaw(
       requestParameters,
       initOverrides,
     );

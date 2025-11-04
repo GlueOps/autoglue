@@ -48,6 +48,12 @@ export interface ModelsUser {
    * @type {boolean}
    * @memberof ModelsUser
    */
+  is_admin?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ModelsUser
+   */
   is_disabled?: boolean;
   /**
    *
@@ -88,6 +94,7 @@ export function ModelsUserFromJSONTyped(
     display_name:
       json["display_name"] == null ? undefined : json["display_name"],
     id: json["id"] == null ? undefined : json["id"],
+    is_admin: json["is_admin"] == null ? undefined : json["is_admin"],
     is_disabled: json["is_disabled"] == null ? undefined : json["is_disabled"],
     primary_email:
       json["primary_email"] == null ? undefined : json["primary_email"],
@@ -116,6 +123,7 @@ export function ModelsUserToJSONTyped(
         : value["created_at"].toISOString(),
     display_name: value["display_name"],
     id: value["id"],
+    is_admin: value["is_admin"],
     is_disabled: value["is_disabled"],
     primary_email: value["primary_email"],
     updated_at:

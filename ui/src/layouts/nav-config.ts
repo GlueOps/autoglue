@@ -28,7 +28,6 @@ export const mainNav: NavItem[] = [
   { to: "/taints", label: "Taints", icon: SprayCanIcon },
   { to: "/servers", label: "Servers", icon: ServerIcon },
   { to: "/ssh", label: "SSH Keys", icon: FileKey2Icon },
-  { to: "/jobs", label: "Jobs", icon: GrUserWorker },
 ]
 
 export const orgNav: NavItem[] = [
@@ -38,3 +37,8 @@ export const orgNav: NavItem[] = [
 ]
 
 export const userNav: NavItem[] = [{ to: "/me", label: "Profile", icon: User2 }]
+
+export const adminNav: NavItem[] = [
+  { to: "/admin/users", label: "Users Admin", icon: Users },
+  { to: "/admin/jobs", label: "Jobs Admin", icon: GrUserWorker },
+]

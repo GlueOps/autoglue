@@ -78,8 +78,16 @@ All URIs are relative to *http://localhost:8080/api/v1*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*AnnotationsAPI* | [**CreateAnnotation**](docs/AnnotationsAPI.md#createannotation) | **Post** /annotations | Create annotation (org scoped)
+*AnnotationsAPI* | [**DeleteAnnotation**](docs/AnnotationsAPI.md#deleteannotation) | **Delete** /annotations/{id} | Delete annotation (org scoped)
 *AnnotationsAPI* | [**GetAnnotation**](docs/AnnotationsAPI.md#getannotation) | **Get** /annotations/{id} | Get annotation by ID (org scoped)
 *AnnotationsAPI* | [**ListAnnotations**](docs/AnnotationsAPI.md#listannotations) | **Get** /annotations | List annotations (org scoped)
+*AnnotationsAPI* | [**UpdateAnnotation**](docs/AnnotationsAPI.md#updateannotation) | **Patch** /annotations/{id} | Update annotation (org scoped)
+*ArcherAdminAPI* | [**AdminCancelArcherJob**](docs/ArcherAdminAPI.md#admincancelarcherjob) | **Post** /admin/archer/jobs/{id}/cancel | Cancel an Archer job (admin)
+*ArcherAdminAPI* | [**AdminEnqueueArcherJob**](docs/ArcherAdminAPI.md#adminenqueuearcherjob) | **Post** /admin/archer/jobs | Enqueue a new Archer job (admin)
+*ArcherAdminAPI* | [**AdminListArcherJobs**](docs/ArcherAdminAPI.md#adminlistarcherjobs) | **Get** /admin/archer/jobs | List Archer jobs (admin)
+*ArcherAdminAPI* | [**AdminListArcherQueues**](docs/ArcherAdminAPI.md#adminlistarcherqueues) | **Get** /admin/archer/queues | List Archer queues (admin)
+*ArcherAdminAPI* | [**AdminRetryArcherJob**](docs/ArcherAdminAPI.md#adminretryarcherjob) | **Post** /admin/archer/jobs/{id}/retry | Retry a failed/canceled Archer job (admin)
 *AuthAPI* | [**AuthCallback**](docs/AuthAPI.md#authcallback) | **Get** /auth/{provider}/callback | Handle social login callback
 *AuthAPI* | [**AuthStart**](docs/AuthAPI.md#authstart) | **Post** /auth/{provider}/start | Begin social login
 *AuthAPI* | [**GetJWKS**](docs/AuthAPI.md#getjwks) | **Get** /.well-known/jwks.json | Get JWKS
@@ -128,20 +136,26 @@ Class | Method | HTTP request | Description
 
  - [DtoAnnotationResponse](docs/DtoAnnotationResponse.md)
  - [DtoAuthStartResponse](docs/DtoAuthStartResponse.md)
+ - [DtoCreateAnnotationRequest](docs/DtoCreateAnnotationRequest.md)
  - [DtoCreateLabelRequest](docs/DtoCreateLabelRequest.md)
  - [DtoCreateSSHRequest](docs/DtoCreateSSHRequest.md)
  - [DtoCreateServerRequest](docs/DtoCreateServerRequest.md)
  - [DtoCreateTaintRequest](docs/DtoCreateTaintRequest.md)
  - [DtoJWK](docs/DtoJWK.md)
  - [DtoJWKS](docs/DtoJWKS.md)
+ - [DtoJob](docs/DtoJob.md)
+ - [DtoJobStatus](docs/DtoJobStatus.md)
  - [DtoLabelResponse](docs/DtoLabelResponse.md)
  - [DtoLogoutRequest](docs/DtoLogoutRequest.md)
+ - [DtoPageJob](docs/DtoPageJob.md)
+ - [DtoQueueInfo](docs/DtoQueueInfo.md)
  - [DtoRefreshRequest](docs/DtoRefreshRequest.md)
  - [DtoServerResponse](docs/DtoServerResponse.md)
  - [DtoSshResponse](docs/DtoSshResponse.md)
  - [DtoSshRevealResponse](docs/DtoSshRevealResponse.md)
  - [DtoTaintResponse](docs/DtoTaintResponse.md)
  - [DtoTokenPair](docs/DtoTokenPair.md)
+ - [DtoUpdateAnnotationRequest](docs/DtoUpdateAnnotationRequest.md)
  - [DtoUpdateLabelRequest](docs/DtoUpdateLabelRequest.md)
  - [DtoUpdateServerRequest](docs/DtoUpdateServerRequest.md)
  - [DtoUpdateTaintRequest](docs/DtoUpdateTaintRequest.md)

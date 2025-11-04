@@ -13,6 +13,7 @@ type User struct {
 	PrimaryEmail *string   `json:"primary_email,omitempty"`
 	AvatarURL    *string   `json:"avatar_url,omitempty"`
 	IsDisabled   bool      `json:"is_disabled"`
+	IsAdmin      bool      `gorm:"default:false" json:"is_admin"`
 	CreatedAt    time.Time `gorm:"column:created_at;not null;default:now()" json:"created_at" format:"date-time"`
 	UpdatedAt    time.Time `gorm:"autoUpdateTime;column:updated_at;not null;default:now()" json:"updated_at" format:"date-time"`
 }

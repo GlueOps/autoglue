@@ -25,6 +25,7 @@ type ModelsUser struct {
 	DisplayName *string    `json:"display_name,omitempty"`
 	// example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
 	Id           *string    `json:"id,omitempty"`
+	IsAdmin      *bool      `json:"is_admin,omitempty"`
 	IsDisabled   *bool      `json:"is_disabled,omitempty"`
 	PrimaryEmail *string    `json:"primary_email,omitempty"`
 	UpdatedAt    *time.Time `json:"updated_at,omitempty"`
@@ -175,6 +176,38 @@ func (o *ModelsUser) SetId(v string) {
 	o.Id = &v
 }
 
+// GetIsAdmin returns the IsAdmin field value if set, zero value otherwise.
+func (o *ModelsUser) GetIsAdmin() bool {
+	if o == nil || IsNil(o.IsAdmin) {
+		var ret bool
+		return ret
+	}
+	return *o.IsAdmin
+}
+
+// GetIsAdminOk returns a tuple with the IsAdmin field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ModelsUser) GetIsAdminOk() (*bool, bool) {
+	if o == nil || IsNil(o.IsAdmin) {
+		return nil, false
+	}
+	return o.IsAdmin, true
+}
+
+// HasIsAdmin returns a boolean if a field has been set.
+func (o *ModelsUser) HasIsAdmin() bool {
+	if o != nil && !IsNil(o.IsAdmin) {
+		return true
+	}
+
+	return false
+}
+
+// SetIsAdmin gets a reference to the given bool and assigns it to the IsAdmin field.
+func (o *ModelsUser) SetIsAdmin(v bool) {
+	o.IsAdmin = &v
+}
+
 // GetIsDisabled returns the IsDisabled field value if set, zero value otherwise.
 func (o *ModelsUser) GetIsDisabled() bool {
 	if o == nil || IsNil(o.IsDisabled) {
@@ -292,6 +325,9 @@ func (o ModelsUser) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Id) {
 		toSerialize["id"] = o.Id
+	}
+	if !IsNil(o.IsAdmin) {
+		toSerialize["is_admin"] = o.IsAdmin
 	}
 	if !IsNil(o.IsDisabled) {
 		toSerialize["is_disabled"] = o.IsDisabled

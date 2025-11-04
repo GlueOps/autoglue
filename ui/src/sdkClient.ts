@@ -1,6 +1,8 @@
 import { orgStore } from "@/auth/org.ts"
 import { authStore } from "@/auth/store.ts"
 import {
+  ArcherAdminApi,
+  AuthApi,
   Configuration,
   LabelsApi,
   MeApi,
@@ -61,6 +63,10 @@ function makeApiClient<T>(Ctor: new (cfg: Configuration) => T): T {
   return new Ctor(makeConfig())
 }
 
+export function makeAuthApi() {
+  return makeApiClient(AuthApi)
+}
+
 export function makeMeApi() {
   return makeApiClient(MeApi)
 }
@@ -87,4 +93,8 @@ export function makeTaintsApi() {
 
 export function makeLabelsApi() {
   return makeApiClient(LabelsApi)
+}
+
+export function makeArcherAdminApi() {
+  return makeApiClient(ArcherAdminApi)
 }

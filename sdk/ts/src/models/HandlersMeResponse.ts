@@ -69,6 +69,12 @@ export interface HandlersMeResponse {
    * @type {boolean}
    * @memberof HandlersMeResponse
    */
+  is_admin?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof HandlersMeResponse
+   */
   is_disabled?: boolean;
   /**
    *
@@ -121,6 +127,7 @@ export function HandlersMeResponseFromJSONTyped(
         ? undefined
         : (json["emails"] as Array<any>).map(ModelsUserEmailFromJSON),
     id: json["id"] == null ? undefined : json["id"],
+    is_admin: json["is_admin"] == null ? undefined : json["is_admin"],
     is_disabled: json["is_disabled"] == null ? undefined : json["is_disabled"],
     organizations:
       json["organizations"] == null
@@ -157,6 +164,7 @@ export function HandlersMeResponseToJSONTyped(
         ? undefined
         : (value["emails"] as Array<any>).map(ModelsUserEmailToJSON),
     id: value["id"],
+    is_admin: value["is_admin"],
     is_disabled: value["is_disabled"],
     organizations:
       value["organizations"] == null

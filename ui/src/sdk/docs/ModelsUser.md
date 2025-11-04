@@ -10,6 +10,7 @@ Name | Type
 `created_at` | Date
 `display_name` | string
 `id` | string
+`is_admin` | boolean
 `is_disabled` | boolean
 `primary_email` | string
 `updated_at` | Date
@@ -25,6 +26,7 @@ const example = {
   "created_at": null,
   "display_name": null,
   "id": null,
+  "is_admin": null,
   "is_disabled": null,
   "primary_email": null,
   "updated_at": null,

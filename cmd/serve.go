@@ -89,7 +89,7 @@ var serveCmd = &cobra.Command{
 						bg.BastionBootstrapArgs{},
 						archer.WithMaxRetries(3),
 						// while debugging, avoid extra schedule delay:
-						archer.WithScheduleTime(time.Now().Add(10*time.Second)),
+						archer.WithScheduleTime(time.Now().Add(60*time.Second)),
 					)
 					if err != nil {
 						log.Printf("failed to enqueue bootstrap_bastion: %v", err)
@@ -119,7 +119,7 @@ var serveCmd = &cobra.Command{
 			}
 		}()
 
-		r := api.NewRouter(rt.DB)
+		r := api.NewRouter(rt.DB, jobs)
 
 		addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 

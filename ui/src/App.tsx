@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom"
 
 import { ProtectedRoute } from "@/components/protected-route.tsx"
 import { Login } from "@/pages/auth/login.tsx"
+import { JobsPage } from "@/pages/jobs/jobs-page.tsx"
 import { LabelsPage } from "@/pages/labels/labels-page.tsx"
 import { MePage } from "@/pages/me/me-page.tsx"
 import { OrgApiKeys } from "@/pages/org/api-keys.tsx"
@@ -28,6 +29,8 @@ export default function App() {
           <Route path="/servers" element={<ServerPage />} />
           <Route path="/taints" element={<TaintsPage />} />
           <Route path="/labels" element={<LabelsPage />} />
+
+          <Route path="/admin/jobs" element={<JobsPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Login />} />

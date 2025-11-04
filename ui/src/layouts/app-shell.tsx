@@ -2,12 +2,13 @@ import { useEffect, useState } from "react"
 import { meApi } from "@/api/me.ts"
 import { orgStore } from "@/auth/org.ts"
 import { authStore } from "@/auth/store.ts"
-import { mainNav, orgNav, userNav } from "@/layouts/nav-config.ts"
+import { adminNav, mainNav, orgNav, userNav } from "@/layouts/nav-config.ts"
 import { OrgSwitcher } from "@/layouts/org-switcher.tsx"
 import { Topbar } from "@/layouts/topbar.tsx"
 import { NavLink, Outlet } from "react-router-dom"
 
 import { cn } from "@/lib/utils.ts"
+import { useAuthActions } from "@/hooks/use-auth-actions.ts"
 import { Button } from "@/components/ui/button.tsx"
 import {
   Sidebar,
@@ -31,6 +32,7 @@ type Org = {
 
 export const AppShell = () => {
   const [orgs, setOrgs] = useState<Org[]>([])
+  const { logout } = useAuthActions()
 
   useEffect(() => {
     let alive = true
@@ -135,11 +137,34 @@ export const AppShell = () => {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminNav.map((n) => (
+                  <SidebarMenuItem key={n.to}>
+                    <SidebarMenuButton asChild tooltip={n.label}>
+                      <NavLink
+                        to={n.to}
+                        className={({ isActive }) =>
+                          cn("flex items-center gap-2", isActive && "text-primary")
+                        }
+                      >
+                        <n.icon className="h-4 w-4" />
+                        <span>{n.label}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarContent>
 
         <SidebarFooter>
           <div className="px-2 py-2">
-            <Button variant="ghost" size="sm" className="w-full" onClick={() => authStore.logout()}>
+            <Button variant="ghost" size="sm" className="w-full" onClick={() => void logout()}>
               Sign out
             </Button>
           </div>

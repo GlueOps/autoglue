@@ -23,6 +23,258 @@ paths:
       summary: Get JWKS
       tags:
       - Auth
+  /admin/archer/jobs:
+    get:
+      description: "Paginated background jobs with optional filters. Search `q` may\
+        \ match id, type, error, payload (implementation-dependent)."
+      operationId: AdminListArcherJobs
+      parameters:
+      - description: Filter by status
+        in: query
+        name: status
+        schema:
+          enum:
+          - queued
+          - running
+          - succeeded
+          - failed
+          - canceled
+          - retrying
+          - scheduled
+          type: string
+      - description: Filter by queue name / worker name
+        in: query
+        name: queue
+        schema:
+          type: string
+      - description: Free-text search
+        in: query
+        name: q
+        schema:
+          type: string
+      - description: Page number
+        in: query
+        name: page
+        schema:
+          default: 1
+          type: integer
+      - description: Items per page
+        in: query
+        name: page_size
+        schema:
+          default: 25
+          maximum: 100
+          minimum: 1
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dto.PageJob"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: internal error
+      security:
+      - BearerAuth: []
+      summary: List Archer jobs (admin)
+      tags:
+      - ArcherAdmin
+    post:
+      description: Create a job immediately or schedule it for the future via `run_at`.
+      operationId: AdminEnqueueArcherJob
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dto.EnqueueRequest"
+        description: Job parameters
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dto.Job"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid json or missing fields
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: internal error
+      security:
+      - BearerAuth: []
+      summary: Enqueue a new Archer job (admin)
+      tags:
+      - ArcherAdmin
+      x-codegen-request-body-name: body
+  /admin/archer/jobs/{id}/cancel:
+    post:
+      description: "Set job status to canceled if cancellable. For running jobs, this\
+        \ only affects future picks; wire to Archer if you need active kill."
+      operationId: AdminCancelArcherJob
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dto.Job"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid job or not cancellable
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+      security:
+      - BearerAuth: []
+      summary: Cancel an Archer job (admin)
+      tags:
+      - ArcherAdmin
+  /admin/archer/jobs/{id}/retry:
+    post:
+      description: Marks the job retriable (DB flip). Swap this for an Archer admin
+        call if you expose one.
+      operationId: AdminRetryArcherJob
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dto.Job"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid job or not eligible
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+      security:
+      - BearerAuth: []
+      summary: Retry a failed/canceled Archer job (admin)
+      tags:
+      - ArcherAdmin
+  /admin/archer/queues:
+    get:
+      description: "Summary metrics per queue (pending, running, failed, scheduled)."
+      operationId: AdminListArcherQueues
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/dto.QueueInfo"
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: internal error
+      security:
+      - BearerAuth: []
+      summary: List Archer queues (admin)
+      tags:
+      - ArcherAdmin
   /annotations:
     get:
       description: "Returns annotations for the organization in X-Org-ID. Filters:\
@@ -84,7 +336,115 @@ paths:
       summary: List annotations (org scoped)
       tags:
       - Annotations
+    post:
+      description: Creates an annotation.
+      operationId: CreateAnnotation
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dto.CreateAnnotationRequest"
+        description: Annotation payload
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dto.AnnotationResponse"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid json / missing fields
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: create failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Create annotation (org scoped)
+      tags:
+      - Annotations
+      x-codegen-request-body-name: body
   /annotations/{id}:
+    delete:
+      description: Permanently deletes the annotation.
+      operationId: DeleteAnnotation
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: delete failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Delete annotation (org scoped)
+      tags:
+      - Annotations
     get:
       description: Returns one annotation. Add `include=node_pools` to include node
         pools.
@@ -99,11 +459,6 @@ paths:
         in: path
         name: id
         required: true
-        schema:
-          type: string
-      - description: "Optional: node_pools"
-        in: query
-        name: include
         schema:
           type: string
       responses:
@@ -150,6 +505,73 @@ paths:
       summary: Get annotation by ID (org scoped)
       tags:
       - Annotations
+    patch:
+      description: Partially update annotation fields.
+      operationId: UpdateAnnotation
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dto.UpdateAnnotationRequest"
+        description: Fields to update
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dto.AnnotationResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id / invalid json
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: update failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Update annotation (org scoped)
+      tags:
+      - Annotations
+      x-codegen-request-body-name: body
   /auth/logout:
     post:
       operationId: Logout
@@ -1911,6 +2333,13 @@ components:
           example: https://accounts.google.com/o/oauth2/v2/auth?client_id=...
           type: string
       type: object
+    dto.CreateAnnotationRequest:
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+      type: object
     dto.CreateLabelRequest:
       properties:
         key:
@@ -1959,6 +2388,8 @@ components:
           type: string
         value:
           type: string
+      type: object
+    dto.EnqueueRequest:
       type: object
     dto.JWK:
       example:
@@ -2013,6 +2444,76 @@ components:
             $ref: "#/components/schemas/dto.JWK"
           type: array
       type: object
+    dto.Job:
+      example:
+        updated_at: updated_at
+        payload: "{}"
+        max_attempts: 6
+        created_at: created_at
+        id: id
+        last_error: last_error
+        run_at: run_at
+        type: type
+        queue: queue
+        attempts: 0
+        status: "{}"
+      properties:
+        attempts:
+          description: "example: 0"
+          type: integer
+        created_at:
+          description: "example: 2025-11-04T09:30:00Z"
+          type: string
+        id:
+          description: "example: 01HF7SZK8Z8WG1M3J7S2Z8M2N6"
+          type: string
+        last_error:
+          description: "example: dial tcp: i/o timeout"
+          type: string
+        max_attempts:
+          description: "example: 3"
+          type: integer
+        payload:
+          description: arbitrary JSON payload
+          type: object
+        queue:
+          description: "example: default"
+          type: string
+        run_at:
+          description: "example: 2025-11-05T08:00:00Z"
+          type: string
+        status:
+          allOf:
+          - $ref: "#/components/schemas/dto.JobStatus"
+          description: |-
+            enum: queued,running,succeeded,failed,canceled,retrying,scheduled
+            example: queued
+          type: object
+        type:
+          description: "example: email.send"
+          type: string
+        updated_at:
+          description: "example: 2025-11-04T09:31:00Z"
+          type: string
+      type: object
+    dto.JobStatus:
+      enum:
+      - queued
+      - running
+      - succeeded
+      - failed
+      - canceled
+      - retrying
+      - scheduled
+      type: string
+      x-enum-varnames:
+      - StatusQueued
+      - StatusRunning
+      - StatusSucceeded
+      - StatusFailed
+      - StatusCanceled
+      - StatusRetrying
+      - StatusScheduled
     dto.LabelResponse:
       example:
         updated_at: updated_at
@@ -2040,6 +2541,73 @@ components:
         refresh_token:
           example: m0l9o8rT3t0V8d3eFf...
           type: string
+      type: object
+    dto.PageJob:
+      example:
+        total: 5
+        page: 1
+        items:
+        - updated_at: updated_at
+          payload: "{}"
+          max_attempts: 6
+          created_at: created_at
+          id: id
+          last_error: last_error
+          run_at: run_at
+          type: type
+          queue: queue
+          attempts: 0
+          status: "{}"
+        - updated_at: updated_at
+          payload: "{}"
+          max_attempts: 6
+          created_at: created_at
+          id: id
+          last_error: last_error
+          run_at: run_at
+          type: type
+          queue: queue
+          attempts: 0
+          status: "{}"
+        page_size: 5
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/dto.Job"
+          type: array
+        page:
+          description: "example: 1"
+          type: integer
+        page_size:
+          description: "example: 25"
+          type: integer
+        total:
+          description: "example: 120"
+          type: integer
+      type: object
+    dto.QueueInfo:
+      example:
+        running: 1
+        scheduled: 5
+        pending: 6
+        name: name
+        failed: 0
+      properties:
+        failed:
+          description: "example: 5"
+          type: integer
+        name:
+          description: "example: default"
+          type: string
+        pending:
+          description: "example: 42"
+          type: integer
+        running:
+          description: "example: 3"
+          type: integer
+        scheduled:
+          description: "example: 7"
+          type: integer
       type: object
     dto.RefreshRequest:
       properties:
@@ -2182,6 +2750,13 @@ components:
           example: Bearer
           type: string
       type: object
+    dto.UpdateAnnotationRequest:
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+      type: object
     dto.UpdateLabelRequest:
       properties:
         key:
@@ -2243,6 +2818,7 @@ components:
           id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           is_verified: true
           user:
+            is_admin: true
             avatar_url: avatar_url
             updated_at: 2000-01-23T04:56:07.000+00:00
             is_disabled: true
@@ -2258,6 +2834,7 @@ components:
           id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           is_verified: true
           user:
+            is_admin: true
             avatar_url: avatar_url
             updated_at: 2000-01-23T04:56:07.000+00:00
             is_disabled: true
@@ -2266,6 +2843,7 @@ components:
             id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
             display_name: display_name
           email: email
+        is_admin: true
         avatar_url: avatar_url
         updated_at: 2000-01-23T04:56:07.000+00:00
         is_disabled: true
@@ -2300,6 +2878,8 @@ components:
           description: "example: 3fa85f64-5717-4562-b3fc-2c963f66afa6"
           format: uuid
           type: string
+        is_admin:
+          type: boolean
         is_disabled:
           type: boolean
         organizations:
@@ -2491,6 +3071,7 @@ components:
       type: object
     models.User:
       example:
+        is_admin: true
         avatar_url: avatar_url
         updated_at: 2000-01-23T04:56:07.000+00:00
         is_disabled: true
@@ -2510,6 +3091,8 @@ components:
           description: "example: 3fa85f64-5717-4562-b3fc-2c963f66afa6"
           format: uuid
           type: string
+        is_admin:
+          type: boolean
         is_disabled:
           type: boolean
         primary_email:
@@ -2527,6 +3110,7 @@ components:
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         is_verified: true
         user:
+          is_admin: true
           avatar_url: avatar_url
           updated_at: 2000-01-23T04:56:07.000+00:00
           is_disabled: true
