@@ -137,3 +137,4 @@ notes.txt
 
 .terraform
 .terraform.lock*
+terraform.tfstate*

@@ -882,7 +882,7 @@ paths:
       - ApiKeyAuth: []
       summary: List my API keys
       tags:
-      - Me / API Keys
+      - MeAPIKeys
     post:
       consumes:
       - application/json
@@ -908,7 +908,7 @@ paths:
       - ApiKeyAuth: []
       summary: Create a new user API key
       tags:
-      - Me / API Keys
+      - MeAPIKeys
   /me/api-keys/{id}:
     delete:
       operationId: DeleteUserAPIKey
@@ -927,7 +927,7 @@ paths:
       - BearerAuth: []
       summary: Delete a user API key
       tags:
-      - Me / API Keys
+      - MeAPIKeys
   /orgs:
     get:
       operationId: listMyOrgs

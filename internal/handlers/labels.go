@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/glueops/autoglue/internal/api/httpmiddleware"
+	"github.com/glueops/autoglue/internal/common"
 	"github.com/glueops/autoglue/internal/handlers/dto"
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
@@ -53,20 +54,12 @@ func ListLabels(db *gorm.DB) http.HandlerFunc {
 		if needle := strings.TrimSpace(r.URL.Query().Get("q")); needle != "" {
 			q = q.Where(`key ILIKE ?`, "%"+needle+"%")
 		}
-		var rows []models.Label
-		if err := q.Order("created_at DESC").Find(&rows).Error; err != nil {
+		var out []dto.LabelResponse
+		if err := q.Model(&models.Label{}).Order("created_at DESC").Scan(&out).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		out := make([]dto.LabelResponse, 0, len(rows))
-		for _, row := range rows {
-			out = append(out, dto.LabelResponse{
-				Key:   row.Key,
-				Value: row.Value,
-				ID:    row.ID,
-			})
-		}
 		utils.WriteJSON(w, http.StatusOK, out)
 	}
 }
@@ -104,17 +97,14 @@ func GetLabel(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		var row models.Label
-		if err := db.Where("id = ? AND organization_id = ?", id, orgID).First(&row).Error; err != nil {
-			utils.WriteError(w, http.StatusNotFound, "label_not_found", "label not found")
-			return
+		var out dto.LabelResponse
+		if err := db.Model(&models.Label{}).Where("id = ? AND organization_id = ?", id, orgID).Limit(1).Scan(&out).Error; err != nil {
+			if out.ID == uuid.Nil {
+				utils.WriteError(w, http.StatusNotFound, "label_not_found", "label not found")
+				return
+			}
 		}
 
-		out := dto.LabelResponse{
-			Key:   row.Key,
-			Value: row.Value,
-			ID:    row.ID,
-		}
 		utils.WriteJSON(w, http.StatusOK, out)
 	}
 }
@@ -160,9 +150,9 @@ func CreateLabel(db *gorm.DB) http.HandlerFunc {
 		}
 
 		l := models.Label{
-			OrganizationID: orgID,
-			Key:            req.Key,
-			Value:          req.Value,
+			AuditFields: common.AuditFields{OrganizationID: orgID},
+			Key:         req.Key,
+			Value:       req.Value,
 		}
 		if err := db.Create(&l).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
@@ -170,14 +160,15 @@ func CreateLabel(db *gorm.DB) http.HandlerFunc {
 		}
 
 		out := dto.LabelResponse{
-			ID:    l.ID,
-			Key:   l.Key,
-			Value: l.Value,
+			AuditFields: l.AuditFields,
+			Key:         l.Key,
+			Value:       l.Value,
 		}
 		utils.WriteJSON(w, http.StatusCreated, out)
 	}
 }
 
+// UpdateLabel godoc
 // UpdateLabel godoc
 // @ID           UpdateLabel
 // @Summary      Update label (org scoped)
@@ -228,22 +219,22 @@ func UpdateLabel(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		next := l
 		if req.Key != nil {
-			next.Key = strings.TrimSpace(*req.Key)
+			l.Key = strings.TrimSpace(*req.Key)
 		}
 		if req.Value != nil {
-			next.Value = strings.TrimSpace(*req.Value)
+			l.Value = strings.TrimSpace(*req.Value)
 		}
 
-		if err := db.Save(&next).Error; err != nil {
+		if err := db.Save(&l).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
+
 		out := dto.LabelResponse{
-			ID:    next.ID,
-			Key:   next.Key,
-			Value: next.Value,
+			AuditFields: l.AuditFields,
+			Key:         l.Key,
+			Value:       l.Value,
 		}
 		utils.WriteJSON(w, http.StatusOK, out)
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/glueops/autoglue/internal/api/httpmiddleware"
 	"github.com/glueops/autoglue/internal/handlers/dto"
@@ -63,10 +64,13 @@ func ListTaints(db *gorm.DB) http.HandlerFunc {
 		out := make([]dto.TaintResponse, 0, len(rows))
 		for _, row := range rows {
 			out = append(out, dto.TaintResponse{
-				ID:     row.ID,
-				Key:    row.Key,
-				Value:  row.Value,
-				Effect: row.Effect,
+				ID:             row.ID,
+				Key:            row.Key,
+				Value:          row.Value,
+				Effect:         row.Effect,
+				OrganizationID: row.OrganizationID,
+				CreatedAt:      row.CreatedAt.UTC().Format(time.RFC3339),
+				UpdatedAt:      row.UpdatedAt.UTC().Format(time.RFC3339),
 			})
 		}
 		utils.WriteJSON(w, http.StatusOK, out)
@@ -115,10 +119,13 @@ func GetTaint(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 		out := dto.TaintResponse{
-			ID:     row.ID,
-			Key:    row.Key,
-			Value:  row.Value,
-			Effect: row.Effect,
+			ID:             row.ID,
+			Key:            row.Key,
+			Value:          row.Value,
+			Effect:         row.Effect,
+			OrganizationID: row.OrganizationID,
+			CreatedAt:      row.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt:      row.UpdatedAt.UTC().Format(time.RFC3339),
 		}
 		utils.WriteJSON(w, http.StatusOK, out)
 	}
@@ -182,10 +189,13 @@ func CreateTaint(db *gorm.DB) http.HandlerFunc {
 		}
 
 		out := dto.TaintResponse{
-			ID:     t.ID,
-			Key:    t.Key,
-			Value:  t.Value,
-			Effect: t.Effect,
+			ID:             t.ID,
+			Key:            t.Key,
+			Value:          t.Value,
+			Effect:         t.Effect,
+			OrganizationID: t.OrganizationID,
+			CreatedAt:      t.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt:      t.UpdatedAt.UTC().Format(time.RFC3339),
 		}
 		utils.WriteJSON(w, http.StatusCreated, out)
 	}
@@ -268,10 +278,13 @@ func UpdateTaint(db *gorm.DB) http.HandlerFunc {
 		}
 
 		out := dto.TaintResponse{
-			ID:     next.ID,
-			Key:    next.Key,
-			Value:  next.Value,
-			Effect: next.Effect,
+			ID:             next.ID,
+			Key:            next.Key,
+			Value:          next.Value,
+			Effect:         next.Effect,
+			OrganizationID: next.OrganizationID,
+			CreatedAt:      next.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt:      next.UpdatedAt.UTC().Format(time.RFC3339),
 		}
 		utils.WriteJSON(w, http.StatusOK, out)
 	}

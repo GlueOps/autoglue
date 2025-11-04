@@ -455,7 +455,7 @@ paths:
       - ApiKeyAuth: []
       summary: List my API keys
       tags:
-      - Me / API Keys
+      - MeAPIKeys
     post:
       description: Returns the plaintext key once. Store it securely on the client
         side.
@@ -479,7 +479,7 @@ paths:
       - ApiKeyAuth: []
       summary: Create a new user API key
       tags:
-      - Me / API Keys
+      - MeAPIKeys
       x-codegen-request-body-name: body
   /me/api-keys/{id}:
     delete:
@@ -499,7 +499,7 @@ paths:
       - BearerAuth: []
       summary: Delete a user API key
       tags:
-      - Me / API Keys
+      - MeAPIKeys
   /orgs:
     get:
       operationId: listMyOrgs

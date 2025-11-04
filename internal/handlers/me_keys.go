@@ -29,7 +29,7 @@ type userAPIKeyOut struct {
 // ListUserAPIKeys godoc
 // @ID ListUserAPIKeys
 // @Summary List my API keys
-// @Tags Me / API Keys
+// @Tags MeAPIKeys
 // @Produce json
 // @Success 200 {array} userAPIKeyOut
 // @Router /me/api-keys [get]
@@ -67,7 +67,7 @@ type createUserKeyRequest struct {
 // @ID CreateUserAPIKey
 // @Summary Create a new user API key
 // @Description Returns the plaintext key once. Store it securely on the client side.
-// @Tags Me / API Keys
+// @Tags MeAPIKeys
 // @Accept json
 // @Produce json
 // @Param body body createUserKeyRequest true "Key options"
@@ -120,7 +120,7 @@ func CreateUserAPIKey(db *gorm.DB) http.HandlerFunc {
 // DeleteUserAPIKey godoc
 // @ID DeleteUserAPIKey
 // @Summary Delete a user API key
-// @Tags Me / API Keys
+// @Tags MeAPIKeys
 // @Produce json
 // @Param id path string true "Key ID (UUID)"
 // @Success 204 "No Content"

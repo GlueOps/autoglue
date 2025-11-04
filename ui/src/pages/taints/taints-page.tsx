@@ -422,6 +422,7 @@ export const TaintsPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <pre>{JSON.stringify(taintsQ.data, null, 2)}</pre>
     </div>
   )
 }

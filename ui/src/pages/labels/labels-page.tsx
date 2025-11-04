@@ -290,7 +290,62 @@ export const LabelsPage = () => {
           </Table>
         </div>
       </div>
-      <pre>{JSON.stringify(labelsQ, null, 2)}</pre>
+
+      {/* Update dialog */}
+      <Dialog open={updateOpen} onOpenChange={setUpdateOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit taint</DialogTitle>
+          </DialogHeader>
+          <Form {...updateForm}>
+            <form
+              className="space-y-4"
+              onSubmit={updateForm.handleSubmit((values) => {
+                if (!editingId) return
+                updateMut.mutate({ id: editingId, values })
+              })}
+            >
+              <FormField
+                control={updateForm.control}
+                name="key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Key</FormLabel>
+                    <FormControl>
+                      <Input placeholder="dedicated" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={updateForm.control}
+                name="value"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Value (optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="gpu" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter className="gap-2">
+                <Button type="button" variant="outline" onClick={() => setUpdateOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateMut.isPending}>
+                  {updateMut.isPending ? "Saving…" : "Save changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      <pre>{JSON.stringify(labelsQ.data, null, 2)}</pre>
     </div>
   )
 }

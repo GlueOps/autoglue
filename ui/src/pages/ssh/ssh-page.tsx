@@ -470,6 +470,7 @@ export const SshPage = () => {
           </DialogContent>
         </Dialog>
       </div>
+      <pre>{JSON.stringify(sshQ.data, null, 2)}</pre>
     </TooltipProvider>
   )
 }

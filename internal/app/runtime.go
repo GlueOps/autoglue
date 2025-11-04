@@ -36,6 +36,7 @@ func NewRuntime() *Runtime {
 		&models.Server{},
 		&models.Taint{},
 		&models.Label{},
+		&models.Annotation{},
 	)
 	if err != nil {
 		log.Fatalf("Error initializing database: %v", err)

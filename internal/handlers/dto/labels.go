@@ -1,14 +1,13 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	"github.com/glueops/autoglue/internal/common"
+)
 
 type LabelResponse struct {
-	ID             uuid.UUID `json:"id"`
-	OrganizationID uuid.UUID `json:"organization_id"`
-	Key            string    `json:"key"`
-	Value          string    `json:"value"`
-	CreatedAt      string    `json:"created_at,omitempty"`
-	UpdatedAt      string    `json:"updated_at,omitempty"`
+	common.AuditFields
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type CreateLabelRequest struct {
