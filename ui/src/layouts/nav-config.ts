@@ -24,7 +24,7 @@ export const mainNav: NavItem[] = [
   { to: "/clusters", label: "Clusters", icon: AiOutlineCluster },
   { to: "/node-pools", label: "Node Pools", icon: BoxesIcon },
   { to: "/annotations", label: "Annotations", icon: ComponentIcon },
-  { to: "/Labels", label: "Labels", icon: TagsIcon },
+  { to: "/labels", label: "Labels", icon: TagsIcon },
   { to: "/taints", label: "Taints", icon: SprayCanIcon },
   { to: "/servers", label: "Servers", icon: ServerIcon },
   { to: "/ssh", label: "SSH Keys", icon: FileKey2Icon },

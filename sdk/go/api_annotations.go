@@ -642,7 +642,7 @@ type ApiListAnnotationsRequest struct {
 	ctx        context.Context
 	ApiService *AnnotationsAPIService
 	xOrgID     *string
-	name       *string
+	key        *string
 	value      *string
 	q          *string
 }
@@ -653,9 +653,9 @@ func (r ApiListAnnotationsRequest) XOrgID(xOrgID string) ApiListAnnotationsReque
 	return r
 }
 
-// Exact name
-func (r ApiListAnnotationsRequest) Name(name string) ApiListAnnotationsRequest {
-	r.name = &name
+// Exact key
+func (r ApiListAnnotationsRequest) Key(key string) ApiListAnnotationsRequest {
+	r.key = &key
 	return r
 }
 
@@ -665,7 +665,7 @@ func (r ApiListAnnotationsRequest) Value(value string) ApiListAnnotationsRequest
 	return r
 }
 
-// name contains (case-insensitive)
+// key contains (case-insensitive)
 func (r ApiListAnnotationsRequest) Q(q string) ApiListAnnotationsRequest {
 	r.q = &q
 	return r
@@ -678,7 +678,7 @@ func (r ApiListAnnotationsRequest) Execute() ([]DtoAnnotationResponse, *http.Res
 /*
 ListAnnotations List annotations (org scoped)
 
-Returns annotations for the organization in X-Org-ID. Filters: `name`, `value`, and `q` (name contains). Add `include=node_pools` to include linked node pools.
+Returns annotations for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
 	@return ApiListAnnotationsRequest
@@ -712,8 +712,8 @@ func (a *AnnotationsAPIService) ListAnnotationsExecute(r ApiListAnnotationsReque
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if r.name != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "name", r.name, "", "")
+	if r.key != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "key", r.key, "", "")
 	}
 	if r.value != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "value", r.value, "", "")

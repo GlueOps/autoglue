@@ -19,32 +19,32 @@
 ## Example
 
 ```typescript
-import type { DtoJob } from "@glueops/autoglue-sdk-go";
+import type { DtoJob } from '@glueops/autoglue-sdk-go'
 
 // TODO: Update the object below with actual values
 const example = {
-  attempts: null,
-  created_at: null,
-  id: null,
-  last_error: null,
-  max_attempts: null,
-  payload: null,
-  queue: null,
-  run_at: null,
-  status: null,
-  type: null,
-  updated_at: null,
-} satisfies DtoJob;
+  "attempts": 0,
+  "created_at": 2025-11-04T09:30:00Z,
+  "id": 01HF7SZK8Z8WG1M3J7S2Z8M2N6,
+  "last_error": error message,
+  "max_attempts": 3,
+  "payload": null,
+  "queue": default,
+  "run_at": 2025-11-04T09:30:00Z,
+  "status": null,
+  "type": email.send,
+  "updated_at": 2025-11-04T09:30:00Z,
+} satisfies DtoJob
 
-console.log(example);
+console.log(example)
 
 // Convert the instance to a JSON string
-const exampleJSON: string = JSON.stringify(example);
-console.log(exampleJSON);
+const exampleJSON: string = JSON.stringify(example)
+console.log(exampleJSON)
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as DtoJob;
-console.log(exampleParsed);
+const exampleParsed = JSON.parse(exampleJSON) as DtoJob
+console.log(exampleParsed)
 ```
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)

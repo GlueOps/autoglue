@@ -25,17 +25,17 @@ import type { DtoJob } from '@glueops/autoglue-sdk-go'
 
 // TODO: Update the object below with actual values
 const example = {
-  "attempts": null,
-  "created_at": null,
-  "id": null,
-  "last_error": null,
-  "max_attempts": null,
+  "attempts": 0,
+  "created_at": 2025-11-04T09:30:00Z,
+  "id": 01HF7SZK8Z8WG1M3J7S2Z8M2N6,
+  "last_error": error message,
+  "max_attempts": 3,
   "payload": null,
-  "queue": null,
-  "run_at": null,
+  "queue": default,
+  "run_at": 2025-11-04T09:30:00Z,
   "status": null,
-  "type": null,
-  "updated_at": null,
+  "type": email.send,
+  "updated_at": 2025-11-04T09:30:00Z,
 } satisfies DtoJob
 
 console.log(example)

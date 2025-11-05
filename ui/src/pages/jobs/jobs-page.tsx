@@ -1,5 +1,6 @@
 import { useEffect, useState, type FC } from "react"
 import { archerAdminApi } from "@/api/archer_admin"
+import type { AdminListArcherJobsRequest } from "@/sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Loader2, Plus, RefreshCw, Search, X } from "lucide-react"
 
@@ -125,13 +126,13 @@ export const JobsPage: FC = () => {
     queryKey: key,
     queryFn: () =>
       archerAdminApi.listJobs({
-        status: status || undefined,
+        status: status,
         queue: queue || undefined,
         q: debouncedQ || undefined,
         page,
         pageSize,
-      }) as Promise<DtoPageJob>,
-    keepPreviousData: true,
+      } as AdminListArcherJobsRequest) as Promise<DtoPageJob>,
+    placeholderData: (prev) => prev,
     staleTime: 10_000,
   })
 
@@ -159,7 +160,7 @@ export const JobsPage: FC = () => {
 
   const busy = jobsQ.isFetching
 
-  const data = jobsQ.data
+  const data = jobsQ.data as DtoPageJob
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1
 
   return (

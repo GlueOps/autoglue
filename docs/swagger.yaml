@@ -848,7 +848,7 @@ paths:
       consumes:
       - application/json
       description: 'Returns annotations for the organization in X-Org-ID. Filters:
-        `name`, `value`, and `q` (name contains). Add `include=node_pools` to include
+        `key`, `value`, and `q` (key contains). Add `include=node_pools` to include
         linked node pools.'
       operationId: ListAnnotations
       parameters:
@@ -856,15 +856,15 @@ paths:
         in: header
         name: X-Org-ID
         type: string
-      - description: Exact name
+      - description: Exact key
         in: query
-        name: name
+        name: key
         type: string
       - description: Exact value
         in: query
         name: value
         type: string
-      - description: name contains (case-insensitive)
+      - description: key contains (case-insensitive)
         in: query
         name: q
         type: string

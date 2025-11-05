@@ -59,6 +59,9 @@ func ListLabels(db *gorm.DB) http.HandlerFunc {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
+		if out == nil {
+			out = []dto.LabelResponse{}
+		}
 
 		utils.WriteJSON(w, http.StatusOK, out)
 	}

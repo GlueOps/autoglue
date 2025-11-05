@@ -10,18 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var _ datasource.DataSource = &LabelsDataSource{}
-var _ datasource.DataSourceWithConfigure = &LabelsDataSource{}
+var _ datasource.DataSource = &AnnotationsDataSource{}
+var _ datasource.DataSourceWithConfigure = &AnnotationsDataSource{}
 
-type LabelsDataSource struct{ client *Client }
+type AnnotationsDataSource struct{ client *Client }
 
-func NewLabelsDataSource() datasource.DataSource { return &LabelsDataSource{} }
+func NewAnnotationsDataSource() datasource.DataSource { return &AnnotationsDataSource{} }
 
-type labelsDSModel struct {
-	Items []labelItem `tfsdk:"items"`
+type annotationsDSModel struct {
+	Items []annotationItem `tfsdk:"items"`
 }
 
-type labelItem struct {
+type annotationItem struct {
 	ID             types.String `tfsdk:"id"`
 	OrganizationID types.String `tfsdk:"organization_id"`
 	CreatedAt      types.String `tfsdk:"created_at"`
@@ -31,17 +31,17 @@ type labelItem struct {
 	Raw            types.String `tfsdk:"raw"`
 }
 
-func (d *LabelsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_labels"
+func (d *AnnotationsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_annotations"
 }
 
-func (d *LabelsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *AnnotationsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dschema.Schema{
-		Description: "List labels for the organization (org-scoped).",
+		Description: "List annotations for the organization (org-scoped).",
 		Attributes: map[string]dschema.Attribute{
 			"items": dschema.ListNestedAttribute{
 				Computed:    true,
-				Description: "Labels returned by the API.",
+				Description: "Annotations returned by the API.",
 				NestedObject: dschema.NestedAttributeObject{
 					Attributes: map[string]dschema.Attribute{
 						"id":              dschema.StringAttribute{Computed: true, Description: "Taint ID (UUID)."},
@@ -58,39 +58,39 @@ func (d *LabelsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 	}
 }
 
-func (d *LabelsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, _ *datasource.ConfigureResponse) {
+func (d *AnnotationsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, _ *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 	d.client = req.ProviderData.(*Client)
 }
 
-func (d *LabelsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *AnnotationsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	if d.client == nil || d.client.SDK == nil {
 		resp.Diagnostics.AddError("Client not configured", "Provider configuration missing")
 		return
 	}
 
-	var conf labelsDSModel
+	var conf annotationsDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &conf)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	call := d.client.SDK.LabelsAPI.ListLabels(ctx)
+	call := d.client.SDK.AnnotationsAPI.ListAnnotations(ctx)
 	items, httpResp, err := call.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("List labels failed", fmt.Sprintf("%v", httpErr(err, httpResp)))
+		resp.Diagnostics.AddError("List annotations failed", fmt.Sprintf("%v", httpErr(err, httpResp)))
 		return
 	}
 
-	out := labelsDSModel{
-		Items: make([]labelItem, 0, len(items)),
+	out := annotationsDSModel{
+		Items: make([]annotationItem, 0, len(items)),
 	}
 
 	for _, item := range items {
 		raw, _ := json.Marshal(item)
-		out.Items = append(out.Items, labelItem{
+		out.Items = append(out.Items, annotationItem{
 			ID:             types.StringPointerValue(item.Id),
 			OrganizationID: types.StringPointerValue(item.OrganizationId),
 			Key:            types.StringPointerValue(item.Key),

@@ -226,7 +226,7 @@ Name | Type | Description  | Notes
 
 ## ListAnnotations
 
-> []DtoAnnotationResponse ListAnnotations(ctx).XOrgID(xOrgID).Name(name).Value(value).Q(q).Execute()
+> []DtoAnnotationResponse ListAnnotations(ctx).XOrgID(xOrgID).Key(key).Value(value).Q(q).Execute()
 
 List annotations (org scoped)
 
@@ -246,13 +246,13 @@ import (
 
 func main() {
 	xOrgID := "xOrgID_example" // string | Organization UUID (optional)
-	name := "name_example" // string | Exact name (optional)
+	key := "key_example" // string | Exact key (optional)
 	value := "value_example" // string | Exact value (optional)
-	q := "q_example" // string | name contains (case-insensitive) (optional)
+	q := "q_example" // string | key contains (case-insensitive) (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AnnotationsAPI.ListAnnotations(context.Background()).XOrgID(xOrgID).Name(name).Value(value).Q(q).Execute()
+	resp, r, err := apiClient.AnnotationsAPI.ListAnnotations(context.Background()).XOrgID(xOrgID).Key(key).Value(value).Q(q).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `AnnotationsAPI.ListAnnotations``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -274,9 +274,9 @@ Other parameters are passed through a pointer to a apiListAnnotationsRequest str
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **xOrgID** | **string** | Organization UUID | 
- **name** | **string** | Exact name | 
+ **key** | **string** | Exact key | 
  **value** | **string** | Exact value | 
- **q** | **string** | name contains (case-insensitive) | 
+ **q** | **string** | key contains (case-insensitive) | 
 
 ### Return type
 

@@ -1,6 +1,7 @@
 import { orgStore } from "@/auth/org.ts"
 import { authStore } from "@/auth/store.ts"
 import {
+  AnnotationsApi,
   ArcherAdminApi,
   AuthApi,
   Configuration,
@@ -95,6 +96,9 @@ export function makeLabelsApi() {
   return makeApiClient(LabelsApi)
 }
 
+export function makeAnnotationsApi() {
+  return makeApiClient(AnnotationsApi)
+}
 export function makeArcherAdminApi() {
   return makeApiClient(ArcherAdminApi)
 }

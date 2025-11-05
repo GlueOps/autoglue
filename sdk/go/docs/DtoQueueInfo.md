@@ -4,11 +4,11 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Failed** | Pointer to **int32** | example: 5 | [optional] 
-**Name** | Pointer to **string** | example: default | [optional] 
-**Pending** | Pointer to **int32** | example: 42 | [optional] 
-**Running** | Pointer to **int32** | example: 3 | [optional] 
-**Scheduled** | Pointer to **int32** | example: 7 | [optional] 
+**Failed** | Pointer to **int32** |  | [optional] 
+**Name** | Pointer to **string** |  | [optional] 
+**Pending** | Pointer to **int32** |  | [optional] 
+**Running** | Pointer to **int32** |  | [optional] 
+**Scheduled** | Pointer to **int32** |  | [optional] 
 
 ## Methods
 

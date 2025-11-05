@@ -4,17 +4,17 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Attempts** | Pointer to **int32** | example: 0 | [optional] 
-**CreatedAt** | Pointer to **string** | example: 2025-11-04T09:30:00Z | [optional] 
-**Id** | Pointer to **string** | example: 01HF7SZK8Z8WG1M3J7S2Z8M2N6 | [optional] 
-**LastError** | Pointer to **string** | example: dial tcp: i/o timeout | [optional] 
-**MaxAttempts** | Pointer to **int32** | example: 3 | [optional] 
-**Payload** | Pointer to **map[string]interface{}** | arbitrary JSON payload | [optional] 
-**Queue** | Pointer to **string** | example: default | [optional] 
-**RunAt** | Pointer to **string** | example: 2025-11-05T08:00:00Z | [optional] 
-**Status** | Pointer to [**DtoJobStatus**](DtoJobStatus.md) | enum: queued,running,succeeded,failed,canceled,retrying,scheduled example: queued | [optional] 
-**Type** | Pointer to **string** | example: email.send | [optional] 
-**UpdatedAt** | Pointer to **string** | example: 2025-11-04T09:31:00Z | [optional] 
+**Attempts** | Pointer to **int32** |  | [optional] 
+**CreatedAt** | Pointer to **string** |  | [optional] 
+**Id** | Pointer to **string** |  | [optional] 
+**LastError** | Pointer to **string** |  | [optional] 
+**MaxAttempts** | Pointer to **int32** |  | [optional] 
+**Payload** | Pointer to **map[string]interface{}** |  | [optional] 
+**Queue** | Pointer to **string** |  | [optional] 
+**RunAt** | Pointer to **string** |  | [optional] 
+**Status** | Pointer to [**DtoJobStatus**](DtoJobStatus.md) |  | [optional] 
+**Type** | Pointer to **string** |  | [optional] 
+**UpdatedAt** | Pointer to **string** |  | [optional] 
 
 ## Methods
 

@@ -19,28 +19,17 @@ var _ MappedNullable = &DtoJob{}
 
 // DtoJob struct for DtoJob
 type DtoJob struct {
-	// example: 0
-	Attempts *int32 `json:"attempts,omitempty"`
-	// example: 2025-11-04T09:30:00Z
-	CreatedAt *string `json:"created_at,omitempty"`
-	// example: 01HF7SZK8Z8WG1M3J7S2Z8M2N6
-	Id *string `json:"id,omitempty"`
-	// example: dial tcp: i/o timeout
-	LastError *string `json:"last_error,omitempty"`
-	// example: 3
-	MaxAttempts *int32 `json:"max_attempts,omitempty"`
-	// arbitrary JSON payload
-	Payload map[string]interface{} `json:"payload,omitempty"`
-	// example: default
-	Queue *string `json:"queue,omitempty"`
-	// example: 2025-11-05T08:00:00Z
-	RunAt *string `json:"run_at,omitempty"`
-	// enum: queued,running,succeeded,failed,canceled,retrying,scheduled example: queued
-	Status *DtoJobStatus `json:"status,omitempty"`
-	// example: email.send
-	Type *string `json:"type,omitempty"`
-	// example: 2025-11-04T09:31:00Z
-	UpdatedAt *string `json:"updated_at,omitempty"`
+	Attempts    *int32                 `json:"attempts,omitempty"`
+	CreatedAt   *string                `json:"created_at,omitempty"`
+	Id          *string                `json:"id,omitempty"`
+	LastError   *string                `json:"last_error,omitempty"`
+	MaxAttempts *int32                 `json:"max_attempts,omitempty"`
+	Payload     map[string]interface{} `json:"payload,omitempty"`
+	Queue       *string                `json:"queue,omitempty"`
+	RunAt       *string                `json:"run_at,omitempty"`
+	Status      *DtoJobStatus          `json:"status,omitempty"`
+	Type        *string                `json:"type,omitempty"`
+	UpdatedAt   *string                `json:"updated_at,omitempty"`
 }
 
 // NewDtoJob instantiates a new DtoJob object

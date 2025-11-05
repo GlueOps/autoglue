@@ -19,14 +19,14 @@ import (
 // ListAnnotations godoc
 // @ID           ListAnnotations
 // @Summary      List annotations (org scoped)
-// @Description  Returns annotations for the organization in X-Org-ID. Filters: `name`, `value`, and `q` (name contains). Add `include=node_pools` to include linked node pools.
+// @Description  Returns annotations for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
 // @Tags         Annotations
 // @Accept       json
 // @Produce      json
 // @Param        X-Org-ID header string false "Organization UUID"
-// @Param        name query string false "Exact name"
+// @Param        key query string false "Exact key"
 // @Param        value query string false "Exact value"
-// @Param        q query string false "name contains (case-insensitive)"
+// @Param        q query string false "key contains (case-insensitive)"
 // @Success      200 {array}  dto.AnnotationResponse
 // @Failure      401 {string} string "Unauthorized"
 // @Failure      403 {string} string "organization required"
@@ -59,6 +59,10 @@ func ListAnnotations(db *gorm.DB) http.HandlerFunc {
 		if err := q.Model(&models.Annotation{}).Order("created_at DESC").Scan(&out).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
+		}
+
+		if out == nil {
+			out = []dto.AnnotationResponse{}
 		}
 		utils.WriteJSON(w, http.StatusOK, out)
 	}

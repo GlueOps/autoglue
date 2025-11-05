@@ -28,68 +28,67 @@ import {
  */
 export interface DtoJob {
     /**
-     * example: 0
+     * 
      * @type {number}
      * @memberof DtoJob
      */
     attempts?: number;
     /**
-     * example: 2025-11-04T09:30:00Z
+     * 
      * @type {string}
      * @memberof DtoJob
      */
     created_at?: string;
     /**
-     * example: 01HF7SZK8Z8WG1M3J7S2Z8M2N6
+     * 
      * @type {string}
      * @memberof DtoJob
      */
     id?: string;
     /**
-     * example: dial tcp: i/o timeout
+     * 
      * @type {string}
      * @memberof DtoJob
      */
     last_error?: string;
     /**
-     * example: 3
+     * 
      * @type {number}
      * @memberof DtoJob
      */
     max_attempts?: number;
     /**
-     * arbitrary JSON payload
+     * 
      * @type {object}
      * @memberof DtoJob
      */
     payload?: object;
     /**
-     * example: default
+     * 
      * @type {string}
      * @memberof DtoJob
      */
     queue?: string;
     /**
-     * example: 2025-11-05T08:00:00Z
+     * 
      * @type {string}
      * @memberof DtoJob
      */
     run_at?: string;
     /**
-     * enum: queued,running,succeeded,failed,canceled,retrying,scheduled
-     * example: queued
+     * 
      * @type {DtoJobStatus}
      * @memberof DtoJob
      */
     status?: DtoJobStatus;
     /**
-     * example: email.send
+     * 
      * @type {string}
      * @memberof DtoJob
      */
     type?: string;
     /**
-     * example: 2025-11-04T09:31:00Z
+     * 
      * @type {string}
      * @memberof DtoJob
      */

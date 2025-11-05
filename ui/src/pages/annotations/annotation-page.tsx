@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { annotationsApi } from "@/api/annotations.ts"
 import { labelsApi } from "@/api/labels.ts"
 import type { DtoLabelResponse } from "@/sdk"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -37,16 +38,16 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx"
 
-const createLabelSchema = z.object({
+const createAnnotationSchema = z.object({
   key: z.string().trim().min(1, "Key is required").max(120, "Max 120 chars"),
   value: z.string().trim().optional(),
 })
-type CreateLabelInput = z.input<typeof createLabelSchema>
+type CreateAnnotationInput = z.input<typeof createAnnotationSchema>
 
-const updateLabelSchema = createLabelSchema.partial()
-type UpdateLabelValues = z.infer<typeof updateLabelSchema>
+const updateAnnotationSchema = createAnnotationSchema.partial()
+type UpdateAnnotationValues = z.infer<typeof updateAnnotationSchema>
 
-function LabelBadge({ t }: { t: Pick<DtoLabelResponse, "key" | "value"> }) {
+function AnnotationBadge({ t }: { t: Pick<DtoLabelResponse, "key" | "value"> }) {
   const label = `${t.key}${t.value ? `=${t.value}` : ""}`
   return (
     <Badge variant="secondary" className="font-mono text-xs">
@@ -56,7 +57,7 @@ function LabelBadge({ t }: { t: Pick<DtoLabelResponse, "key" | "value"> }) {
   )
 }
 
-export const LabelsPage = () => {
+export const AnnotationPage = () => {
   const [filter, setFilter] = useState<string>("")
   const [createOpen, setCreateOpen] = useState<boolean>(false)
   const [updateOpen, setUpdateOpen] = useState<boolean>(false)
@@ -65,14 +66,15 @@ export const LabelsPage = () => {
 
   const qc = useQueryClient()
 
-  const labelsQ = useQuery({
-    queryKey: ["labels"],
-    queryFn: () => labelsApi.listLabels(),
+  const annotationQ = useQuery({
+    queryKey: ["annotations"],
+    queryFn: () => annotationsApi.listAnnotations(),
   })
 
   // --- Create
-  const createForm = useForm<CreateLabelInput>({
-    resolver: zodResolver(createLabelSchema),
+
+  const createForm = useForm<CreateAnnotationInput>({
+    resolver: zodResolver(createAnnotationSchema),
     defaultValues: {
       key: "",
       value: "",
@@ -80,39 +82,39 @@ export const LabelsPage = () => {
   })
 
   const createMut = useMutation({
-    mutationFn: (values: CreateLabelInput) => labelsApi.createLabel(values),
+    mutationFn: (values: CreateAnnotationInput) => annotationsApi.createAnnotation(values),
     onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["labels"] })
+      await qc.invalidateQueries({ queryKey: ["annotations"] })
       createForm.reset()
       setCreateOpen(false)
-      toast.success("Label Created Successfully.")
+      toast.success("Annotation Created Successfully.")
     },
     onError: (err) => {
-      toast.error(err.message ?? "There was an error while creating Label")
+      toast.error(err.message ?? "There was an error while creating Annotation")
     },
   })
 
-  const onCreateSubmit = (values: CreateLabelInput) => {
+  const onCreateSubmit = (values: CreateAnnotationInput) => {
     createMut.mutate(values)
   }
 
   // --- Update
-  const updateForm = useForm<UpdateLabelValues>({
-    resolver: zodResolver(updateLabelSchema),
+  const updateForm = useForm<UpdateAnnotationValues>({
+    resolver: zodResolver(updateAnnotationSchema),
     defaultValues: {},
   })
 
   const updateMut = useMutation({
-    mutationFn: ({ id, values }: { id: string; values: UpdateLabelValues }) =>
-      labelsApi.updateLabel(id, values),
+    mutationFn: ({ id, values }: { id: string; values: UpdateAnnotationValues }) =>
+      annotationsApi.updateAnnotation(id, values),
     onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["labels"] })
+      await qc.invalidateQueries({ queryKey: ["annotations"] })
       updateForm.reset()
       setUpdateOpen(false)
-      toast.success("Label Updated Successfully.")
+      toast.success("Annotation Updated Successfully.")
     },
     onError: (err) => {
-      toast.error(err.message ?? "There was an error while updating Label")
+      toast.error(err.message ?? "There was an error while updating Annotation")
     },
   })
 
@@ -128,20 +130,20 @@ export const LabelsPage = () => {
   // --- Delete ---
 
   const deleteMut = useMutation({
-    mutationFn: (id: string) => labelsApi.deleteLabel(id),
+    mutationFn: (id: string) => annotationsApi.deleteAnnotation(id),
     onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["labels"] })
+      await qc.invalidateQueries({ queryKey: ["annotations"] })
       setDeleteId(null)
-      toast.success("Label Deleted Successfully.")
+      toast.success("Annotation Deleted Successfully.")
     },
     onError: (err) => {
-      toast.error(err.message ?? "There was an error while deleting Label")
+      toast.error(err.message ?? "There was an error while deleting Annotation")
     },
   })
 
   // --- Filter ---
   const filtered = useMemo(() => {
-    const data = labelsQ.data ?? []
+    const data = annotationQ.data ?? []
     const q = filter.trim().toLowerCase()
 
     return q
@@ -149,15 +151,19 @@ export const LabelsPage = () => {
           return k.key?.toLowerCase().includes(q) || k.value?.toLowerCase().includes(q)
         })
       : data
-  }, [filter, labelsQ.data])
+  }, [filter, annotationQ.data])
 
-  if (labelsQ.isLoading) return <div className="p-6">Loading labels…</div>
-  if (labelsQ.error) return <div className="p-6 text-red-500">Error loading labels.</div>
-
+  if (annotationQ.isLoading) return <div className="p-6">Loading annotations…</div>
+  if (annotationQ.error)
+    return (
+      <div className="p-6 text-red-500">
+        Error loading annotations.<pre>{JSON.stringify(annotationQ, null, 2)}</pre>
+      </div>
+    )
   return (
     <div className="space-y-4 p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h1 className="mb-4 text-2xl font-bold">Labels</h1>
+        <h1 className="mb-4 text-2xl font-bold">Annotations</h1>
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
@@ -165,7 +171,7 @@ export const LabelsPage = () => {
             <Input
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Search labels"
+              placeholder="Search annotations"
               className="w-64 pl-8"
             />
           </div>
@@ -174,7 +180,7 @@ export const LabelsPage = () => {
             <DialogTrigger asChild>
               <Button onClick={() => setCreateOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Label
+                Create Annotation
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
@@ -234,7 +240,7 @@ export const LabelsPage = () => {
               <TableRow>
                 <TableHead>Key</TableHead>
                 <TableHead>Value</TableHead>
-                <TableHead>Label</TableHead>
+                <TableHead>Annotation</TableHead>
                 <TableHead className="w-[180px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -245,7 +251,7 @@ export const LabelsPage = () => {
                   <TableCell>{t.value}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <LabelBadge t={t} />
+                      <AnnotationBadge t={t} />
                       <code className="text-muted-foreground text-xs">
                         {truncateMiddle(t.id!, 6)}
                       </code>
@@ -287,7 +293,7 @@ export const LabelsPage = () => {
       <Dialog open={updateOpen} onOpenChange={setUpdateOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Edit Label</DialogTitle>
+            <DialogTitle>Edit Annotation</DialogTitle>
           </DialogHeader>
           <Form {...updateForm}>
             <form
@@ -342,10 +348,10 @@ export const LabelsPage = () => {
       <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete label</DialogTitle>
+            <DialogTitle>Delete annotation</DialogTitle>
           </DialogHeader>
           <p className="text-muted-foreground text-sm">
-            This action cannot be undone. Are you sure you want to delete this label?
+            This action cannot be undone. Are you sure you want to delete this annotation?
           </p>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setDeleteId(null)}>

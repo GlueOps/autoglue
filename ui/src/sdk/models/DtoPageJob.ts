@@ -34,19 +34,19 @@ export interface DtoPageJob {
      */
     items?: Array<DtoJob>;
     /**
-     * example: 1
+     * 
      * @type {number}
      * @memberof DtoPageJob
      */
     page?: number;
     /**
-     * example: 25
+     * 
      * @type {number}
      * @memberof DtoPageJob
      */
     page_size?: number;
     /**
-     * example: 120
+     * 
      * @type {number}
      * @memberof DtoPageJob
      */

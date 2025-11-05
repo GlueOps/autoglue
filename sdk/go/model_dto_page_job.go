@@ -19,13 +19,10 @@ var _ MappedNullable = &DtoPageJob{}
 
 // DtoPageJob struct for DtoPageJob
 type DtoPageJob struct {
-	Items []DtoJob `json:"items,omitempty"`
-	// example: 1
-	Page *int32 `json:"page,omitempty"`
-	// example: 25
-	PageSize *int32 `json:"page_size,omitempty"`
-	// example: 120
-	Total *int32 `json:"total,omitempty"`
+	Items    []DtoJob `json:"items,omitempty"`
+	Page     *int32   `json:"page,omitempty"`
+	PageSize *int32   `json:"page_size,omitempty"`
+	Total    *int32   `json:"total,omitempty"`
 }
 
 // NewDtoPageJob instantiates a new DtoPageJob object

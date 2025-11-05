@@ -278,7 +278,7 @@ paths:
   /annotations:
     get:
       description: "Returns annotations for the organization in X-Org-ID. Filters:\
-        \ `name`, `value`, and `q` (name contains). Add `include=node_pools` to include\
+        \ `key`, `value`, and `q` (key contains). Add `include=node_pools` to include\
         \ linked node pools."
       operationId: ListAnnotations
       parameters:
@@ -287,9 +287,9 @@ paths:
         name: X-Org-ID
         schema:
           type: string
-      - description: Exact name
+      - description: Exact key
         in: query
-        name: name
+        name: key
         schema:
           type: string
       - description: Exact value
@@ -297,7 +297,7 @@ paths:
         name: value
         schema:
           type: string
-      - description: name contains (case-insensitive)
+      - description: key contains (case-insensitive)
         in: query
         name: q
         schema:
@@ -2446,54 +2446,51 @@ components:
       type: object
     dto.Job:
       example:
-        updated_at: updated_at
+        updated_at: 2025-11-04T09:30:00Z
         payload: "{}"
-        max_attempts: 6
-        created_at: created_at
-        id: id
-        last_error: last_error
-        run_at: run_at
-        type: type
-        queue: queue
+        max_attempts: 3
+        created_at: 2025-11-04T09:30:00Z
+        id: 01HF7SZK8Z8WG1M3J7S2Z8M2N6
+        last_error: error message
+        run_at: 2025-11-04T09:30:00Z
+        type: email.send
+        queue: default
         attempts: 0
-        status: "{}"
+        status: queued
       properties:
         attempts:
-          description: "example: 0"
+          example: 0
           type: integer
         created_at:
-          description: "example: 2025-11-04T09:30:00Z"
+          example: 2025-11-04T09:30:00Z
           type: string
         id:
-          description: "example: 01HF7SZK8Z8WG1M3J7S2Z8M2N6"
+          example: 01HF7SZK8Z8WG1M3J7S2Z8M2N6
           type: string
         last_error:
-          description: "example: dial tcp: i/o timeout"
+          example: error message
           type: string
         max_attempts:
-          description: "example: 3"
+          example: 3
           type: integer
         payload:
-          description: arbitrary JSON payload
           type: object
         queue:
-          description: "example: default"
+          example: default
           type: string
         run_at:
-          description: "example: 2025-11-05T08:00:00Z"
+          example: 2025-11-04T09:30:00Z
           type: string
         status:
           allOf:
           - $ref: "#/components/schemas/dto.JobStatus"
-          description: |-
-            enum: queued,running,succeeded,failed,canceled,retrying,scheduled
-            example: queued
+          example: queued
           type: object
         type:
-          description: "example: email.send"
+          example: email.send
           type: string
         updated_at:
-          description: "example: 2025-11-04T09:31:00Z"
+          example: 2025-11-04T09:30:00Z
           type: string
       type: object
     dto.JobStatus:
@@ -2544,69 +2541,69 @@ components:
       type: object
     dto.PageJob:
       example:
-        total: 5
+        total: 120
         page: 1
         items:
-        - updated_at: updated_at
+        - updated_at: 2025-11-04T09:30:00Z
           payload: "{}"
-          max_attempts: 6
-          created_at: created_at
-          id: id
-          last_error: last_error
-          run_at: run_at
-          type: type
-          queue: queue
+          max_attempts: 3
+          created_at: 2025-11-04T09:30:00Z
+          id: 01HF7SZK8Z8WG1M3J7S2Z8M2N6
+          last_error: error message
+          run_at: 2025-11-04T09:30:00Z
+          type: email.send
+          queue: default
           attempts: 0
-          status: "{}"
-        - updated_at: updated_at
+          status: queued
+        - updated_at: 2025-11-04T09:30:00Z
           payload: "{}"
-          max_attempts: 6
-          created_at: created_at
-          id: id
-          last_error: last_error
-          run_at: run_at
-          type: type
-          queue: queue
+          max_attempts: 3
+          created_at: 2025-11-04T09:30:00Z
+          id: 01HF7SZK8Z8WG1M3J7S2Z8M2N6
+          last_error: error message
+          run_at: 2025-11-04T09:30:00Z
+          type: email.send
+          queue: default
           attempts: 0
-          status: "{}"
-        page_size: 5
+          status: queued
+        page_size: 25
       properties:
         items:
           items:
             $ref: "#/components/schemas/dto.Job"
           type: array
         page:
-          description: "example: 1"
+          example: 1
           type: integer
         page_size:
-          description: "example: 25"
+          example: 25
           type: integer
         total:
-          description: "example: 120"
+          example: 120
           type: integer
       type: object
     dto.QueueInfo:
       example:
-        running: 1
-        scheduled: 5
-        pending: 6
-        name: name
-        failed: 0
+        running: 3
+        scheduled: 7
+        pending: 42
+        name: default
+        failed: 5
       properties:
         failed:
-          description: "example: 5"
+          example: 5
           type: integer
         name:
-          description: "example: default"
+          example: default
           type: string
         pending:
-          description: "example: 42"
+          example: 42
           type: integer
         running:
-          description: "example: 3"
+          example: 3
           type: integer
         scheduled:
-          description: "example: 7"
+          example: 7
           type: integer
       type: object
     dto.RefreshRequest:

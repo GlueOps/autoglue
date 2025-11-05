@@ -20,31 +20,31 @@ import { mapValues } from '../runtime';
  */
 export interface DtoQueueInfo {
     /**
-     * example: 5
+     * 
      * @type {number}
      * @memberof DtoQueueInfo
      */
     failed?: number;
     /**
-     * example: default
+     * 
      * @type {string}
      * @memberof DtoQueueInfo
      */
     name?: string;
     /**
-     * example: 42
+     * 
      * @type {number}
      * @memberof DtoQueueInfo
      */
     pending?: number;
     /**
-     * example: 3
+     * 
      * @type {number}
      * @memberof DtoQueueInfo
      */
     running?: number;
     /**
-     * example: 7
+     * 
      * @type {number}
      * @memberof DtoQueueInfo
      */

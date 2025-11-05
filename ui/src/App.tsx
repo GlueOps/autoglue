@@ -2,6 +2,7 @@ import { AppShell } from "@/layouts/app-shell.tsx"
 import { Route, Routes } from "react-router-dom"
 
 import { ProtectedRoute } from "@/components/protected-route.tsx"
+import { AnnotationPage } from "@/pages/annotations/annotation-page.tsx"
 import { Login } from "@/pages/auth/login.tsx"
 import { JobsPage } from "@/pages/jobs/jobs-page.tsx"
 import { LabelsPage } from "@/pages/labels/labels-page.tsx"
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/servers" element={<ServerPage />} />
           <Route path="/taints" element={<TaintsPage />} />
           <Route path="/labels" element={<LabelsPage />} />
+          <Route path="/annotations" element={<AnnotationPage />} />
 
           <Route path="/admin/jobs" element={<JobsPage />} />
         </Route>

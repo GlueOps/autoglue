@@ -19,11 +19,11 @@ import type { DtoQueueInfo } from '@glueops/autoglue-sdk-go'
 
 // TODO: Update the object below with actual values
 const example = {
-  "failed": null,
-  "name": null,
-  "pending": null,
-  "running": null,
-  "scheduled": null,
+  "failed": 5,
+  "name": default,
+  "pending": 42,
+  "running": 3,
+  "scheduled": 7,
 } satisfies DtoQueueInfo
 
 console.log(example)

@@ -1,4 +1,5 @@
 import { withRefresh } from "@/api/with-refresh.ts"
+import type { AdminListArcherJobsRequest } from "@/sdk"
 import { makeArcherAdminApi } from "@/sdkClient.ts"
 
 const archerAdmin = makeArcherAdminApi()
@@ -12,7 +13,7 @@ type ListParams = {
 }
 
 export const archerAdminApi = {
-  listJobs: (params: ListParams = {}) => {
+  listJobs: (params: AdminListArcherJobsRequest = {}) => {
     return withRefresh(async () => {
       return await archerAdmin.adminListArcherJobs(params)
     })

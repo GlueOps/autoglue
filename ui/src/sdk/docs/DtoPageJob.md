@@ -19,9 +19,9 @@ import type { DtoPageJob } from '@glueops/autoglue-sdk-go'
 // TODO: Update the object below with actual values
 const example = {
   "items": null,
-  "page": null,
-  "page_size": null,
-  "total": null,
+  "page": 1,
+  "page_size": 25,
+  "total": 120,
 } satisfies DtoPageJob
 
 console.log(example)

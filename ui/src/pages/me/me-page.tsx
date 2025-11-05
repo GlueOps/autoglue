@@ -500,7 +500,6 @@ export const MePage = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <pre>{JSON.stringify(meQ.data, null, 2)}</pre>
     </div>
   )
 }

@@ -819,7 +819,6 @@ export const ServerPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <pre>{JSON.stringify(serverQ.data, null, 2)}</pre>
     </TooltipProvider>
   )
 }

@@ -247,11 +247,11 @@ example().catch(console.error);
 
 ## listAnnotations
 
-> Array&lt;DtoAnnotationResponse&gt; listAnnotations(xOrgID, name, value, q)
+> Array&lt;DtoAnnotationResponse&gt; listAnnotations(xOrgID, key, value, q)
 
 List annotations (org scoped)
 
-Returns annotations for the organization in X-Org-ID. Filters: &#x60;name&#x60;, &#x60;value&#x60;, and &#x60;q&#x60; (name contains). Add &#x60;include&#x3D;node_pools&#x60; to include linked node pools.
+Returns annotations for the organization in X-Org-ID. Filters: &#x60;key&#x60;, &#x60;value&#x60;, and &#x60;q&#x60; (key contains). Add &#x60;include&#x3D;node_pools&#x60; to include linked node pools.
 
 ### Example
 
@@ -274,11 +274,11 @@ async function example() {
   const body = {
     // string | Organization UUID (optional)
     xOrgID: xOrgID_example,
-    // string | Exact name (optional)
-    name: name_example,
+    // string | Exact key (optional)
+    key: key_example,
     // string | Exact value (optional)
     value: value_example,
-    // string | name contains (case-insensitive) (optional)
+    // string | key contains (case-insensitive) (optional)
     q: q_example,
   } satisfies ListAnnotationsRequest;
 
@@ -296,12 +296,12 @@ example().catch(console.error);
 
 ### Parameters
 
-| Name       | Type     | Description                      | Notes                                |
-| ---------- | -------- | -------------------------------- | ------------------------------------ |
-| **xOrgID** | `string` | Organization UUID                | [Optional] [Defaults to `undefined`] |
-| **name**   | `string` | Exact name                       | [Optional] [Defaults to `undefined`] |
-| **value**  | `string` | Exact value                      | [Optional] [Defaults to `undefined`] |
-| **q**      | `string` | name contains (case-insensitive) | [Optional] [Defaults to `undefined`] |
+| Name       | Type     | Description                     | Notes                                |
+| ---------- | -------- | ------------------------------- | ------------------------------------ |
+| **xOrgID** | `string` | Organization UUID               | [Optional] [Defaults to `undefined`] |
+| **key**    | `string` | Exact key                       | [Optional] [Defaults to `undefined`] |
+| **value**  | `string` | Exact value                     | [Optional] [Defaults to `undefined`] |
+| **q**      | `string` | key contains (case-insensitive) | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 

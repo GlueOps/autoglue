@@ -19,16 +19,11 @@ var _ MappedNullable = &DtoQueueInfo{}
 
 // DtoQueueInfo struct for DtoQueueInfo
 type DtoQueueInfo struct {
-	// example: 5
-	Failed *int32 `json:"failed,omitempty"`
-	// example: default
-	Name *string `json:"name,omitempty"`
-	// example: 42
-	Pending *int32 `json:"pending,omitempty"`
-	// example: 3
-	Running *int32 `json:"running,omitempty"`
-	// example: 7
-	Scheduled *int32 `json:"scheduled,omitempty"`
+	Failed    *int32  `json:"failed,omitempty"`
+	Name      *string `json:"name,omitempty"`
+	Pending   *int32  `json:"pending,omitempty"`
+	Running   *int32  `json:"running,omitempty"`
+	Scheduled *int32  `json:"scheduled,omitempty"`
 }
 
 // NewDtoQueueInfo instantiates a new DtoQueueInfo object

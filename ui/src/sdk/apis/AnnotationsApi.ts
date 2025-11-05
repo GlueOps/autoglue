@@ -45,7 +45,7 @@ export interface GetAnnotationRequest {
 
 export interface ListAnnotationsRequest {
     xOrgID?: string;
-    name?: string;
+    key?: string;
     value?: string;
     q?: string;
 }
@@ -233,14 +233,14 @@ export class AnnotationsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns annotations for the organization in X-Org-ID. Filters: `name`, `value`, and `q` (name contains). Add `include=node_pools` to include linked node pools.
+     * Returns annotations for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
      * List annotations (org scoped)
      */
     async listAnnotationsRaw(requestParameters: ListAnnotationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<DtoAnnotationResponse>>> {
         const queryParameters: any = {};
 
-        if (requestParameters['name'] != null) {
-            queryParameters['name'] = requestParameters['name'];
+        if (requestParameters['key'] != null) {
+            queryParameters['key'] = requestParameters['key'];
         }
 
         if (requestParameters['value'] != null) {
@@ -283,7 +283,7 @@ export class AnnotationsApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns annotations for the organization in X-Org-ID. Filters: `name`, `value`, and `q` (name contains). Add `include=node_pools` to include linked node pools.
+     * Returns annotations for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
      * List annotations (org scoped)
      */
     async listAnnotations(requestParameters: ListAnnotationsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<DtoAnnotationResponse>> {

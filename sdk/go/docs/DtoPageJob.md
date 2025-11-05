@@ -5,9 +5,9 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Items** | Pointer to [**[]DtoJob**](DtoJob.md) |  | [optional] 
-**Page** | Pointer to **int32** | example: 1 | [optional] 
-**PageSize** | Pointer to **int32** | example: 25 | [optional] 
-**Total** | Pointer to **int32** | example: 120 | [optional] 
+**Page** | Pointer to **int32** |  | [optional] 
+**PageSize** | Pointer to **int32** |  | [optional] 
+**Total** | Pointer to **int32** |  | [optional] 
 
 ## Methods
 
