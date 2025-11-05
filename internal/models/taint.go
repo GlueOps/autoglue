@@ -13,6 +13,7 @@ type Taint struct {
 	Key            string       `gorm:"not null" json:"key"`
 	Value          string       `gorm:"not null" json:"value"`
 	Effect         string       `gorm:"not null" json:"effect"`
+	NodePools      []NodePool   `gorm:"many2many:node_taints;constraint:OnDelete:CASCADE" json:"servers,omitempty"`
 	CreatedAt      time.Time    `gorm:"column:created_at;not null;default:now()" json:"created_at" format:"date-time"`
 	UpdatedAt      time.Time    `gorm:"autoUpdateTime;column:updated_at;not null;default:now()" json:"updated_at" format:"date-time"`
 }

@@ -25,7 +25,7 @@ func providerConfigSchema() map[string]pschema.Attribute {
 	return map[string]pschema.Attribute{
 		"addr": pschema.StringAttribute{
 			Optional:    true,
-			Description: "Base URL to the autoglue API (e.g. https://gsot.example.com/api/v1). Defaults to http://localhost:8080/api/v1.",
+			Description: "Base URL to the autoglue API (e.g. https://autoglue.example.com/api/v1). Defaults to http://localhost:8080/api/v1.",
 		},
 		"bearer": pschema.StringAttribute{
 			Optional:    true,
