@@ -1,7 +1,7 @@
 # ========= Makefile (optimized + DRY + annotated) =========
 
 # --- strict shell & make behavior ---
-SHELL := /usr/bin/env bash
+SHELL := $(shell command -v bash 2>/dev/null || echo /bin/sh)
 .SHELLFLAGS := -eu -o pipefail -c
 
 .DELETE_ON_ERROR:
