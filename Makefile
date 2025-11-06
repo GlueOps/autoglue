@@ -101,7 +101,11 @@ SDK_PKG_CLEAN       := $(call trim,$(SDK_PKG))
 DOCS_JSON := docs/swagger.json
 DOCS_YAML := docs/swagger.yaml
 # Prefer git for speed; fall back to find. Exclude UI dir.
-GO_SRCS := $(shell (git ls-files '*.go' ':!$(UI_DIR)/**' 2>/dev/null || find . -name '*.go' -not -path './$(UI_DIR)/*' -type f))
+#GO_SRCS := $(shell (git ls-files '*.go' ':!$(UI_DIR)/**' 2>/dev/null || find . -name '*.go' -not -path './$(UI_DIR)/*' -type f))
+GO_SRCS := $(shell ( \
+  git ls-files '*.go' ':!$(UI_DIR)/**' ':!docs/**' ':!sdk/**' 2>/dev/null \
+  || find . -name '*.go' -not -path './$(UI_DIR)/*' -not -path './docs/*' -type f \
+))
 
 # Rebuild swagger when Go sources change
 $(DOCS_JSON) $(DOCS_YAML): $(GO_SRCS)
