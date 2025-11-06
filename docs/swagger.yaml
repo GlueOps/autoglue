@@ -603,7 +603,6 @@ definitions:
           example: slug is required
         type: string
     type: object
-host: localhost:8080
 info:
   contact:
     name: GlueOps
