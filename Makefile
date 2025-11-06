@@ -111,8 +111,8 @@ GO_SRCS := $(shell ( \
 $(DOCS_JSON) $(DOCS_YAML): $(GO_SRCS)
 	@echo ">> Generating Swagger docs..."
 	@if ! command -v swag >/dev/null 2>&1; then \
-		echo "Installing swag..."; \
-		$(GOINSTALL) github.com/swaggo/swag/cmd/swag@latest; \
+		echo "Installing swag/v2 CLI @v2.0.0-rc4..."; \
+		$(GOINSTALL) github.com/swaggo/swag/v2/cmd/swag@v2.0.0-rc4; \
 	fi
 	@rm -rf docs/swagger.* docs/docs.go
 	@swag init -g $(MAIN) -o docs
