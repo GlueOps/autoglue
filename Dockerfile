@@ -15,7 +15,7 @@ RUN npm i -g yarn pnpm
 WORKDIR /src
 
 COPY . .
-RUN make clean && make swagger && make -j3 sdk-all && make ui && make build
+RUN make clean && make swagger && make sdk-ts-ui && make ui && make build
 
 #################################
 # Runtime
