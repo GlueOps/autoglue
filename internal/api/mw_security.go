@@ -49,7 +49,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 				"default-src 'self'",
 				"base-uri 'self'",
 				"form-action 'self'",
-				"script-src 'self'",
+				"script-src 'self' 'unsafe-inline'",
 				"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 				"img-src 'self' data: blob:",
 				"font-src 'self' data: https://fonts.gstatic.com",
