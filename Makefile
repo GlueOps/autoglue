@@ -28,8 +28,8 @@ SDK_PKG      ?= ${BIN}                      # package name inside the SDK
 
 UI_SSG_ROUTES ?= /,/login,/docs,/pricing
 
-# Go versioning (go.mod uses major.minor; you’re on 1.25.3)
-GO_VERSION   ?= 1.25.3
+# Go versioning (go.mod uses major.minor; you’re on 1.25.4)
+GO_VERSION   ?= 1.25.4
 
 # SDK / package settings (TypeScript)
 SDK_TS_OUTDIR     ?= sdk/ts
