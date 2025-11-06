@@ -17,23 +17,24 @@ import (
 )
 
 // ListServers godoc
-// @ID			ListServers
-// @Summary		List servers (org scoped)
-// @Description	Returns servers for the organization in X-Org-ID. Optional filters: status, role.
-// @Tags		Servers
-// @Accept		json
-// @Produce		json
-// @Param		X-Org-ID header string false "Organization UUID"
-// @Param		status query string false "Filter by status (pending|provisioning|ready|failed)"
-// @Param		role query string false "Filter by role"
-// @Success		200 {array}  dto.ServerResponse
-// @Failure		401 {string} string "Unauthorized"
-// @Failure		403 {string} string "organization required"
-// @Failure		500 {string} string "failed to list servers"
-// @Router		/servers [get]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				ListServers
+//	@Summary		List servers (org scoped)
+//	@Description	Returns servers for the organization in X-Org-ID. Optional filters: status, role.
+//	@Tags			Servers
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			status		query		string	false	"Filter by status (pending|provisioning|ready|failed)"
+//	@Param			role		query		string	false	"Filter by role"
+//	@Success		200			{array}		dto.ServerResponse
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"failed to list servers"
+//	@Router			/servers [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func ListServers(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -83,24 +84,25 @@ func ListServers(db *gorm.DB) http.HandlerFunc {
 }
 
 // GetServer godoc
-// @ID				GetServer
-// @Summary      	Get server by ID (org scoped)
-// @Description 	Returns one server in the given organization.
-// @Tags         	Servers
-// @Accept       	json
-// @Produce      	json
-// @Param        	X-Org-ID header string false "Organization UUID"
-// @Param        	id path string true "Server ID (UUID)"
-// @Success      	200 {object} dto.ServerResponse
-// @Failure      	400 {string} string "invalid id"
-// @Failure      	401 {string} string "Unauthorized"
-// @Failure      	403 {string} string "organization required"
-// @Failure      	404 {string} string "not found"
-// @Failure      	500 {string} string "fetch failed"
-// @Router       	/servers/{id} [get]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				GetServer
+//	@Summary		Get server by ID (org scoped)
+//	@Description	Returns one server in the given organization.
+//	@Tags			Servers
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"Server ID (UUID)"
+//	@Success		200			{object}	dto.ServerResponse
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"fetch failed"
+//	@Router			/servers/{id} [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func GetServer(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -130,23 +132,24 @@ func GetServer(db *gorm.DB) http.HandlerFunc {
 }
 
 // CreateServer godoc
-// @ID 			CreateServer
-// @Summary		Create server (org scoped)
-// @Description	Creates a server bound to the org in X-Org-ID. Validates that ssh_key_id belongs to the org.
-// @Tags		Servers
-// @Accept		json
-// @Produce		json
-// @Param		X-Org-ID header string false "Organization UUID"
-// @Param		body body dto.CreateServerRequest true "Server payload"
-// @Success		201 {object} dto.ServerResponse
-// @Failure		400 {string} string "invalid json / missing fields / invalid status / invalid ssh_key_id"
-// @Failure		401 {string} string "Unauthorized"
-// @Failure		403 {string} string "organization required"
-// @Failure		500 {string} string "create failed"
-// @Router		/servers [post]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				CreateServer
+//	@Summary		Create server (org scoped)
+//	@Description	Creates a server bound to the org in X-Org-ID. Validates that ssh_key_id belongs to the org.
+//	@Tags			Servers
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string					false	"Organization UUID"
+//	@Param			body		body		dto.CreateServerRequest	true	"Server payload"
+//	@Success		201			{object}	dto.ServerResponse
+//	@Failure		400			{string}	string	"invalid json / missing fields / invalid status / invalid ssh_key_id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"create failed"
+//	@Router			/servers [post]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func CreateServer(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -218,25 +221,26 @@ func CreateServer(db *gorm.DB) http.HandlerFunc {
 }
 
 // UpdateServer godoc
-// @ID 			UpdateServer
-// @Summary     Update server (org scoped)
-// @Description Partially update fields; changing ssh_key_id validates ownership.
-// @Tags        Servers
-// @Accept      json
-// @Produce     json
-// @Param       X-Org-ID header string false "Organization UUID"
-// @Param       id path string true "Server ID (UUID)"
-// @Param       body body dto.UpdateServerRequest true "Fields to update"
-// @Success     200 {object} dto.ServerResponse
-// @Failure     400 {string} string "invalid id / invalid json / invalid status / invalid ssh_key_id"
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     404 {string} string "not found"
-// @Failure     500 {string} string "update failed"
-// @Router      /servers/{id} [patch]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				UpdateServer
+//	@Summary		Update server (org scoped)
+//	@Description	Partially update fields; changing ssh_key_id validates ownership.
+//	@Tags			Servers
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string					false	"Organization UUID"
+//	@Param			id			path		string					true	"Server ID (UUID)"
+//	@Param			body		body		dto.UpdateServerRequest	true	"Fields to update"
+//	@Success		200			{object}	dto.ServerResponse
+//	@Failure		400			{string}	string	"invalid id / invalid json / invalid status / invalid ssh_key_id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"update failed"
+//	@Router			/servers/{id} [patch]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func UpdateServer(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -320,23 +324,24 @@ func UpdateServer(db *gorm.DB) http.HandlerFunc {
 }
 
 // DeleteServer godoc
-// @ID 			DeleteServer
-// @Summary     Delete server (org scoped)
-// @Description Permanently deletes the server.
-// @Tags        Servers
-// @Accept      json
-// @Produce     json
-// @Param       X-Org-ID header string false "Organization UUID"
-// @Param       id path string true "Server ID (UUID)"
-// @Success     204 {string} string "No Content"
-// @Failure     400 {string} string "invalid id"
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     500 {string} string "delete failed"
-// @Router      /servers/{id} [delete]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				DeleteServer
+//	@Summary		Delete server (org scoped)
+//	@Description	Permanently deletes the server.
+//	@Tags			Servers
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"Server ID (UUID)"
+//	@Success		204			{string}	string	"No Content"
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"delete failed"
+//	@Router			/servers/{id} [delete]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func DeleteServer(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())

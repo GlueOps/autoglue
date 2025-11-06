@@ -17,24 +17,25 @@ import (
 )
 
 // ListLabels godoc
-// @ID           ListLabels
-// @Summary      List node labels (org scoped)
-// @Description  Returns node labels for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node groups.
-// @Tags         Labels
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        key query string false "Exact key"
-// @Param        value query string false "Exact value"
-// @Param        q query string false "Key contains (case-insensitive)"
-// @Success      200 {array}  dto.LabelResponse
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "failed to list node taints"
-// @Router       /labels [get]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				ListLabels
+//	@Summary		List node labels (org scoped)
+//	@Description	Returns node labels for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node groups.
+//	@Tags			Labels
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			key			query		string	false	"Exact key"
+//	@Param			value		query		string	false	"Exact value"
+//	@Param			q			query		string	false	"Key contains (case-insensitive)"
+//	@Success		200			{array}		dto.LabelResponse
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"failed to list node taints"
+//	@Router			/labels [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func ListLabels(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -68,24 +69,25 @@ func ListLabels(db *gorm.DB) http.HandlerFunc {
 }
 
 // GetLabel godoc
-// @ID           GetLabel
-// @Summary      Get label by ID (org scoped)
-// @Description  Returns one label.
-// @Tags         Labels
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        id path string true "Label ID (UUID)"
-// @Success      200 {object} dto.LabelResponse
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "fetch failed"
-// @Router       /labels/{id} [get]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				GetLabel
+//	@Summary		Get label by ID (org scoped)
+//	@Description	Returns one label.
+//	@Tags			Labels
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"Label ID (UUID)"
+//	@Success		200			{object}	dto.LabelResponse
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"fetch failed"
+//	@Router			/labels/{id} [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func GetLabel(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -113,23 +115,24 @@ func GetLabel(db *gorm.DB) http.HandlerFunc {
 }
 
 // CreateLabel godoc
-// @ID           CreateLabel
-// @Summary      Create label (org scoped)
-// @Description  Creates a label.
-// @Tags         Labels
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        body body dto.CreateLabelRequest true "Label payload"
-// @Success      201 {object} dto.LabelResponse
-// @Failure      400 {string} string "invalid json / missing fields / invalid node_pool_ids"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "create failed"
-// @Router       /labels [post]
-// @Security     BearerAuth
-// @Security     OrgKeyAuth
-// @Security     OrgSecretAuth
+//
+//	@ID				CreateLabel
+//	@Summary		Create label (org scoped)
+//	@Description	Creates a label.
+//	@Tags			Labels
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string					false	"Organization UUID"
+//	@Param			body		body		dto.CreateLabelRequest	true	"Label payload"
+//	@Success		201			{object}	dto.LabelResponse
+//	@Failure		400			{string}	string	"invalid json / missing fields / invalid node_pool_ids"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"create failed"
+//	@Router			/labels [post]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func CreateLabel(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -173,25 +176,26 @@ func CreateLabel(db *gorm.DB) http.HandlerFunc {
 
 // UpdateLabel godoc
 // UpdateLabel godoc
-// @ID           UpdateLabel
-// @Summary      Update label (org scoped)
-// @Description  Partially update label fields.
-// @Tags         Labels
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        id path string true "Label ID (UUID)"
-// @Param        body body dto.UpdateLabelRequest true "Fields to update"
-// @Success      200 {object} dto.LabelResponse
-// @Failure      400 {string} string "invalid id / invalid json"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "update failed"
-// @Router       /labels/{id} [patch]
-// @Security     BearerAuth
-// @Security     OrgKeyAuth
-// @Security     OrgSecretAuth
+//
+//	@ID				UpdateLabel
+//	@Summary		Update label (org scoped)
+//	@Description	Partially update label fields.
+//	@Tags			Labels
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string					false	"Organization UUID"
+//	@Param			id			path		string					true	"Label ID (UUID)"
+//	@Param			body		body		dto.UpdateLabelRequest	true	"Fields to update"
+//	@Success		200			{object}	dto.LabelResponse
+//	@Failure		400			{string}	string	"invalid id / invalid json"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"update failed"
+//	@Router			/labels/{id} [patch]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func UpdateLabel(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -244,23 +248,24 @@ func UpdateLabel(db *gorm.DB) http.HandlerFunc {
 }
 
 // DeleteLabel godoc
-// @ID           DeleteLabel
-// @Summary      Delete label (org scoped)
-// @Description  Permanently deletes the label.
-// @Tags         Labels
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        id path string true "Label ID (UUID)"
-// @Success      204 {string} string "No Content"
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "delete failed"
-// @Router       /labels/{id} [delete]
-// @Security     BearerAuth
-// @Security     OrgKeyAuth
-// @Security     OrgSecretAuth
+//
+//	@ID				DeleteLabel
+//	@Summary		Delete label (org scoped)
+//	@Description	Permanently deletes the label.
+//	@Tags			Labels
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"Label ID (UUID)"
+//	@Success		204			{string}	string	"No Content"
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"delete failed"
+//	@Router			/labels/{id} [delete]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func DeleteLabel(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())

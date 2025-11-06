@@ -51,14 +51,15 @@ func providerConfig(cfg config.Config, name string) (oauthProvider, bool) {
 }
 
 // AuthStart godoc
-// @ID AuthStart
-// @Summary Begin social login
-// @Description Returns provider authorization URL for the frontend to redirect
-// @Tags Auth
-// @Param provider path string true "google|github"
-// @Produce json
-// @Success 200 {object} dto.AuthStartResponse
-// @Router /auth/{provider}/start [post]
+//
+//	@ID				AuthStart
+//	@Summary		Begin social login
+//	@Description	Returns provider authorization URL for the frontend to redirect
+//	@Tags			Auth
+//	@Param			provider	path	string	true	"google|github"
+//	@Produce		json
+//	@Success		200	{object}	dto.AuthStartResponse
+//	@Router			/auth/{provider}/start [post]
 func AuthStart(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cfg, _ := config.Load()
@@ -118,13 +119,14 @@ func AuthStart(db *gorm.DB) http.HandlerFunc {
 }
 
 // AuthCallback godoc
-// @ID AuthCallback
-// @Summary Handle social login callback
-// @Tags Auth
-// @Param provider path string true "google|github"
-// @Produce json
-// @Success 200 {object} dto.TokenPair
-// @Router /auth/{provider}/callback [get]
+//
+//	@ID			AuthCallback
+//	@Summary	Handle social login callback
+//	@Tags		Auth
+//	@Param		provider	path	string	true	"google|github"
+//	@Produce	json
+//	@Success	200	{object}	dto.TokenPair
+//	@Router		/auth/{provider}/callback [get]
 func AuthCallback(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cfg, _ := config.Load()
@@ -306,14 +308,15 @@ func AuthCallback(db *gorm.DB) http.HandlerFunc {
 }
 
 // Refresh godoc
-// @ID Refresh
-// @Summary Rotate refresh token
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param body body dto.RefreshRequest true "Refresh token"
-// @Success 200 {object} dto.TokenPair
-// @Router /auth/refresh [post]
+//
+//	@ID			Refresh
+//	@Summary	Rotate refresh token
+//	@Tags		Auth
+//	@Accept		json
+//	@Produce	json
+//	@Param		body	body		dto.RefreshRequest	true	"Refresh token"
+//	@Success	200		{object}	dto.TokenPair
+//	@Router		/auth/refresh [post]
 func Refresh(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cfg, _ := config.Load()
@@ -363,14 +366,15 @@ func Refresh(db *gorm.DB) http.HandlerFunc {
 }
 
 // Logout godoc
-// @ID Logout
-// @Summary Revoke refresh token family (logout everywhere)
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param body body dto.LogoutRequest true "Refresh token"
-// @Success 204 "No Content"
-// @Router /auth/logout [post]
+//
+//	@ID			Logout
+//	@Summary	Revoke refresh token family (logout everywhere)
+//	@Tags		Auth
+//	@Accept		json
+//	@Produce	json
+//	@Param		body	body	dto.LogoutRequest	true	"Refresh token"
+//	@Success	204		"No Content"
+//	@Router		/auth/logout [post]
 func Logout(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req dto.LogoutRequest

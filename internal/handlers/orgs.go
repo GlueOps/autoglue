@@ -59,19 +59,20 @@ type orgCreateReq struct {
 }
 
 // CreateOrg godoc
-// @ID           CreateOrg
-// @Summary      Create organization
-// @Tags         Orgs
-// @Accept       json
-// @Produce      json
-// @Param        body body orgCreateReq true "Org payload"
-// @Success      201  {object} models.Organization
-// @Failure      400  {object} utils.ErrorResponse
-// @Failure      401  {object} utils.ErrorResponse
-// @Failure      409  {object} utils.ErrorResponse
-// @Router       /orgs [post]
-// @ID           createOrg
-// @Security     BearerAuth
+//
+//	@ID			CreateOrg
+//	@Summary	Create organization
+//	@Tags		Orgs
+//	@Accept		json
+//	@Produce	json
+//	@Param		body	body		orgCreateReq	true	"Org payload"
+//	@Success	201		{object}	models.Organization
+//	@Failure	400		{object}	utils.ErrorResponse
+//	@Failure	401		{object}	utils.ErrorResponse
+//	@Failure	409		{object}	utils.ErrorResponse
+//	@Router		/orgs [post]
+//	@ID			createOrg
+//	@Security	BearerAuth
 func CreateOrg(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)
@@ -111,15 +112,16 @@ func CreateOrg(db *gorm.DB) http.HandlerFunc {
 }
 
 // ListMyOrgs godoc
-// @ID           ListMyOrgs
-// @Summary      List organizations I belong to
-// @Tags         Orgs
-// @Produce      json
-// @Success      200  {array} models.Organization
-// @Failure      401  {object} utils.ErrorResponse
-// @Router       /orgs [get]
-// @ID           listMyOrgs
-// @Security     BearerAuth
+//
+//	@ID			ListMyOrgs
+//	@Summary	List organizations I belong to
+//	@Tags		Orgs
+//	@Produce	json
+//	@Success	200	{array}		models.Organization
+//	@Failure	401	{object}	utils.ErrorResponse
+//	@Router		/orgs [get]
+//	@ID			listMyOrgs
+//	@Security	BearerAuth
 func ListMyOrgs(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)
@@ -142,17 +144,18 @@ func ListMyOrgs(db *gorm.DB) http.HandlerFunc {
 }
 
 // GetOrg godoc
-// @ID           GetOrg
-// @Summary      Get organization
-// @Tags         Orgs
-// @Produce      json
-// @Param        id   path string true "Org ID (UUID)"
-// @Success      200  {object} models.Organization
-// @Failure      401  {object} utils.ErrorResponse
-// @Failure      404  {object} utils.ErrorResponse
-// @Router       /orgs/{id} [get]
-// @ID           getOrg
-// @Security     BearerAuth
+//
+//	@ID			GetOrg
+//	@Summary	Get organization
+//	@Tags		Orgs
+//	@Produce	json
+//	@Param		id	path		string	true	"Org ID (UUID)"
+//	@Success	200	{object}	models.Organization
+//	@Failure	401	{object}	utils.ErrorResponse
+//	@Failure	404	{object}	utils.ErrorResponse
+//	@Router		/orgs/{id} [get]
+//	@ID			getOrg
+//	@Security	BearerAuth
 func GetOrg(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)
@@ -184,19 +187,20 @@ type orgUpdateReq struct {
 }
 
 // UpdateOrg godoc
-// @ID           UpdateOrg
-// @Summary      Update organization (owner/admin)
-// @Tags         Orgs
-// @Accept       json
-// @Produce      json
-// @Param        id   path string        true "Org ID (UUID)"
-// @Param        body body orgUpdateReq  true "Update payload"
-// @Success      200  {object} models.Organization
-// @Failure      401  {object} utils.ErrorResponse
-// @Failure      404  {object} utils.ErrorResponse
-// @Router       /orgs/{id} [patch]
-// @ID           updateOrg
-// @Security     BearerAuth
+//
+//	@ID			UpdateOrg
+//	@Summary	Update organization (owner/admin)
+//	@Tags		Orgs
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		string			true	"Org ID (UUID)"
+//	@Param		body	body		orgUpdateReq	true	"Update payload"
+//	@Success	200		{object}	models.Organization
+//	@Failure	401		{object}	utils.ErrorResponse
+//	@Failure	404		{object}	utils.ErrorResponse
+//	@Router		/orgs/{id} [patch]
+//	@ID			updateOrg
+//	@Security	BearerAuth
 func UpdateOrg(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)
@@ -242,17 +246,18 @@ func UpdateOrg(db *gorm.DB) http.HandlerFunc {
 }
 
 // DeleteOrg godoc
-// @ID           DeleteOrg
-// @Summary      Delete organization (owner)
-// @Tags         Orgs
-// @Produce      json
-// @Param        id   path string true "Org ID (UUID)"
-// @Success      204  "Deleted"
-// @Failure      401  {object} utils.ErrorResponse
-// @Failure      404  {object} utils.ErrorResponse
-// @Router       /orgs/{id} [delete]
-// @ID           deleteOrg
-// @Security     BearerAuth
+//
+//	@ID			DeleteOrg
+//	@Summary	Delete organization (owner)
+//	@Tags		Orgs
+//	@Produce	json
+//	@Param		id	path	string	true	"Org ID (UUID)"
+//	@Success	204	"Deleted"
+//	@Failure	401	{object}	utils.ErrorResponse
+//	@Failure	404	{object}	utils.ErrorResponse
+//	@Router		/orgs/{id} [delete]
+//	@ID			deleteOrg
+//	@Security	BearerAuth
 func DeleteOrg(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)
@@ -297,16 +302,17 @@ type memberUpsertReq struct {
 }
 
 // ListMembers godoc
-// @ID           ListMembers
-// @Summary      List members in org
-// @Tags         Orgs
-// @Produce      json
-// @Param        id   path string true "Org ID (UUID)"
-// @Success      200  {array}  memberOut
-// @Failure      401  {object} utils.ErrorResponse
-// @Router       /orgs/{id}/members [get]
-// @ID           listMembers
-// @Security     BearerAuth
+//
+//	@ID			ListMembers
+//	@Summary	List members in org
+//	@Tags		Orgs
+//	@Produce	json
+//	@Param		id	path		string	true	"Org ID (UUID)"
+//	@Success	200	{array}		memberOut
+//	@Failure	401	{object}	utils.ErrorResponse
+//	@Router		/orgs/{id}/members [get]
+//	@ID			listMembers
+//	@Security	BearerAuth
 func ListMembers(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)
@@ -352,18 +358,19 @@ func ListMembers(db *gorm.DB) http.HandlerFunc {
 }
 
 // AddOrUpdateMember godoc
-// @ID           AddOrUpdateMember
-// @Summary      Add or update a member (owner/admin)
-// @Tags         Orgs
-// @Accept       json
-// @Produce      json
-// @Param        id   path string          true "Org ID (UUID)"
-// @Param        body body memberUpsertReq true "User & role"
-// @Success      200  {object} memberOut
-// @Failure      401  {object} utils.ErrorResponse
-// @Router       /orgs/{id}/members [post]
-// @ID           addOrUpdateMember
-// @Security     BearerAuth
+//
+//	@ID			AddOrUpdateMember
+//	@Summary	Add or update a member (owner/admin)
+//	@Tags		Orgs
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		string			true	"Org ID (UUID)"
+//	@Param		body	body		memberUpsertReq	true	"User & role"
+//	@Success	200		{object}	memberOut
+//	@Failure	401		{object}	utils.ErrorResponse
+//	@Router		/orgs/{id}/members [post]
+//	@ID			addOrUpdateMember
+//	@Security	BearerAuth
 func AddOrUpdateMember(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)
@@ -419,17 +426,18 @@ func AddOrUpdateMember(db *gorm.DB) http.HandlerFunc {
 }
 
 // RemoveMember godoc
-// @ID           RemoveMember
-// @Summary      Remove a member (owner/admin)
-// @Tags         Orgs
-// @Produce      json
-// @Param        id       path string true "Org ID (UUID)"
-// @Param        user_id  path string true "User ID (UUID)"
-// @Success      204 "Removed"
-// @Failure      401 {object} utils.ErrorResponse
-// @Router       /orgs/{id}/members/{user_id} [delete]
-// @ID           removeMember
-// @Security     BearerAuth
+//
+//	@ID			RemoveMember
+//	@Summary	Remove a member (owner/admin)
+//	@Tags		Orgs
+//	@Produce	json
+//	@Param		id		path	string	true	"Org ID (UUID)"
+//	@Param		user_id	path	string	true	"User ID (UUID)"
+//	@Success	204		"Removed"
+//	@Failure	401		{object}	utils.ErrorResponse
+//	@Router		/orgs/{id}/members/{user_id} [delete]
+//	@ID			removeMember
+//	@Security	BearerAuth
 func RemoveMember(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)
@@ -478,16 +486,17 @@ type orgKeyCreateResp struct {
 }
 
 // ListOrgKeys godoc
-// @ID           ListOrgKeys
-// @Summary      List org-scoped API keys (no secrets)
-// @Tags         Orgs
-// @Produce      json
-// @Param        id   path string true "Org ID (UUID)"
-// @Success      200  {array} models.APIKey
-// @Failure      401  {object} utils.ErrorResponse
-// @Router       /orgs/{id}/api-keys [get]
-// @ID           listOrgKeys
-// @Security     BearerAuth
+//
+//	@ID			ListOrgKeys
+//	@Summary	List org-scoped API keys (no secrets)
+//	@Tags		Orgs
+//	@Produce	json
+//	@Param		id	path		string	true	"Org ID (UUID)"
+//	@Success	200	{array}		models.APIKey
+//	@Failure	401	{object}	utils.ErrorResponse
+//	@Router		/orgs/{id}/api-keys [get]
+//	@ID			listOrgKeys
+//	@Security	BearerAuth
 func ListOrgKeys(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)
@@ -513,18 +522,19 @@ func ListOrgKeys(db *gorm.DB) http.HandlerFunc {
 }
 
 // CreateOrgKey godoc
-// @ID           CreateOrgKey
-// @Summary      Create org key/secret pair (owner/admin)
-// @Tags         Orgs
-// @Accept       json
-// @Produce      json
-// @Param        id   path string           true "Org ID (UUID)"
-// @Param        body body orgKeyCreateReq  true "Key name + optional expiry"
-// @Success      201  {object} orgKeyCreateResp
-// @Failure      401  {object} utils.ErrorResponse
-// @Router       /orgs/{id}/api-keys [post]
-// @ID           createOrgKey
-// @Security     BearerAuth
+//
+//	@ID			CreateOrgKey
+//	@Summary	Create org key/secret pair (owner/admin)
+//	@Tags		Orgs
+//	@Accept		json
+//	@Produce	json
+//	@Param		id		path		string			true	"Org ID (UUID)"
+//	@Param		body	body		orgKeyCreateReq	true	"Key name + optional expiry"
+//	@Success	201		{object}	orgKeyCreateResp
+//	@Failure	401		{object}	utils.ErrorResponse
+//	@Router		/orgs/{id}/api-keys [post]
+//	@ID			createOrgKey
+//	@Security	BearerAuth
 func CreateOrgKey(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)
@@ -601,17 +611,18 @@ func CreateOrgKey(db *gorm.DB) http.HandlerFunc {
 }
 
 // DeleteOrgKey godoc
-// @ID           DeleteOrgKey
-// @Summary      Delete org key (owner/admin)
-// @Tags         Orgs
-// @Produce      json
-// @Param        id     path string true "Org ID (UUID)"
-// @Param        key_id path string true "Key ID (UUID)"
-// @Success      204 "Deleted"
-// @Failure      401 {object} utils.ErrorResponse
-// @Router       /orgs/{id}/api-keys/{key_id} [delete]
-// @ID           deleteOrgKey
-// @Security     BearerAuth
+//
+//	@ID			DeleteOrgKey
+//	@Summary	Delete org key (owner/admin)
+//	@Tags		Orgs
+//	@Produce	json
+//	@Param		id		path	string	true	"Org ID (UUID)"
+//	@Param		key_id	path	string	true	"Key ID (UUID)"
+//	@Success	204		"Deleted"
+//	@Failure	401		{object}	utils.ErrorResponse
+//	@Router		/orgs/{id}/api-keys/{key_id} [delete]
+//	@ID			deleteOrgKey
+//	@Security	BearerAuth
 func DeleteOrgKey(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := mustUser(r)

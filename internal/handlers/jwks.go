@@ -23,13 +23,14 @@ type jwks struct {
 }
 
 // JWKSHandler godoc
-// @ID           getJWKS
-// @Summary      Get JWKS
-// @Description  Returns the JSON Web Key Set for token verification
-// @Tags         Auth
-// @Produce      json
-// @Success      200  {object}  dto.JWKS
-// @Router       /.well-known/jwks.json [get]
+//
+//	@ID				getJWKS
+//	@Summary		Get JWKS
+//	@Description	Returns the JSON Web Key Set for token verification
+//	@Tags			Auth
+//	@Produce		json
+//	@Success		200	{object}	dto.JWKS
+//	@Router			/.well-known/jwks.json [get]
 func JWKSHandler(w http.ResponseWriter, _ *http.Request) {
 	out := dto.JWKS{Keys: make([]dto.JWK, 0)}
 

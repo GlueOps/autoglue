@@ -11,14 +11,15 @@ type HealthStatus struct {
 }
 
 // HealthCheck godoc
-// @Summary      Basic health check
-// @Description  Returns 200 OK when the service is up
-// @Tags         Health
-// @ID           HealthCheck               // operationId
-// @Accept       json
-// @Produce      json
-// @Success      200 {object} HealthStatus
-// @Router       /healthz [get]
+//
+//	@Summary		Basic health check
+//	@Description	Returns 200 OK when the service is up
+//	@Tags			Health
+//	@ID				HealthCheck               // operationId
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	HealthStatus
+//	@Router			/healthz [get]
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, HealthStatus{Status: "ok"})
 }

@@ -20,23 +20,24 @@ import (
 )
 
 // AdminListArcherJobs godoc
-// @ID AdminListArcherJobs
-// @Summary List Archer jobs (admin)
-// @Description Paginated background jobs with optional filters. Search `q` may match id, type, error, payload (implementation-dependent).
-// @Tags ArcherAdmin
-// @Accept json
-// @Produce json
-// @Param status query string false "Filter by status" Enums(queued,running,succeeded,failed,canceled,retrying,scheduled)
-// @Param queue query string false "Filter by queue name / worker name"
-// @Param q query string false "Free-text search"
-// @Param page query int false "Page number" default(1)
-// @Param page_size query int false "Items per page" minimum(1) maximum(100) default(25)
-// @Success 200 {object} dto.PageJob
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 403 {string} string "forbidden"
-// @Failure 500 {string} string "internal error"
-// @Router /admin/archer/jobs [get]
-// @Security BearerAuth
+//
+//	@ID				AdminListArcherJobs
+//	@Summary		List Archer jobs (admin)
+//	@Description	Paginated background jobs with optional filters. Search `q` may match id, type, error, payload (implementation-dependent).
+//	@Tags			ArcherAdmin
+//	@Accept			json
+//	@Produce		json
+//	@Param			status		query		string	false	"Filter by status"	Enums(queued,running,succeeded,failed,canceled,retrying,scheduled)
+//	@Param			queue		query		string	false	"Filter by queue name / worker name"
+//	@Param			q			query		string	false	"Free-text search"
+//	@Param			page		query		int		false	"Page number"		default(1)
+//	@Param			page_size	query		int		false	"Items per page"	minimum(1)	maximum(100)	default(25)
+//	@Success		200			{object}	dto.PageJob
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"forbidden"
+//	@Failure		500			{string}	string	"internal error"
+//	@Router			/admin/archer/jobs [get]
+//	@Security		BearerAuth
 func AdminListArcherJobs(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		status := strings.TrimSpace(r.URL.Query().Get("status"))
@@ -90,20 +91,21 @@ func AdminListArcherJobs(db *gorm.DB) http.HandlerFunc {
 }
 
 // AdminEnqueueArcherJob godoc
-// @ID           AdminEnqueueArcherJob
-// @Summary      Enqueue a new Archer job (admin)
-// @Description  Create a job immediately or schedule it for the future via `run_at`.
-// @Tags         ArcherAdmin
-// @Accept       json
-// @Produce      json
-// @Param        body body dto.EnqueueRequest true "Job parameters"
-// @Success      200 {object} dto.Job
-// @Failure      400 {string} string "invalid json or missing fields"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "forbidden"
-// @Failure      500 {string} string "internal error"
-// @Router       /admin/archer/jobs [post]
-// @Security     BearerAuth
+//
+//	@ID				AdminEnqueueArcherJob
+//	@Summary		Enqueue a new Archer job (admin)
+//	@Description	Create a job immediately or schedule it for the future via `run_at`.
+//	@Tags			ArcherAdmin
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		dto.EnqueueRequest	true	"Job parameters"
+//	@Success		200		{object}	dto.Job
+//	@Failure		400		{string}	string	"invalid json or missing fields"
+//	@Failure		401		{string}	string	"Unauthorized"
+//	@Failure		403		{string}	string	"forbidden"
+//	@Failure		500		{string}	string	"internal error"
+//	@Router			/admin/archer/jobs [post]
+//	@Security		BearerAuth
 func AdminEnqueueArcherJob(db *gorm.DB, jobs *bg.Jobs) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var in dto.EnqueueRequest
@@ -168,20 +170,21 @@ func AdminEnqueueArcherJob(db *gorm.DB, jobs *bg.Jobs) http.HandlerFunc {
 }
 
 // AdminRetryArcherJob godoc
-// @ID           AdminRetryArcherJob
-// @Summary      Retry a failed/canceled Archer job (admin)
-// @Description  Marks the job retriable (DB flip). Swap this for an Archer admin call if you expose one.
-// @Tags         ArcherAdmin
-// @Accept       json
-// @Produce      json
-// @Param        id path string true "Job ID"
-// @Success      200 {object} dto.Job
-// @Failure      400 {string} string "invalid job or not eligible"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "forbidden"
-// @Failure      404 {string} string "not found"
-// @Router       /admin/archer/jobs/{id}/retry [post]
-// @Security     BearerAuth
+//
+//	@ID				AdminRetryArcherJob
+//	@Summary		Retry a failed/canceled Archer job (admin)
+//	@Description	Marks the job retriable (DB flip). Swap this for an Archer admin call if you expose one.
+//	@Tags			ArcherAdmin
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"Job ID"
+//	@Success		200	{object}	dto.Job
+//	@Failure		400	{string}	string	"invalid job or not eligible"
+//	@Failure		401	{string}	string	"Unauthorized"
+//	@Failure		403	{string}	string	"forbidden"
+//	@Failure		404	{string}	string	"not found"
+//	@Router			/admin/archer/jobs/{id}/retry [post]
+//	@Security		BearerAuth
 func AdminRetryArcherJob(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
@@ -222,20 +225,21 @@ func AdminRetryArcherJob(db *gorm.DB) http.HandlerFunc {
 }
 
 // AdminCancelArcherJob godoc
-// @ID           AdminCancelArcherJob
-// @Summary      Cancel an Archer job (admin)
-// @Description  Set job status to canceled if cancellable. For running jobs, this only affects future picks; wire to Archer if you need active kill.
-// @Tags         ArcherAdmin
-// @Accept       json
-// @Produce      json
-// @Param        id path string true "Job ID"
-// @Success      200 {object} dto.Job
-// @Failure      400 {string} string "invalid job or not cancellable"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "forbidden"
-// @Failure      404 {string} string "not found"
-// @Router       /admin/archer/jobs/{id}/cancel [post]
-// @Security     BearerAuth
+//
+//	@ID				AdminCancelArcherJob
+//	@Summary		Cancel an Archer job (admin)
+//	@Description	Set job status to canceled if cancellable. For running jobs, this only affects future picks; wire to Archer if you need active kill.
+//	@Tags			ArcherAdmin
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"Job ID"
+//	@Success		200	{object}	dto.Job
+//	@Failure		400	{string}	string	"invalid job or not cancellable"
+//	@Failure		401	{string}	string	"Unauthorized"
+//	@Failure		403	{string}	string	"forbidden"
+//	@Failure		404	{string}	string	"not found"
+//	@Router			/admin/archer/jobs/{id}/cancel [post]
+//	@Security		BearerAuth
 func AdminCancelArcherJob(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
@@ -274,18 +278,19 @@ func AdminCancelArcherJob(db *gorm.DB) http.HandlerFunc {
 }
 
 // AdminListArcherQueues godoc
-// @ID           AdminListArcherQueues
-// @Summary      List Archer queues (admin)
-// @Description  Summary metrics per queue (pending, running, failed, scheduled).
-// @Tags         ArcherAdmin
-// @Accept       json
-// @Produce      json
-// @Success      200 {array} dto.QueueInfo
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "forbidden"
-// @Failure      500 {string} string "internal error"
-// @Router       /admin/archer/queues [get]
-// @Security     BearerAuth
+//
+//	@ID				AdminListArcherQueues
+//	@Summary		List Archer queues (admin)
+//	@Description	Summary metrics per queue (pending, running, failed, scheduled).
+//	@Tags			ArcherAdmin
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}		dto.QueueInfo
+//	@Failure		401	{string}	string	"Unauthorized"
+//	@Failure		403	{string}	string	"forbidden"
+//	@Failure		500	{string}	string	"internal error"
+//	@Router			/admin/archer/queues [get]
+//	@Security		BearerAuth
 func AdminListArcherQueues(db *gorm.DB) http.HandlerFunc {
 	type row struct {
 		QueueName string

@@ -17,24 +17,25 @@ import (
 )
 
 // ListTaints godoc
-// @ID 			ListTaints
-// @Summary     List node pool taints (org scoped)
-// @Description Returns node taints for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
-// @Tags        Taints
-// @Accept      json
-// @Produce     json
-// @Param       X-Org-ID header string false "Organization UUID"
-// @Param       key query string false "Exact key"
-// @Param       value query string false "Exact value"
-// @Param       q query string false "key contains (case-insensitive)"
-// @Success     200 {array}  dto.TaintResponse
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     500 {string} string "failed to list node taints"
-// @Router      /taints [get]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				ListTaints
+//	@Summary		List node pool taints (org scoped)
+//	@Description	Returns node taints for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
+//	@Tags			Taints
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			key			query		string	false	"Exact key"
+//	@Param			value		query		string	false	"Exact value"
+//	@Param			q			query		string	false	"key contains (case-insensitive)"
+//	@Success		200			{array}		dto.TaintResponse
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"failed to list node taints"
+//	@Router			/taints [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func ListTaints(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -65,23 +66,24 @@ func ListTaints(db *gorm.DB) http.HandlerFunc {
 }
 
 // GetTaint godoc
-// @ID 			GetTaint
-// @Summary     Get node taint by ID (org scoped)
-// @Tags        Taints
-// @Accept      json
-// @Produce     json
-// @Param       X-Org-ID header string false "Organization UUID"
-// @Param       id path string true "Node Taint ID (UUID)"
-// @Success     200 {object} dto.TaintResponse
-// @Failure     400 {string} string "invalid id"
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     404 {string} string "not found"
-// @Failure     500 {string} string "fetch failed"
-// @Router      /taints/{id} [get]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID			GetTaint
+//	@Summary	Get node taint by ID (org scoped)
+//	@Tags		Taints
+//	@Accept		json
+//	@Produce	json
+//	@Param		X-Org-ID	header		string	false	"Organization UUID"
+//	@Param		id			path		string	true	"Node Taint ID (UUID)"
+//	@Success	200			{object}	dto.TaintResponse
+//	@Failure	400			{string}	string	"invalid id"
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Failure	500			{string}	string	"fetch failed"
+//	@Router		/taints/{id} [get]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func GetTaint(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -111,23 +113,24 @@ func GetTaint(db *gorm.DB) http.HandlerFunc {
 }
 
 // CreateTaint godoc
-// @ID CreateTaint
-// @Summary      Create node taint (org scoped)
-// @Description  Creates a taint.
-// @Tags         Taints
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        body body dto.CreateTaintRequest true "Taint payload"
-// @Success      201 {object} dto.TaintResponse
-// @Failure      400 {string} string "invalid json / missing fields / invalid node_pool_ids"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "create failed"
-// @Router       /taints [post]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				CreateTaint
+//	@Summary		Create node taint (org scoped)
+//	@Description	Creates a taint.
+//	@Tags			Taints
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string					false	"Organization UUID"
+//	@Param			body		body		dto.CreateTaintRequest	true	"Taint payload"
+//	@Success		201			{object}	dto.TaintResponse
+//	@Failure		400			{string}	string	"invalid json / missing fields / invalid node_pool_ids"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"create failed"
+//	@Router			/taints [post]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func CreateTaint(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -181,25 +184,26 @@ func CreateTaint(db *gorm.DB) http.HandlerFunc {
 }
 
 // UpdateTaint godoc
-// @ID 			UpdateTaint
-// @Summary     Update node taint (org scoped)
-// @Description Partially update taint fields.
-// @Tags        Taints
-// @Accept      json
-// @Produce     json
-// @Param       X-Org-ID header string false "Organization UUID"
-// @Param       id path string true "Node Taint ID (UUID)"
-// @Param       body body dto.UpdateTaintRequest true "Fields to update"
-// @Success     200 {object} dto.TaintResponse
-// @Failure     400 {string} string "invalid id / invalid json"
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     404 {string} string "not found"
-// @Failure     500 {string} string "update failed"
-// @Router      /taints/{id} [patch]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				UpdateTaint
+//	@Summary		Update node taint (org scoped)
+//	@Description	Partially update taint fields.
+//	@Tags			Taints
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string					false	"Organization UUID"
+//	@Param			id			path		string					true	"Node Taint ID (UUID)"
+//	@Param			body		body		dto.UpdateTaintRequest	true	"Fields to update"
+//	@Success		200			{object}	dto.TaintResponse
+//	@Failure		400			{string}	string	"invalid id / invalid json"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"update failed"
+//	@Router			/taints/{id} [patch]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func UpdateTaint(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -270,23 +274,24 @@ func UpdateTaint(db *gorm.DB) http.HandlerFunc {
 }
 
 // DeleteTaint godoc
-// @ID 			DeleteTaint
-// @Summary     Delete taint (org scoped)
-// @Description Permanently deletes the taint.
-// @Tags        Taints
-// @Accept      json
-// @Produce     json
-// @Param       X-Org-ID header string false "Organization UUID"
-// @Param       id path string true "Node Taint ID (UUID)"
-// @Success     204 {string} string "No Content"
-// @Failure     400 {string} string "invalid id"
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     500 {string} string "delete failed"
-// @Router      /taints/{id} [delete]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				DeleteTaint
+//	@Summary		Delete taint (org scoped)
+//	@Description	Permanently deletes the taint.
+//	@Tags			Taints
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"Node Taint ID (UUID)"
+//	@Success		204			{string}	string	"No Content"
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"delete failed"
+//	@Router			/taints/{id} [delete]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func DeleteTaint(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())

@@ -17,14 +17,15 @@ type meResponse struct {
 }
 
 // GetMe godoc
-// @ID GetMe
-// @Summary Get current user profile
-// @Tags Me
-// @Produce json
-// @Success 200 {object} meResponse
-// @Router /me [get]
-// @Security BearerAuth
-// @Security ApiKeyAuth
+//
+//	@ID			GetMe
+//	@Summary	Get current user profile
+//	@Tags		Me
+//	@Produce	json
+//	@Success	200	{object}	meResponse
+//	@Router		/me [get]
+//	@Security	BearerAuth
+//	@Security	ApiKeyAuth
 func GetMe(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := httpmiddleware.UserFrom(r.Context())
@@ -69,16 +70,17 @@ type updateMeRequest struct {
 }
 
 // UpdateMe godoc
-// @ID UpdateMe
-// @Summary Update current user profile
-// @Tags Me
-// @Accept json
-// @Produce json
-// @Param body body updateMeRequest true "Patch profile"
-// @Success 200 {object} models.User
-// @Router /me [patch]
-// @Security BearerAuth
-// @Security ApiKeyAuth
+//
+//	@ID			UpdateMe
+//	@Summary	Update current user profile
+//	@Tags		Me
+//	@Accept		json
+//	@Produce	json
+//	@Param		body	body		updateMeRequest	true	"Patch profile"
+//	@Success	200		{object}	models.User
+//	@Router		/me [patch]
+//	@Security	BearerAuth
+//	@Security	ApiKeyAuth
 func UpdateMe(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := httpmiddleware.UserFrom(r.Context())

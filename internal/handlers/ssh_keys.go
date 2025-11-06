@@ -26,21 +26,22 @@ import (
 )
 
 // ListPublicSshKeys godoc
-// @ID 			ListPublicSshKeys
-// @Summary     List ssh keys (org scoped)
-// @Description Returns ssh keys for the organization in X-Org-ID.
-// @Tags        Ssh
-// @Accept      json
-// @Produce     json
-// @Param       X-Org-ID header string false "Organization UUID"
-// @Success     200 {array}  dto.SshResponse
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     500 {string} string "failed to list keys"
-// @Router      /ssh [get]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				ListPublicSshKeys
+//	@Summary		List ssh keys (org scoped)
+//	@Description	Returns ssh keys for the organization in X-Org-ID.
+//	@Tags			Ssh
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Success		200			{array}		dto.SshResponse
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"failed to list keys"
+//	@Router			/ssh [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func ListPublicSshKeys(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -66,23 +67,24 @@ func ListPublicSshKeys(db *gorm.DB) http.HandlerFunc {
 }
 
 // CreateSSHKey
-// @ID 			CreateSSHKey
-// @Summary     Create ssh keypair (org scoped)
-// @Description Generates an RSA or ED25519 keypair, saves it, and returns metadata. For RSA you may set bits (2048/3072/4096). Default is 4096. ED25519 ignores bits.
-// @Tags        Ssh
-// @Accept      json
-// @Produce     json
-// @Param       X-Org-ID header string false "Organization UUID"
-// @Param       body body dto.CreateSSHRequest true "Key generation options"
-// @Success     201 {object} dto.SshResponse
-// @Failure     400 {string} string "invalid json / invalid bits"
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     500 {string} string "generation/create failed"
-// @Router      /ssh [post]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				CreateSSHKey
+//	@Summary		Create ssh keypair (org scoped)
+//	@Description	Generates an RSA or ED25519 keypair, saves it, and returns metadata. For RSA you may set bits (2048/3072/4096). Default is 4096. ED25519 ignores bits.
+//	@Tags			Ssh
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string					false	"Organization UUID"
+//	@Param			body		body		dto.CreateSSHRequest	true	"Key generation options"
+//	@Success		201			{object}	dto.SshResponse
+//	@Failure		400			{string}	string	"invalid json / invalid bits"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"generation/create failed"
+//	@Router			/ssh [post]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func CreateSSHKey(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -179,26 +181,27 @@ func CreateSSHKey(db *gorm.DB) http.HandlerFunc {
 }
 
 // GetSSHKey godoc
-// @ID 			GetSSHKey
-// @Summary     Get ssh key by ID (org scoped)
-// @Description Returns public key fields. Append `?reveal=true` to include the private key PEM.
-// @Tags        Ssh
-// @Accept      json
-// @Produce     json
-// @Param       X-Org-ID header string false "Organization UUID"
-// @Param       id path string true "SSH Key ID (UUID)"
-// @Param       reveal query bool false "Reveal private key PEM"
-// @Success     200 {object} dto.SshResponse
-// @Success     200 {object} dto.SshRevealResponse "When reveal=true"
-// @Failure     400 {string} string "invalid id"
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     404 {string} string "not found"
-// @Failure     500 {string} string "fetch failed"
-// @Router      /ssh/{id} [get]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				GetSSHKey
+//	@Summary		Get ssh key by ID (org scoped)
+//	@Description	Returns public key fields. Append `?reveal=true` to include the private key PEM.
+//	@Tags			Ssh
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"SSH Key ID (UUID)"
+//	@Param			reveal		query		bool	false	"Reveal private key PEM"
+//	@Success		200			{object}	dto.SshResponse
+//	@Success		200			{object}	dto.SshRevealResponse	"When reveal=true"
+//	@Failure		400			{string}	string					"invalid id"
+//	@Failure		401			{string}	string					"Unauthorized"
+//	@Failure		403			{string}	string					"organization required"
+//	@Failure		404			{string}	string					"not found"
+//	@Failure		500			{string}	string					"fetch failed"
+//	@Router			/ssh/{id} [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func GetSSHKey(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -272,23 +275,24 @@ func GetSSHKey(db *gorm.DB) http.HandlerFunc {
 }
 
 // DeleteSSHKey godoc
-// @ID 			DeleteSSHKey
-// @Summary     Delete ssh keypair (org scoped)
-// @Description Permanently deletes a keypair.
-// @Tags        Ssh
-// @Accept      json
-// @Produce     json
-// @Param       X-Org-ID header string false "Organization UUID"
-// @Param       id path string true "SSH Key ID (UUID)"
-// @Success     204 {string} string "No Content"
-// @Failure     400 {string} string "invalid id"
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     500 {string} string "delete failed"
-// @Router      /ssh/{id} [delete]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				DeleteSSHKey
+//	@Summary		Delete ssh keypair (org scoped)
+//	@Description	Permanently deletes a keypair.
+//	@Tags			Ssh
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"SSH Key ID (UUID)"
+//	@Success		204			{string}	string	"No Content"
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"delete failed"
+//	@Router			/ssh/{id} [delete]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func DeleteSSHKey(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -318,24 +322,25 @@ func DeleteSSHKey(db *gorm.DB) http.HandlerFunc {
 }
 
 // DownloadSSHKey godoc
-// @ID 			DownloadSSHKey
-// @Summary     Download ssh key files by ID (org scoped)
-// @Description Download `part=public|private|both` of the keypair. `both` returns a zip file.
-// @Tags        Ssh
-// @Produce     json
-// @Param       X-Org-ID header string true "Organization UUID"
-// @Param       id path string true "SSH Key ID (UUID)"
-// @Param       part query string true "Which part to download" Enums(public,private,both)
-// @Success     200 {string} string "file content"
-// @Failure     400 {string} string "invalid id / invalid part"
-// @Failure     401 {string} string "Unauthorized"
-// @Failure     403 {string} string "organization required"
-// @Failure     404 {string} string "not found"
-// @Failure     500 {string} string "download failed"
-// @Router      /ssh/{id}/download [get]
-// @Security    BearerAuth
-// @Security    OrgKeyAuth
-// @Security    OrgSecretAuth
+//
+//	@ID				DownloadSSHKey
+//	@Summary		Download ssh key files by ID (org scoped)
+//	@Description	Download `part=public|private|both` of the keypair. `both` returns a zip file.
+//	@Tags			Ssh
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	true	"Organization UUID"
+//	@Param			id			path		string	true	"SSH Key ID (UUID)"
+//	@Param			part		query		string	true	"Which part to download"	Enums(public,private,both)
+//	@Success		200			{string}	string	"file content"
+//	@Failure		400			{string}	string	"invalid id / invalid part"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"download failed"
+//	@Router			/ssh/{id}/download [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())

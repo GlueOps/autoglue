@@ -17,24 +17,25 @@ import (
 )
 
 // ListAnnotations godoc
-// @ID           ListAnnotations
-// @Summary      List annotations (org scoped)
-// @Description  Returns annotations for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
-// @Tags         Annotations
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        key query string false "Exact key"
-// @Param        value query string false "Exact value"
-// @Param        q query string false "key contains (case-insensitive)"
-// @Success      200 {array}  dto.AnnotationResponse
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "failed to list annotations"
-// @Router       /annotations [get]
-// @Security     BearerAuth
-// @Security     OrgKeyAuth
-// @Security     OrgSecretAuth
+//
+//	@ID				ListAnnotations
+//	@Summary		List annotations (org scoped)
+//	@Description	Returns annotations for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
+//	@Tags			Annotations
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			key			query		string	false	"Exact key"
+//	@Param			value		query		string	false	"Exact value"
+//	@Param			q			query		string	false	"key contains (case-insensitive)"
+//	@Success		200			{array}		dto.AnnotationResponse
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"failed to list annotations"
+//	@Router			/annotations [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func ListAnnotations(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -69,24 +70,25 @@ func ListAnnotations(db *gorm.DB) http.HandlerFunc {
 }
 
 // GetAnnotation godoc
-// @ID           GetAnnotation
-// @Summary      Get annotation by ID (org scoped)
-// @Description  Returns one annotation. Add `include=node_pools` to include node pools.
-// @Tags         Annotations
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        id path string true "Annotation ID (UUID)"
-// @Success      200 {object} dto.AnnotationResponse
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "fetch failed"
-// @Router       /annotations/{id} [get]
-// @Security     BearerAuth
-// @Security     OrgKeyAuth
-// @Security     OrgSecretAuth
+//
+//	@ID				GetAnnotation
+//	@Summary		Get annotation by ID (org scoped)
+//	@Description	Returns one annotation. Add `include=node_pools` to include node pools.
+//	@Tags			Annotations
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"Annotation ID (UUID)"
+//	@Success		200			{object}	dto.AnnotationResponse
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"fetch failed"
+//	@Router			/annotations/{id} [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func GetAnnotation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -115,23 +117,24 @@ func GetAnnotation(db *gorm.DB) http.HandlerFunc {
 }
 
 // CreateAnnotation godoc
-// @ID           CreateAnnotation
-// @Summary      Create annotation (org scoped)
-// @Description  Creates an annotation.
-// @Tags         Annotations
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        body body dto.CreateAnnotationRequest true "Annotation payload"
-// @Success      201 {object} dto.AnnotationResponse
-// @Failure      400 {string} string "invalid json / missing fields"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "create failed"
-// @Router       /annotations [post]
-// @Security     BearerAuth
-// @Security     OrgKeyAuth
-// @Security     OrgSecretAuth
+//
+//	@ID				CreateAnnotation
+//	@Summary		Create annotation (org scoped)
+//	@Description	Creates an annotation.
+//	@Tags			Annotations
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string						false	"Organization UUID"
+//	@Param			body		body		dto.CreateAnnotationRequest	true	"Annotation payload"
+//	@Success		201			{object}	dto.AnnotationResponse
+//	@Failure		400			{string}	string	"invalid json / missing fields"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"create failed"
+//	@Router			/annotations [post]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func CreateAnnotation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -175,25 +178,26 @@ func CreateAnnotation(db *gorm.DB) http.HandlerFunc {
 }
 
 // UpdateAnnotation godoc
-// @ID           UpdateAnnotation
-// @Summary      Update annotation (org scoped)
-// @Description  Partially update annotation fields.
-// @Tags         Annotations
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        id path string true "Annotation ID (UUID)"
-// @Param        body body dto.UpdateAnnotationRequest true "Fields to update"
-// @Success      200 {object} dto.AnnotationResponse
-// @Failure      400 {string} string "invalid id / invalid json"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      404 {string} string "not found"
-// @Failure      500 {string} string "update failed"
-// @Router       /annotations/{id} [patch]
-// @Security     BearerAuth
-// @Security     OrgKeyAuth
-// @Security     OrgSecretAuth
+//
+//	@ID				UpdateAnnotation
+//	@Summary		Update annotation (org scoped)
+//	@Description	Partially update annotation fields.
+//	@Tags			Annotations
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string						false	"Organization UUID"
+//	@Param			id			path		string						true	"Annotation ID (UUID)"
+//	@Param			body		body		dto.UpdateAnnotationRequest	true	"Fields to update"
+//	@Success		200			{object}	dto.AnnotationResponse
+//	@Failure		400			{string}	string	"invalid id / invalid json"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"update failed"
+//	@Router			/annotations/{id} [patch]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func UpdateAnnotation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -246,23 +250,24 @@ func UpdateAnnotation(db *gorm.DB) http.HandlerFunc {
 }
 
 // DeleteAnnotation godoc
-// @ID           DeleteAnnotation
-// @Summary      Delete annotation (org scoped)
-// @Description  Permanently deletes the annotation.
-// @Tags         Annotations
-// @Accept       json
-// @Produce      json
-// @Param        X-Org-ID header string false "Organization UUID"
-// @Param        id path string true "Annotation ID (UUID)"
-// @Success      204 {string} string "No Content"
-// @Failure      400 {string} string "invalid id"
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      403 {string} string "organization required"
-// @Failure      500 {string} string "delete failed"
-// @Router       /annotations/{id} [delete]
-// @Security     BearerAuth
-// @Security     OrgKeyAuth
-// @Security     OrgSecretAuth
+//
+//	@ID				DeleteAnnotation
+//	@Summary		Delete annotation (org scoped)
+//	@Description	Permanently deletes the annotation.
+//	@Tags			Annotations
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"Annotation ID (UUID)"
+//	@Success		204			{string}	string	"No Content"
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"delete failed"
+//	@Router			/annotations/{id} [delete]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func DeleteAnnotation(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())

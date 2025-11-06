@@ -2,35 +2,35 @@ package main
 
 import "github.com/glueops/autoglue/cmd"
 
-// @title       AutoGlue API
-// @version     1.0
-// @description API for managing K3s clusters across cloud providers
+//	@title			AutoGlue API
+//	@version		1.0
+//	@description	API for managing K3s clusters across cloud providers
 
-// @contact.name    GlueOps
+//	@contact.name	GlueOps
 
-// @BasePath    /api/v1
-// @schemes     http https
-// @host        localhost:8080
+//	@BasePath	/api/v1
+//	@schemes	http https
+//	@host		localhost:8080
 
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
-// @description Bearer token authentication
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				Bearer token authentication
 
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name X-API-KEY
-// @description User API key
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@in							header
+//	@name						X-API-KEY
+//	@description				User API key
 
-// @securityDefinitions.apikey OrgKeyAuth
-// @in header
-// @name X-ORG-KEY
-// @description Org-level key/secret authentication
+//	@securityDefinitions.apikey	OrgKeyAuth
+//	@in							header
+//	@name						X-ORG-KEY
+//	@description				Org-level key/secret authentication
 
-// @securityDefinitions.apikey OrgSecretAuth
-// @in header
-// @name X-ORG-SECRET
-// @description Org-level secret
+//	@securityDefinitions.apikey	OrgSecretAuth
+//	@in							header
+//	@name						X-ORG-SECRET
+//	@description				Org-level secret
 
 func main() {
 	cmd.Execute()

@@ -27,14 +27,15 @@ type userAPIKeyOut struct {
 }
 
 // ListUserAPIKeys godoc
-// @ID ListUserAPIKeys
-// @Summary List my API keys
-// @Tags MeAPIKeys
-// @Produce json
-// @Success 200 {array} userAPIKeyOut
-// @Router /me/api-keys [get]
-// @Security BearerAuth
-// @Security ApiKeyAuth
+//
+//	@ID			ListUserAPIKeys
+//	@Summary	List my API keys
+//	@Tags		MeAPIKeys
+//	@Produce	json
+//	@Success	200	{array}	userAPIKeyOut
+//	@Router		/me/api-keys [get]
+//	@Security	BearerAuth
+//	@Security	ApiKeyAuth
 func ListUserAPIKeys(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := httpmiddleware.UserFrom(r.Context())
@@ -64,17 +65,18 @@ type createUserKeyRequest struct {
 }
 
 // CreateUserAPIKey godoc
-// @ID CreateUserAPIKey
-// @Summary Create a new user API key
-// @Description Returns the plaintext key once. Store it securely on the client side.
-// @Tags MeAPIKeys
-// @Accept json
-// @Produce json
-// @Param body body createUserKeyRequest true "Key options"
-// @Success 201 {object} userAPIKeyOut
-// @Router /me/api-keys [post]
-// @Security BearerAuth
-// @Security ApiKeyAuth
+//
+//	@ID				CreateUserAPIKey
+//	@Summary		Create a new user API key
+//	@Description	Returns the plaintext key once. Store it securely on the client side.
+//	@Tags			MeAPIKeys
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		createUserKeyRequest	true	"Key options"
+//	@Success		201		{object}	userAPIKeyOut
+//	@Router			/me/api-keys [post]
+//	@Security		BearerAuth
+//	@Security		ApiKeyAuth
 func CreateUserAPIKey(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := httpmiddleware.UserFrom(r.Context())
@@ -118,14 +120,15 @@ func CreateUserAPIKey(db *gorm.DB) http.HandlerFunc {
 }
 
 // DeleteUserAPIKey godoc
-// @ID DeleteUserAPIKey
-// @Summary Delete a user API key
-// @Tags MeAPIKeys
-// @Produce json
-// @Param id path string true "Key ID (UUID)"
-// @Success 204 "No Content"
-// @Router /me/api-keys/{id} [delete]
-// @Security BearerAuth
+//
+//	@ID			DeleteUserAPIKey
+//	@Summary	Delete a user API key
+//	@Tags		MeAPIKeys
+//	@Produce	json
+//	@Param		id	path	string	true	"Key ID (UUID)"
+//	@Success	204	"No Content"
+//	@Router		/me/api-keys/{id} [delete]
+//	@Security	BearerAuth
 func DeleteUserAPIKey(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, ok := httpmiddleware.UserFrom(r.Context())
