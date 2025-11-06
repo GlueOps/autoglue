@@ -62,6 +62,9 @@ func ListPublicSshKeys(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
+		if out == nil {
+			out = []dto.SshResponse{}
+		}
 		utils.WriteJSON(w, http.StatusOK, out)
 	}
 }

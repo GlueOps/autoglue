@@ -307,7 +307,7 @@ export const SshPage = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead className="min-w-[360px]">Public Key</TableHead>
+                  <TableHead>Public Key</TableHead>
                   <TableHead>Fingerprint</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="w-[160px] text-right">Actions</TableHead>
@@ -320,22 +320,19 @@ export const SshPage = () => {
                   return (
                     <TableRow key={k.id}>
                       <TableCell className="font-medium">{k.name || "—"}</TableCell>
-                      <TableCell className="max-w-[560px] truncate">
-                        <div className="flex items-start gap-2">
-                          <Badge variant="secondary" className="whitespace-nowrap">
-                            {keyType}
-                          </Badge>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="font-mono text-xs">{truncated}</span>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-[70vw]">
-                              <div className="max-w-full">
-                                <p className="font-mono text-xs break-all">{k.public_key}</p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
+                      <TableCell>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge variant="secondary" className="whitespace-nowrap">
+                              {keyType}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[70vw]">
+                            <div className="max-w-full">
+                              <p className="font-mono text-xs break-all">{k.public_key}</p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       </TableCell>
                       <TableCell className="font-mono text-xs">{k.fingerprint}</TableCell>
                       <TableCell>
@@ -352,14 +349,14 @@ export const SshPage = () => {
                       <TableCell className="space-x-2 text-right">
                         <Button
                           size="sm"
-                          variant="ghost"
+                          variant="outline"
                           onClick={() => copy(k.public_key ?? "", "Public key copied")}
                         >
                           Copy Pub
                         </Button>
                         <Button
                           size="sm"
-                          variant="ghost"
+                          variant="outline"
                           onClick={() => copy(k.fingerprint ?? "", "Fingerprint copied")}
                         >
                           Copy FP

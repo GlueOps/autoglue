@@ -1,6 +1,12 @@
 package main
 
-import "github.com/glueops/autoglue/cmd"
+import (
+	"os"
+
+	"github.com/glueops/autoglue/cmd"
+	"github.com/glueops/autoglue/docs"
+	"github.com/joho/godotenv"
+)
 
 //	@title			AutoGlue API
 //	@version		1.0
@@ -10,7 +16,6 @@ import "github.com/glueops/autoglue/cmd"
 
 //	@BasePath	/api/v1
 //	@schemes	http https
-//	@host		localhost:8080
 
 //	@securityDefinitions.apikey	BearerAuth
 //	@in							header
@@ -33,5 +38,7 @@ import "github.com/glueops/autoglue/cmd"
 //	@description				Org-level secret
 
 func main() {
+	_ = godotenv.Load()
+	docs.SwaggerInfo.Host = os.Getenv("SWAGGER_HOST")
 	cmd.Execute()
 }

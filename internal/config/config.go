@@ -24,10 +24,11 @@ type Config struct {
 	GithubClientID     string
 	GithubClientSecret string
 
-	UIDev   bool
-	Env     string
-	Debug   bool
-	Swagger bool
+	UIDev       bool
+	Env         string
+	Debug       bool
+	Swagger     bool
+	SwaggerHost string
 }
 
 var (
@@ -52,6 +53,7 @@ func Load() (Config, error) {
 		v.SetDefault("env", "development")
 		v.SetDefault("debug", false)
 		v.SetDefault("swagger", false)
+		v.SetDefault("swagger.host", "localhost:8080")
 
 		// Env setup and binding
 		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -73,6 +75,7 @@ func Load() (Config, error) {
 			"env",
 			"debug",
 			"swagger",
+			"swagger.host",
 		}
 		for _, k := range keys {
 			_ = v.BindEnv(k)
@@ -92,10 +95,11 @@ func Load() (Config, error) {
 			GithubClientID:     v.GetString("github.client.id"),
 			GithubClientSecret: v.GetString("github.client.secret"),
 
-			UIDev:   v.GetBool("ui.dev"),
-			Env:     v.GetString("env"),
-			Debug:   v.GetBool("debug"),
-			Swagger: v.GetBool("swagger"),
+			UIDev:       v.GetBool("ui.dev"),
+			Env:         v.GetString("env"),
+			Debug:       v.GetBool("debug"),
+			Swagger:     v.GetBool("swagger"),
+			SwaggerHost: v.GetString("swagger.host"),
 		}
 
 		// Validate
