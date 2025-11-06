@@ -4,13 +4,13 @@
 FROM golang:1.25.3-alpine AS builder
 
 RUN apk add --no-cache \
-      git ca-certificates tzdata \
-      build-base \
-      nodejs npm
+    bash git ca-certificates tzdata \
+    build-base \
+    nodejs npm \
+    openjdk17-jre-headless \
+    jq yq brotli
 
 RUN npm i -g yarn pnpm
-
-WORKDIR /src
 
 WORKDIR /src
 
