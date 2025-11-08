@@ -10,6 +10,7 @@ api_health.go
 api_labels.go
 api_me.go
 api_me_api_keys.go
+api_node_pools.go
 api_orgs.go
 api_servers.go
 api_ssh.go
@@ -20,9 +21,14 @@ docs/AnnotationsAPI.md
 docs/ArcherAdminAPI.md
 docs/AuthAPI.md
 docs/DtoAnnotationResponse.md
+docs/DtoAttachAnnotationsRequest.md
+docs/DtoAttachLabelsRequest.md
+docs/DtoAttachServersRequest.md
+docs/DtoAttachTaintsRequest.md
 docs/DtoAuthStartResponse.md
 docs/DtoCreateAnnotationRequest.md
 docs/DtoCreateLabelRequest.md
+docs/DtoCreateNodePoolRequest.md
 docs/DtoCreateSSHRequest.md
 docs/DtoCreateServerRequest.md
 docs/DtoCreateTaintRequest.md
@@ -32,6 +38,7 @@ docs/DtoJob.md
 docs/DtoJobStatus.md
 docs/DtoLabelResponse.md
 docs/DtoLogoutRequest.md
+docs/DtoNodePoolResponse.md
 docs/DtoPageJob.md
 docs/DtoQueueInfo.md
 docs/DtoRefreshRequest.md
@@ -42,6 +49,7 @@ docs/DtoTaintResponse.md
 docs/DtoTokenPair.md
 docs/DtoUpdateAnnotationRequest.md
 docs/DtoUpdateLabelRequest.md
+docs/DtoUpdateNodePoolRequest.md
 docs/DtoUpdateServerRequest.md
 docs/DtoUpdateTaintRequest.md
 docs/HandlersCreateUserKeyRequest.md
@@ -63,6 +71,7 @@ docs/ModelsAPIKey.md
 docs/ModelsOrganization.md
 docs/ModelsUser.md
 docs/ModelsUserEmail.md
+docs/NodePoolsAPI.md
 docs/OrgsAPI.md
 docs/ServersAPI.md
 docs/SshAPI.md
@@ -72,9 +81,14 @@ git_push.sh
 go.mod
 go.sum
 model_dto_annotation_response.go
+model_dto_attach_annotations_request.go
+model_dto_attach_labels_request.go
+model_dto_attach_servers_request.go
+model_dto_attach_taints_request.go
 model_dto_auth_start_response.go
 model_dto_create_annotation_request.go
 model_dto_create_label_request.go
+model_dto_create_node_pool_request.go
 model_dto_create_server_request.go
 model_dto_create_ssh_request.go
 model_dto_create_taint_request.go
@@ -84,6 +98,7 @@ model_dto_jwk.go
 model_dto_jwks.go
 model_dto_label_response.go
 model_dto_logout_request.go
+model_dto_node_pool_response.go
 model_dto_page_job.go
 model_dto_queue_info.go
 model_dto_refresh_request.go
@@ -94,6 +109,7 @@ model_dto_taint_response.go
 model_dto_token_pair.go
 model_dto_update_annotation_request.go
 model_dto_update_label_request.go
+model_dto_update_node_pool_request.go
 model_dto_update_server_request.go
 model_dto_update_taint_request.go
 model_handlers_create_user_key_request.go
@@ -120,6 +136,7 @@ test/api_health_test.go
 test/api_labels_test.go
 test/api_me_api_keys_test.go
 test/api_me_test.go
+test/api_node_pools_test.go
 test/api_orgs_test.go
 test/api_servers_test.go
 test/api_ssh_test.go

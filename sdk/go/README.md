@@ -74,7 +74,7 @@ ctx = context.WithValue(context.Background(), autoglue.ContextOperationServerVar
 
 ## Documentation for API Endpoints
 
-All URIs are relative to *http://localhost:8080/api/v1*
+All URIs are relative to */api/v1*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
@@ -104,6 +104,23 @@ Class | Method | HTTP request | Description
 *MeAPIKeysAPI* | [**CreateUserAPIKey**](docs/MeAPIKeysAPI.md#createuserapikey) | **Post** /me/api-keys | Create a new user API key
 *MeAPIKeysAPI* | [**DeleteUserAPIKey**](docs/MeAPIKeysAPI.md#deleteuserapikey) | **Delete** /me/api-keys/{id} | Delete a user API key
 *MeAPIKeysAPI* | [**ListUserAPIKeys**](docs/MeAPIKeysAPI.md#listuserapikeys) | **Get** /me/api-keys | List my API keys
+*NodePoolsAPI* | [**AttachNodePoolAnnotations**](docs/NodePoolsAPI.md#attachnodepoolannotations) | **Post** /node-pools/{id}/annotations | Attach annotation to a node pool (org scoped)
+*NodePoolsAPI* | [**AttachNodePoolLabels**](docs/NodePoolsAPI.md#attachnodepoollabels) | **Post** /node-pools/{id}/labels | Attach labels to a node pool (org scoped)
+*NodePoolsAPI* | [**AttachNodePoolServers**](docs/NodePoolsAPI.md#attachnodepoolservers) | **Post** /node-pools/{id}/servers | Attach servers to a node pool (org scoped)
+*NodePoolsAPI* | [**AttachNodePoolTaints**](docs/NodePoolsAPI.md#attachnodepooltaints) | **Post** /node-pools/{id}/taints | Attach taints to a node pool (org scoped)
+*NodePoolsAPI* | [**CreateNodePool**](docs/NodePoolsAPI.md#createnodepool) | **Post** /node-pools | Create node pool (org scoped)
+*NodePoolsAPI* | [**DeleteNodePool**](docs/NodePoolsAPI.md#deletenodepool) | **Delete** /node-pools/{id} | Delete node pool (org scoped)
+*NodePoolsAPI* | [**DetachNodePoolAnnotation**](docs/NodePoolsAPI.md#detachnodepoolannotation) | **Delete** /node-pools/{id}/annotations/{annotationId} | Detach one annotation from a node pool (org scoped)
+*NodePoolsAPI* | [**DetachNodePoolLabel**](docs/NodePoolsAPI.md#detachnodepoollabel) | **Delete** /node-pools/{id}/labels/{labelId} | Detach one label from a node pool (org scoped)
+*NodePoolsAPI* | [**DetachNodePoolServer**](docs/NodePoolsAPI.md#detachnodepoolserver) | **Delete** /node-pools/{id}/servers/{serverId} | Detach one server from a node pool (org scoped)
+*NodePoolsAPI* | [**DetachNodePoolTaint**](docs/NodePoolsAPI.md#detachnodepooltaint) | **Delete** /node-pools/{id}/taints/{taintId} | Detach one taint from a node pool (org scoped)
+*NodePoolsAPI* | [**GetNodePool**](docs/NodePoolsAPI.md#getnodepool) | **Get** /node-pools/{id} | Get node pool by ID (org scoped)
+*NodePoolsAPI* | [**ListNodePoolAnnotations**](docs/NodePoolsAPI.md#listnodepoolannotations) | **Get** /node-pools/{id}/annotations | List annotations attached to a node pool (org scoped)
+*NodePoolsAPI* | [**ListNodePoolLabels**](docs/NodePoolsAPI.md#listnodepoollabels) | **Get** /node-pools/{id}/labels | List labels attached to a node pool (org scoped)
+*NodePoolsAPI* | [**ListNodePoolServers**](docs/NodePoolsAPI.md#listnodepoolservers) | **Get** /node-pools/{id}/servers | List servers attached to a node pool (org scoped)
+*NodePoolsAPI* | [**ListNodePoolTaints**](docs/NodePoolsAPI.md#listnodepooltaints) | **Get** /node-pools/{id}/taints | List taints attached to a node pool (org scoped)
+*NodePoolsAPI* | [**ListNodePools**](docs/NodePoolsAPI.md#listnodepools) | **Get** /node-pools | List node pools (org scoped)
+*NodePoolsAPI* | [**UpdateNodePool**](docs/NodePoolsAPI.md#updatenodepool) | **Patch** /node-pools/{id} | Update node pool (org scoped)
 *OrgsAPI* | [**AddOrUpdateMember**](docs/OrgsAPI.md#addorupdatemember) | **Post** /orgs/{id}/members | Add or update a member (owner/admin)
 *OrgsAPI* | [**CreateOrg**](docs/OrgsAPI.md#createorg) | **Post** /orgs | Create organization
 *OrgsAPI* | [**CreateOrgKey**](docs/OrgsAPI.md#createorgkey) | **Post** /orgs/{id}/api-keys | Create org key/secret pair (owner/admin)
@@ -135,9 +152,14 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [DtoAnnotationResponse](docs/DtoAnnotationResponse.md)
+ - [DtoAttachAnnotationsRequest](docs/DtoAttachAnnotationsRequest.md)
+ - [DtoAttachLabelsRequest](docs/DtoAttachLabelsRequest.md)
+ - [DtoAttachServersRequest](docs/DtoAttachServersRequest.md)
+ - [DtoAttachTaintsRequest](docs/DtoAttachTaintsRequest.md)
  - [DtoAuthStartResponse](docs/DtoAuthStartResponse.md)
  - [DtoCreateAnnotationRequest](docs/DtoCreateAnnotationRequest.md)
  - [DtoCreateLabelRequest](docs/DtoCreateLabelRequest.md)
+ - [DtoCreateNodePoolRequest](docs/DtoCreateNodePoolRequest.md)
  - [DtoCreateSSHRequest](docs/DtoCreateSSHRequest.md)
  - [DtoCreateServerRequest](docs/DtoCreateServerRequest.md)
  - [DtoCreateTaintRequest](docs/DtoCreateTaintRequest.md)
@@ -147,6 +169,7 @@ Class | Method | HTTP request | Description
  - [DtoJobStatus](docs/DtoJobStatus.md)
  - [DtoLabelResponse](docs/DtoLabelResponse.md)
  - [DtoLogoutRequest](docs/DtoLogoutRequest.md)
+ - [DtoNodePoolResponse](docs/DtoNodePoolResponse.md)
  - [DtoPageJob](docs/DtoPageJob.md)
  - [DtoQueueInfo](docs/DtoQueueInfo.md)
  - [DtoRefreshRequest](docs/DtoRefreshRequest.md)
@@ -157,6 +180,7 @@ Class | Method | HTTP request | Description
  - [DtoTokenPair](docs/DtoTokenPair.md)
  - [DtoUpdateAnnotationRequest](docs/DtoUpdateAnnotationRequest.md)
  - [DtoUpdateLabelRequest](docs/DtoUpdateLabelRequest.md)
+ - [DtoUpdateNodePoolRequest](docs/DtoUpdateNodePoolRequest.md)
  - [DtoUpdateServerRequest](docs/DtoUpdateServerRequest.md)
  - [DtoUpdateTaintRequest](docs/DtoUpdateTaintRequest.md)
  - [HandlersCreateUserKeyRequest](docs/HandlersCreateUserKeyRequest.md)

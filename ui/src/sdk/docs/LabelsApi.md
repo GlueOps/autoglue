@@ -1,6 +1,6 @@
 # LabelsApi
 
-All URIs are relative to *http://localhost:8080/api/v1*
+All URIs are relative to */api/v1*
 
 | Method | HTTP request | Description |
 |------------- | ------------- | -------------|

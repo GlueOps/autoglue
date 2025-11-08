@@ -79,15 +79,17 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs) http.Handler {
 				a.Post("/logout", handlers.Logout(db))
 			})
 
-			v1.Route("/admin/archer", func(a chi.Router) {
-				a.Use(authUser)
-				a.Use(httpmiddleware.RequirePlatformAdmin())
+			v1.Route("/admin", func(admin chi.Router) {
+				admin.Route("/archer", func(archer chi.Router) {
+					archer.Use(authUser)
+					archer.Use(httpmiddleware.RequirePlatformAdmin())
 
-				a.Get("/jobs", handlers.AdminListArcherJobs(db))
-				a.Post("/jobs", handlers.AdminEnqueueArcherJob(db, jobs))
-				a.Post("/jobs/{id}/retry", handlers.AdminRetryArcherJob(db))
-				a.Post("/jobs/{id}/cancel", handlers.AdminCancelArcherJob(db))
-				a.Get("/queues", handlers.AdminListArcherQueues(db))
+					archer.Get("/jobs", handlers.AdminListArcherJobs(db))
+					archer.Post("/jobs", handlers.AdminEnqueueArcherJob(db, jobs))
+					archer.Post("/jobs/{id}/retry", handlers.AdminRetryArcherJob(db))
+					archer.Post("/jobs/{id}/cancel", handlers.AdminCancelArcherJob(db))
+					archer.Get("/queues", handlers.AdminListArcherQueues(db))
+				})
 			})
 
 			v1.Route("/me", func(me chi.Router) {
@@ -167,6 +169,35 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs) http.Handler {
 				a.Get("/{id}", handlers.GetAnnotation(db))
 				a.Patch("/{id}", handlers.UpdateAnnotation(db))
 				a.Delete("/{id}", handlers.DeleteAnnotation(db))
+			})
+
+			v1.Route("/node-pools", func(n chi.Router) {
+				n.Use(authOrg)
+				n.Get("/", handlers.ListNodePools(db))
+				n.Post("/", handlers.CreateNodePool(db))
+				n.Get("/{id}", handlers.GetNodePool(db))
+				n.Patch("/{id}", handlers.UpdateNodePool(db))
+				n.Delete("/{id}", handlers.DeleteNodePool(db))
+
+				// Servers
+				n.Get("/{id}/servers", handlers.ListNodePoolServers(db))
+				n.Post("/{id}/servers", handlers.AttachNodePoolServers(db))
+				n.Delete("/{id}/servers/{serverId}", handlers.DetachNodePoolServer(db))
+
+				// Taints
+				n.Get("/{id}/taints", handlers.ListNodePoolTaints(db))
+				n.Post("/{id}/taints", handlers.AttachNodePoolTaints(db))
+				n.Delete("/{id}/taints/{taintId}", handlers.DetachNodePoolTaint(db))
+
+				// Labels
+				n.Get("/{id}/labels", handlers.ListNodePoolLabels(db))
+				n.Post("/{id}/labels", handlers.AttachNodePoolLabels(db))
+				n.Delete("/{id}/labels/{labelId}", handlers.DetachNodePoolLabel(db))
+
+				// Annotations
+				n.Get("/{id}/annotations", handlers.ListNodePoolAnnotations(db))
+				n.Post("/{id}/annotations", handlers.AttachNodePoolAnnotations(db))
+				n.Delete("/{id}/annotations/{annotationId}", handlers.DetachNodePoolAnnotation(db))
 			})
 		})
 	})

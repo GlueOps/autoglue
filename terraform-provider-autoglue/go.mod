@@ -1,6 +1,6 @@
 module github.com/glueops/terraform-provider-gsot
 
-go 1.25.3
+go 1.25.4
 
 require (
 	github.com/glueops/autoglue-sdk-go v0.0.0-20251106000315-3969abd74adf

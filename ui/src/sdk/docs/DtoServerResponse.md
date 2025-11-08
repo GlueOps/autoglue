@@ -31,10 +31,10 @@ const example = {
   "organization_id": null,
   "private_ip_address": null,
   "public_ip_address": null,
-  "role": null,
+  "role": master|worker|bastion,
   "ssh_key_id": null,
   "ssh_user": null,
-  "status": null,
+  "status": pending|provisioning|ready|failed,
   "updated_at": null,
 } satisfies DtoServerResponse
 

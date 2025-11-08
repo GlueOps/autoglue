@@ -378,8 +378,13 @@ export const MePage = () => {
                           <Input
                             type="number"
                             inputMode="numeric"
+                            step={1}
+                            min={1}
                             placeholder="e.g. 720"
                             {...field}
+                            onChange={(e) =>
+                              field.onChange(e.target.value === "" ? "" : Number(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />

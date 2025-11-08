@@ -225,19 +225,242 @@ func sshInstallDockerWithOutput(ctx context.Context, host, user string, privateK
 	script := `
 set -euxo pipefail
 
-if ! command -v docker >/dev/null 2>&1; then
-  curl -fsSL https://get.docker.com | sh
+# ----------- toggles (set to 0 to skip) -----------
+: "${BASELINE_PKGS:=1}"
+: "${INSTALL_DOCKER:=1}"
+: "${SSH_HARDEN:=1}"
+: "${FIREWALL:=1}"
+: "${AUTO_UPDATES:=1}"
+: "${TIME_SYNC:=1}"
+: "${FAIL2BAN:=1}"
+: "${BANNER:=1}"
+
+# ----------- helpers -----------
+have() { command -v "$1" >/dev/null 2>&1; }
+
+pm=""
+if have apt-get; then pm="apt"
+elif have dnf; then pm="dnf"
+elif have yum; then pm="yum"
+elif have zypper; then pm="zypper"
+elif have apk; then pm="apk"
 fi
 
-# try to enable/start (handles distros with systemd)
-if command -v systemctl >/dev/null 2>&1; then
-  sudo systemctl enable --now docker || true
+pm_update_install() {
+  case "$pm" in
+    apt)
+      sudo apt-get update -y
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$@"
+      ;;
+    dnf)    sudo dnf install -y "$@" ;;
+    yum)    sudo yum install -y "$@" ;;
+    zypper) sudo zypper --non-interactive install -y "$@" || true ;;
+    apk)    sudo apk add --no-cache "$@" ;;
+    *)
+      echo "Unsupported distro: couldn't detect package manager" >&2
+      return 1
+      ;;
+  esac
+}
+
+systemd_enable_now() {
+  if have systemctl; then
+    sudo systemctl enable --now "$1" || true
+  fi
+}
+
+sshd_reload() {
+  if have systemctl && systemctl is-enabled ssh >/dev/null 2>&1; then
+    sudo systemctl reload ssh || true
+  elif have systemctl && systemctl is-enabled sshd >/dev/null 2>&1; then
+    sudo systemctl reload sshd || true
+  fi
+}
+
+# ----------- baseline packages -----------
+if [ "$BASELINE_PKGS" = "1" ] && [ -n "$pm" ]; then
+  pkgs_common="curl ca-certificates gnupg git jq unzip tar vim tmux htop net-tools"
+  case "$pm" in
+    apt)   pkgs="$pkgs_common ufw openssh-client" ;;
+    dnf|yum) pkgs="$pkgs_common firewalld openssh-clients" ;;
+    zypper)  pkgs="$pkgs_common firewalld openssh" ;;
+    apk)     pkgs="$pkgs_common openssh-client" ;;
+  esac
+  pm_update_install $pkgs || true
 fi
 
-# add current ssh user to docker group if exists
-if getent group docker >/dev/null 2>&1; then
-  sudo usermod -aG docker "$(id -un)" || true
+# ----------- docker & compose v2 -----------
+if [ "$INSTALL_DOCKER" = "1" ]; then
+  if ! have docker; then
+    curl -fsSL https://get.docker.com | sh
+  fi
+
+  # try to enable/start (handles distros with systemd)
+  if have systemctl; then
+    sudo systemctl enable --now docker || true
+  fi
+
+  # add current ssh user to docker group if exists
+  if getent group docker >/dev/null 2>&1; then
+    sudo usermod -aG docker "$(id -un)" || true
+  fi
+
+  # docker compose v2 (plugin) if missing
+  if ! docker compose version >/dev/null 2>&1; then
+    # Try package first (Debian/Ubuntu name)
+    if [ "$pm" = "apt" ]; then
+      sudo apt-get update -y
+      sudo apt-get install -y docker-compose-plugin || true
+    fi
+
+    # Fallback: install static plugin binary under ~/.docker/cli-plugins
+    if ! docker compose version >/dev/null 2>&1; then
+      mkdir -p ~/.docker/cli-plugins
+      arch="$(uname -m)"
+      case "$arch" in
+        x86_64|amd64) arch="x86_64" ;;
+        aarch64|arm64) arch="aarch64" ;;
+      esac
+      curl -fsSL -o ~/.docker/cli-plugins/docker-compose \
+        "https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-$(uname -s)-$arch"
+      chmod +x ~/.docker/cli-plugins/docker-compose
+    fi
+  fi
 fi
+
+# ----------- SSH hardening (non-destructive: separate conf file) -----------
+if [ "$SSH_HARDEN" = "1" ]; then
+  confd="/etc/ssh/sshd_config.d"
+  if [ -d "$confd" ] && [ -w "$confd" ]; then
+    sudo tee "$confd/10-bastion.conf" >/dev/null <<'EOF'
+# Bastion hardening
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+KbdInteractiveAuthentication no
+UsePAM yes
+PermitEmptyPasswords no
+PubkeyAuthentication yes
+ClientAliveInterval 300
+ClientAliveCountMax 2
+LoginGraceTime 20
+MaxAuthTries 3
+MaxSessions 10
+AllowAgentForwarding no
+X11Forwarding no
+EOF
+    sshd_reload
+  else
+    echo "Skipping SSH hardening: $confd not present or not writable" >&2
+  fi
+
+  # lock root password (no effect if already locked)
+  if have passwd; then
+    sudo passwd -l root || true
+  fi
+fi
+
+# ----------- firewall -----------
+if [ "$FIREWALL" = "1" ]; then
+  if have ufw; then
+    # Keep it minimal: allow SSH and rate-limit
+    sudo ufw --force reset || true
+    sudo ufw default deny incoming
+    sudo ufw default allow outgoing
+    sudo ufw allow OpenSSH || sudo ufw allow 22/tcp
+    sudo ufw limit OpenSSH || true
+    sudo ufw --force enable
+  elif have firewall-cmd; then
+    systemd_enable_now firewalld
+    sudo firewall-cmd --permanent --add-service=ssh || sudo firewall-cmd --permanent --add-port=22/tcp
+    sudo firewall-cmd --reload || true
+  else
+    echo "No supported firewall tool detected; skipping." >&2
+  fi
+fi
+
+# ----------- unattended / automatic updates -----------
+if [ "$AUTO_UPDATES" = "1" ] && [ -n "$pm" ]; then
+  case "$pm" in
+    apt)
+      pm_update_install unattended-upgrades apt-listchanges || true
+      sudo dpkg-reconfigure -f noninteractive unattended-upgrades || true
+      sudo tee /etc/apt/apt.conf.d/20auto-upgrades >/dev/null <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutocleanInterval "7";
+EOF
+      ;;
+    dnf)
+      pm_update_install dnf-automatic || true
+      sudo sed -i 's/^apply_updates = .*/apply_updates = yes/' /etc/dnf/automatic.conf || true
+      systemd_enable_now dnf-automatic.timer
+      ;;
+    yum)
+      pm_update_install yum-cron || true
+      sudo sed -i 's/apply_updates = no/apply_updates = yes/' /etc/yum/yum-cron.conf || true
+      systemd_enable_now yum-cron
+      ;;
+    zypper)
+      pm_update_install pkgconf-pkg-config || true
+      # SUSE has automatic updates via transactional-update / yast2-online-update; skipping heavy config.
+      ;;
+    apk)
+      # Alpine: no official unattended updater; consider periodic 'apk upgrade' via cron (skipped by default).
+      ;;
+  esac
+fi
+
+# ----------- time sync -----------
+if [ "$TIME_SYNC" = "1" ]; then
+  if have timedatectl; then
+    # Prefer systemd-timesyncd if available; else install/enable chrony
+    if [ -f /lib/systemd/system/systemd-timesyncd.service ] || [ -f /usr/lib/systemd/system/systemd-timesyncd.service ]; then
+      systemd_enable_now systemd-timesyncd
+    else
+      pm_update_install chrony || true
+      systemd_enable_now chronyd || systemd_enable_now chrony || true
+    fi
+    timedatectl set-ntp true || true
+  else
+    pm_update_install chrony || true
+    systemd_enable_now chronyd || systemd_enable_now chrony || true
+  fi
+fi
+
+# ----------- fail2ban (basic sshd jail) -----------
+if [ "$FAIL2BAN" = "1" ]; then
+  pm_update_install fail2ban || true
+  if [ -d /etc/fail2ban ]; then
+    sudo tee /etc/fail2ban/jail.d/sshd.local >/dev/null <<'EOF'
+[sshd]
+enabled = true
+port    = ssh
+logpath = %(sshd_log)s
+maxretry = 4
+bantime = 1h
+findtime = 10m
+EOF
+    systemd_enable_now fail2ban
+  fi
+fi
+
+# ----------- SSH banner / MOTD -----------
+if [ "$BANNER" = "1" ]; then
+  if [ -w /etc/issue.net ] || sudo test -w /etc/issue.net; then
+    sudo tee /etc/issue.net >/dev/null <<'EOF'
+NOTICE: Authorized use only. Activity may be monitored and reported.
+EOF
+    # Ensure banner is enabled via our bastion conf
+    if [ -d /etc/ssh/sshd_config.d ]; then
+      if ! grep -q '^Banner ' /etc/ssh/sshd_config.d/10-bastion.conf 2>/dev/null; then
+        echo 'Banner /etc/issue.net' | sudo tee -a /etc/ssh/sshd_config.d/10-bastion.conf >/dev/null
+        sshd_reload
+      fi
+    fi
+  fi
+fi
+
+echo "Bootstrap complete. If you were added to the docker group, log out and back in to apply."
 `
 
 	// Send script via stdin to avoid quoting/escaping issues

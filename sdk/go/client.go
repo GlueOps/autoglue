@@ -62,6 +62,8 @@ type APIClient struct {
 
 	MeAPIKeysAPI *MeAPIKeysAPIService
 
+	NodePoolsAPI *NodePoolsAPIService
+
 	OrgsAPI *OrgsAPIService
 
 	ServersAPI *ServersAPIService
@@ -94,6 +96,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.LabelsAPI = (*LabelsAPIService)(&c.common)
 	c.MeAPI = (*MeAPIService)(&c.common)
 	c.MeAPIKeysAPI = (*MeAPIKeysAPIService)(&c.common)
+	c.NodePoolsAPI = (*NodePoolsAPIService)(&c.common)
 	c.OrgsAPI = (*OrgsAPIService)(&c.common)
 	c.ServersAPI = (*ServersAPIService)(&c.common)
 	c.SshAPI = (*SshAPIService)(&c.common)

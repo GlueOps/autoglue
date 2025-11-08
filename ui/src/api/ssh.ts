@@ -1,9 +1,28 @@
 import { withRefresh } from "@/api/with-refresh.ts"
+import { orgStore } from "@/auth/org.ts"
+import { authStore } from "@/auth/store.ts"
 import type { DtoCreateSSHRequest, DtoSshResponse, DtoSshRevealResponse } from "@/sdk"
 import { makeSshApi } from "@/sdkClient.ts"
 
 const ssh = makeSshApi()
 export type SshDownloadPart = "public" | "private" | "both"
+
+function authHeaders() {
+  const token = authStore.getAccessToken()
+  const orgId = orgStore.get()
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(orgId ? { "X-Org-ID": orgId } : {}),
+  }
+}
+
+async function authedFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  return fetch(input, {
+    ...init,
+    headers: { ...(init.headers as any), ...authHeaders() },
+    credentials: "include", // keep if you rely on cookies/HttpOnly sessions
+  })
+}
 
 export const sshApi = {
   listSshKeys: () =>
@@ -42,7 +61,7 @@ export const sshApi = {
       url.searchParams.set("part", part)
       url.searchParams.set("mode", "json")
 
-      const res = await fetch(url.toString())
+      const res = await authedFetch(url.toString())
       if (!res.ok) throw new Error(`Download failed: ${res.statusText}`)
       return (await res.json()) as {
         id: string
@@ -61,7 +80,7 @@ export const sshApi = {
       const url = new URL(`/api/v1/ssh/${id}/download`, window.location.origin)
       url.searchParams.set("part", part)
 
-      const res = await fetch(url.toString())
+      const res = await authedFetch(url.toString())
       if (!res.ok) throw new Error(`Download failed: ${res.statusText}`)
 
       // Parse filename from Content-Disposition

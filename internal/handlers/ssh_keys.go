@@ -382,7 +382,6 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 		}
 
 		if mode == "json" {
-			prefix := keyFilenamePrefix(key.PublicKey)
 			resp := dto.SshMaterialJSON{
 				ID:          key.ID.String(),
 				Name:        key.Name,
@@ -392,7 +391,7 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 			case "public":
 				pub := key.PublicKey
 				resp.PublicKey = &pub
-				resp.Filenames = []string{fmt.Sprintf("%s_%s.pub", prefix, key.ID.String())}
+				resp.Filenames = []string{fmt.Sprintf("%s.pub", key.ID.String())}
 				utils.WriteJSON(w, http.StatusOK, resp)
 				return
 
@@ -403,7 +402,7 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 					return
 				}
 				resp.PrivatePEM = &plain
-				resp.Filenames = []string{fmt.Sprintf("%s_%s.pem", prefix, key.ID.String())}
+				resp.Filenames = []string{fmt.Sprintf("%s.pem", key.ID.String())}
 				utils.WriteJSON(w, http.StatusOK, resp)
 				return
 
@@ -416,16 +415,16 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 
 				var buf bytes.Buffer
 				zw := zip.NewWriter(&buf)
-				_ = toZipFile(fmt.Sprintf("%s_%s.pem", prefix, key.ID.String()), []byte(plain), zw)
-				_ = toZipFile(fmt.Sprintf("%s_%s.pub", prefix, key.ID.String()), []byte(key.PublicKey), zw)
+				_ = toZipFile(fmt.Sprintf("%s.pem", key.ID.String()), []byte(plain), zw)
+				_ = toZipFile(fmt.Sprintf("%s.pub", key.ID.String()), []byte(key.PublicKey), zw)
 				_ = zw.Close()
 
 				b64 := utils.EncodeB64(buf.Bytes())
 				resp.ZipBase64 = &b64
 				resp.Filenames = []string{
-					fmt.Sprintf("%s_%s.zip", prefix, key.ID.String()),
-					fmt.Sprintf("%s_%s.pem", prefix, key.ID.String()),
-					fmt.Sprintf("%s_%s.pub", prefix, key.ID.String()),
+					fmt.Sprintf("%s.zip", key.ID.String()),
+					fmt.Sprintf("%s.pem", key.ID.String()),
+					fmt.Sprintf("%s.pub", key.ID.String()),
 				}
 				utils.WriteJSON(w, http.StatusOK, resp)
 				return
@@ -436,11 +435,9 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 			}
 		}
 
-		prefix := keyFilenamePrefix(key.PublicKey)
-
 		switch part {
 		case "public":
-			filename := fmt.Sprintf("%s_%s.pub", prefix, key.ID.String())
+			filename := fmt.Sprintf("%s.pub", key.ID.String())
 			w.Header().Set("Content-Type", "text/plain")
 			w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 			_, _ = w.Write([]byte(key.PublicKey))
@@ -452,7 +449,7 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 				utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to decrypt ssh key")
 				return
 			}
-			filename := fmt.Sprintf("%s_%s.pem", prefix, key.ID.String())
+			filename := fmt.Sprintf("%s.pem", key.ID.String())
 			w.Header().Set("Content-Type", "application/x-pem-file")
 			w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 			_, _ = w.Write([]byte(plain))
@@ -467,8 +464,8 @@ func DownloadSSHKey(db *gorm.DB) http.HandlerFunc {
 
 			var buf bytes.Buffer
 			zw := zip.NewWriter(&buf)
-			_ = toZipFile(fmt.Sprintf("%s_%s.pem", prefix, key.ID.String()), []byte(plain), zw)
-			_ = toZipFile(fmt.Sprintf("%s_%s.pub", prefix, key.ID.String()), []byte(key.PublicKey), zw)
+			_ = toZipFile(fmt.Sprintf("%s.pem", key.ID.String()), []byte(plain), zw)
+			_ = toZipFile(fmt.Sprintf("%s.pub", key.ID.String()), []byte(key.PublicKey), zw)
 			_ = zw.Close()
 
 			filename := fmt.Sprintf("ssh_key_%s.zip", key.ID.String())

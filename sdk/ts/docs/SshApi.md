@@ -1,6 +1,6 @@
 # SshApi
 
-All URIs are relative to _http://localhost:8080/api/v1_
+All URIs are relative to _/api/v1_
 
 | Method                                               | HTTP request               | Description                               |
 | ---------------------------------------------------- | -------------------------- | ----------------------------------------- |

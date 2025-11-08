@@ -7,6 +7,7 @@ export * from "./HealthApi";
 export * from "./LabelsApi";
 export * from "./MeApi";
 export * from "./MeAPIKeysApi";
+export * from "./NodePoolsApi";
 export * from "./OrgsApi";
 export * from "./ServersApi";
 export * from "./SshApi";

@@ -6,8 +6,7 @@ info:
   title: AutoGlue API
   version: "1.0"
 servers:
-- url: http://localhost:8080/api/v1
-- url: https://localhost:8080/api/v1
+- url: /api/v1
 paths:
   /.well-known/jwks.json:
     get:
@@ -1063,6 +1062,1058 @@ paths:
       summary: Delete a user API key
       tags:
       - MeAPIKeys
+  /node-pools:
+    get:
+      description: Returns node pools for the organization in X-Org-ID.
+      operationId: ListNodePools
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/dto.NodePoolResponse"
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: failed to list node pools
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List node pools (org scoped)
+      tags:
+      - NodePools
+    post:
+      description: Creates a node pool. Optionally attach initial servers.
+      operationId: CreateNodePool
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dto.CreateNodePoolRequest"
+        description: NodePool payload
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dto.NodePoolResponse"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid json / missing fields / invalid server_ids
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: create failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Create node pool (org scoped)
+      tags:
+      - NodePools
+      x-codegen-request-body-name: body
+  /node-pools/{id}:
+    delete:
+      description: Permanently deletes the node pool.
+      operationId: DeleteNodePool
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: delete failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Delete node pool (org scoped)
+      tags:
+      - NodePools
+    get:
+      description: Returns one node pool. Add `include=servers` to include servers.
+      operationId: GetNodePool
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dto.NodePoolResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: fetch failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Get node pool by ID (org scoped)
+      tags:
+      - NodePools
+    patch:
+      description: Partially update node pool fields.
+      operationId: UpdateNodePool
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dto.UpdateNodePoolRequest"
+        description: Fields to update
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dto.NodePoolResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id / invalid json
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: update failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Update node pool (org scoped)
+      tags:
+      - NodePools
+      x-codegen-request-body-name: body
+  /node-pools/{id}/annotations:
+    get:
+      operationId: ListNodePoolAnnotations
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/dto.AnnotationResponse"
+                type: array
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: fetch failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List annotations attached to a node pool (org scoped)
+      tags:
+      - NodePools
+    post:
+      operationId: AttachNodePoolAnnotations
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Group ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dto.AttachAnnotationsRequest"
+        description: Annotation IDs to attach
+        required: true
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id / invalid server_ids
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: attach failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Attach annotation to a node pool (org scoped)
+      tags:
+      - NodePools
+      x-codegen-request-body-name: body
+  /node-pools/{id}/annotations/{annotationId}:
+    delete:
+      operationId: DetachNodePoolAnnotation
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Annotation ID (UUID)
+        in: path
+        name: annotationId
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: detach failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Detach one annotation from a node pool (org scoped)
+      tags:
+      - NodePools
+  /node-pools/{id}/labels:
+    get:
+      operationId: ListNodePoolLabels
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Label Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/dto.LabelResponse"
+                type: array
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: fetch failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List labels attached to a node pool (org scoped)
+      tags:
+      - NodePools
+    post:
+      operationId: AttachNodePoolLabels
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dto.AttachLabelsRequest"
+        description: Label IDs to attach
+        required: true
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id / invalid server_ids
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: attach failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Attach labels to a node pool (org scoped)
+      tags:
+      - NodePools
+      x-codegen-request-body-name: body
+  /node-pools/{id}/labels/{labelId}:
+    delete:
+      operationId: DetachNodePoolLabel
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Label ID (UUID)
+        in: path
+        name: labelId
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: detach failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Detach one label from a node pool (org scoped)
+      tags:
+      - NodePools
+  /node-pools/{id}/servers:
+    get:
+      operationId: ListNodePoolServers
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/dto.ServerResponse"
+                type: array
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: fetch failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List servers attached to a node pool (org scoped)
+      tags:
+      - NodePools
+    post:
+      operationId: AttachNodePoolServers
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dto.AttachServersRequest"
+        description: Server IDs to attach
+        required: true
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id / invalid server_ids
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: attach failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Attach servers to a node pool (org scoped)
+      tags:
+      - NodePools
+      x-codegen-request-body-name: body
+  /node-pools/{id}/servers/{serverId}:
+    delete:
+      operationId: DetachNodePoolServer
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Server ID (UUID)
+        in: path
+        name: serverId
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: detach failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Detach one server from a node pool (org scoped)
+      tags:
+      - NodePools
+  /node-pools/{id}/taints:
+    get:
+      operationId: ListNodePoolTaints
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/dto.TaintResponse"
+                type: array
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: fetch failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List taints attached to a node pool (org scoped)
+      tags:
+      - NodePools
+    post:
+      operationId: AttachNodePoolTaints
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dto.AttachTaintsRequest"
+        description: Taint IDs to attach
+        required: true
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id / invalid taint_ids
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: attach failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Attach taints to a node pool (org scoped)
+      tags:
+      - NodePools
+      x-codegen-request-body-name: body
+  /node-pools/{id}/taints/{taintId}:
+    delete:
+      operationId: DetachNodePoolTaint
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Node Pool ID (UUID)
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Taint ID (UUID)
+        in: path
+        name: taintId
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: invalid id
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: detach failed
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Detach one taint from a node pool (org scoped)
+      tags:
+      - NodePools
   /orgs:
     get:
       operationId: listMyOrgs
@@ -2325,6 +3376,34 @@ components:
         value:
           type: string
       type: object
+    dto.AttachAnnotationsRequest:
+      properties:
+        annotation_ids:
+          items:
+            type: string
+          type: array
+      type: object
+    dto.AttachLabelsRequest:
+      properties:
+        label_ids:
+          items:
+            type: string
+          type: array
+      type: object
+    dto.AttachServersRequest:
+      properties:
+        server_ids:
+          items:
+            type: string
+          type: array
+      type: object
+    dto.AttachTaintsRequest:
+      properties:
+        taint_ids:
+          items:
+            type: string
+          type: array
+      type: object
     dto.AuthStartResponse:
       example:
         auth_url: https://accounts.google.com/o/oauth2/v2/auth?client_id=...
@@ -2345,6 +3424,16 @@ components:
         key:
           type: string
         value:
+          type: string
+      type: object
+    dto.CreateNodePoolRequest:
+      properties:
+        name:
+          type: string
+        role:
+          enum:
+          - master
+          - worker
           type: string
       type: object
     dto.CreateSSHRequest:
@@ -2370,6 +3459,10 @@ components:
         public_ip_address:
           type: string
         role:
+          enum:
+          - master
+          - worker
+          - bastion
           example: master|worker|bastion
           type: string
         ssh_key_id:
@@ -2377,6 +3470,11 @@ components:
         ssh_user:
           type: string
         status:
+          enum:
+          - pending
+          - provisioning
+          - ready
+          - failed
           example: pending|provisioning|ready|failed
           type: string
       type: object
@@ -2539,6 +3637,111 @@ components:
           example: m0l9o8rT3t0V8d3eFf...
           type: string
       type: object
+    dto.NodePoolResponse:
+      example:
+        role: master
+        servers:
+        - hostname: hostname
+          public_ip_address: public_ip_address
+          role: master|worker|bastion
+          updated_at: updated_at
+          ssh_key_id: ssh_key_id
+          organization_id: organization_id
+          created_at: created_at
+          private_ip_address: private_ip_address
+          id: id
+          ssh_user: ssh_user
+          status: pending|provisioning|ready|failed
+        - hostname: hostname
+          public_ip_address: public_ip_address
+          role: master|worker|bastion
+          updated_at: updated_at
+          ssh_key_id: ssh_key_id
+          organization_id: organization_id
+          created_at: created_at
+          private_ip_address: private_ip_address
+          id: id
+          ssh_user: ssh_user
+          status: pending|provisioning|ready|failed
+        updated_at: updated_at
+        organization_id: organization_id
+        name: name
+        annotations:
+        - updated_at: updated_at
+          organization_id: organization_id
+          created_at: created_at
+          id: id
+          value: value
+          key: key
+        - updated_at: updated_at
+          organization_id: organization_id
+          created_at: created_at
+          id: id
+          value: value
+          key: key
+        created_at: created_at
+        id: id
+        taints:
+        - updated_at: updated_at
+          effect: effect
+          organization_id: organization_id
+          created_at: created_at
+          id: id
+          value: value
+          key: key
+        - updated_at: updated_at
+          effect: effect
+          organization_id: organization_id
+          created_at: created_at
+          id: id
+          value: value
+          key: key
+        labels:
+        - updated_at: updated_at
+          organization_id: organization_id
+          created_at: created_at
+          id: id
+          value: value
+          key: key
+        - updated_at: updated_at
+          organization_id: organization_id
+          created_at: created_at
+          id: id
+          value: value
+          key: key
+      properties:
+        annotations:
+          items:
+            $ref: "#/components/schemas/dto.AnnotationResponse"
+          type: array
+        created_at:
+          type: string
+        id:
+          type: string
+        labels:
+          items:
+            $ref: "#/components/schemas/dto.LabelResponse"
+          type: array
+        name:
+          type: string
+        organization_id:
+          type: string
+        role:
+          enum:
+          - master
+          - worker
+          type: string
+        servers:
+          items:
+            $ref: "#/components/schemas/dto.ServerResponse"
+          type: array
+        taints:
+          items:
+            $ref: "#/components/schemas/dto.TaintResponse"
+          type: array
+        updated_at:
+          type: string
+      type: object
     dto.PageJob:
       example:
         total: 120
@@ -2616,7 +3819,7 @@ components:
       example:
         hostname: hostname
         public_ip_address: public_ip_address
-        role: role
+        role: master|worker|bastion
         updated_at: updated_at
         ssh_key_id: ssh_key_id
         organization_id: organization_id
@@ -2624,7 +3827,7 @@ components:
         private_ip_address: private_ip_address
         id: id
         ssh_user: ssh_user
-        status: status
+        status: pending|provisioning|ready|failed
       properties:
         created_at:
           type: string
@@ -2639,12 +3842,23 @@ components:
         public_ip_address:
           type: string
         role:
+          enum:
+          - master
+          - worker
+          - bastion
+          example: master|worker|bastion
           type: string
         ssh_key_id:
           type: string
         ssh_user:
           type: string
         status:
+          enum:
+          - pending
+          - provisioning
+          - ready
+          - failed
+          example: pending|provisioning|ready|failed
           type: string
         updated_at:
           type: string
@@ -2761,6 +3975,16 @@ components:
         value:
           type: string
       type: object
+    dto.UpdateNodePoolRequest:
+      properties:
+        name:
+          type: string
+        role:
+          enum:
+          - master
+          - worker
+          type: string
+      type: object
     dto.UpdateServerRequest:
       properties:
         hostname:
@@ -2770,6 +3994,10 @@ components:
         public_ip_address:
           type: string
         role:
+          enum:
+          - master
+          - worker
+          - bastion
           example: master|worker|bastion
           type: string
         ssh_key_id:
@@ -2777,6 +4005,11 @@ components:
         ssh_user:
           type: string
         status:
+          enum:
+          - pending
+          - provisioning
+          - ready
+          - failed
           example: pending|provisioning|ready|failed
           type: string
       type: object

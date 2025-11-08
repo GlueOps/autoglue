@@ -7,6 +7,7 @@ import { Login } from "@/pages/auth/login.tsx"
 import { JobsPage } from "@/pages/jobs/jobs-page.tsx"
 import { LabelsPage } from "@/pages/labels/labels-page.tsx"
 import { MePage } from "@/pages/me/me-page.tsx"
+import { NodePoolsPage } from "@/pages/nodepools/node-pools-page.tsx"
 import { OrgApiKeys } from "@/pages/org/api-keys.tsx"
 import { OrgMembers } from "@/pages/org/members.tsx"
 import { OrgSettings } from "@/pages/org/settings.tsx"
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/taints" element={<TaintsPage />} />
           <Route path="/labels" element={<LabelsPage />} />
           <Route path="/annotations" element={<AnnotationPage />} />
+          <Route path="/node-pools" element={<NodePoolsPage />} />
 
           <Route path="/admin/jobs" element={<JobsPage />} />
         </Route>

@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from "../runtime";
 /**
  *
  * @export
@@ -42,7 +41,7 @@ export interface DtoCreateServerRequest {
    * @type {string}
    * @memberof DtoCreateServerRequest
    */
-  role?: string;
+  role?: DtoCreateServerRequestRoleEnum;
   /**
    *
    * @type {string}
@@ -60,8 +59,31 @@ export interface DtoCreateServerRequest {
    * @type {string}
    * @memberof DtoCreateServerRequest
    */
-  status?: string;
+  status?: DtoCreateServerRequestStatusEnum;
 }
+
+/**
+ * @export
+ */
+export const DtoCreateServerRequestRoleEnum = {
+  master: "master",
+  worker: "worker",
+  bastion: "bastion",
+} as const;
+export type DtoCreateServerRequestRoleEnum =
+  (typeof DtoCreateServerRequestRoleEnum)[keyof typeof DtoCreateServerRequestRoleEnum];
+
+/**
+ * @export
+ */
+export const DtoCreateServerRequestStatusEnum = {
+  pending: "pending",
+  provisioning: "provisioning",
+  ready: "ready",
+  failed: "failed",
+} as const;
+export type DtoCreateServerRequestStatusEnum =
+  (typeof DtoCreateServerRequestStatusEnum)[keyof typeof DtoCreateServerRequestStatusEnum];
 
 /**
  * Check if a given object implements the DtoCreateServerRequest interface.

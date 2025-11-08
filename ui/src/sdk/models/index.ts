@@ -1,9 +1,14 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './DtoAnnotationResponse';
+export * from './DtoAttachAnnotationsRequest';
+export * from './DtoAttachLabelsRequest';
+export * from './DtoAttachServersRequest';
+export * from './DtoAttachTaintsRequest';
 export * from './DtoAuthStartResponse';
 export * from './DtoCreateAnnotationRequest';
 export * from './DtoCreateLabelRequest';
+export * from './DtoCreateNodePoolRequest';
 export * from './DtoCreateSSHRequest';
 export * from './DtoCreateServerRequest';
 export * from './DtoCreateTaintRequest';
@@ -13,6 +18,7 @@ export * from './DtoJob';
 export * from './DtoJobStatus';
 export * from './DtoLabelResponse';
 export * from './DtoLogoutRequest';
+export * from './DtoNodePoolResponse';
 export * from './DtoPageJob';
 export * from './DtoQueueInfo';
 export * from './DtoRefreshRequest';
@@ -23,6 +29,7 @@ export * from './DtoTaintResponse';
 export * from './DtoTokenPair';
 export * from './DtoUpdateAnnotationRequest';
 export * from './DtoUpdateLabelRequest';
+export * from './DtoUpdateNodePoolRequest';
 export * from './DtoUpdateServerRequest';
 export * from './DtoUpdateTaintRequest';
 export * from './HandlersCreateUserKeyRequest';

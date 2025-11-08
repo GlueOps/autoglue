@@ -8,8 +8,8 @@ type CreateServerRequest struct {
 	PrivateIPAddress string `json:"private_ip_address"`
 	SSHUser          string `json:"ssh_user"`
 	SshKeyID         string `json:"ssh_key_id"`
-	Role             string `json:"role" example:"master|worker|bastion"`
-	Status           string `json:"status,omitempty" example:"pending|provisioning|ready|failed"`
+	Role             string `json:"role" example:"master|worker|bastion" enums:"master,worker,bastion"`
+	Status           string `json:"status,omitempty" example:"pending|provisioning|ready|failed" enums:"pending,provisioning,ready,failed"`
 }
 
 type UpdateServerRequest struct {
@@ -18,8 +18,8 @@ type UpdateServerRequest struct {
 	PrivateIPAddress *string `json:"private_ip_address,omitempty"`
 	SSHUser          *string `json:"ssh_user,omitempty"`
 	SshKeyID         *string `json:"ssh_key_id,omitempty"`
-	Role             *string `json:"role,omitempty" example:"master|worker|bastion"`
-	Status           *string `json:"status,omitempty" example:"pending|provisioning|ready|failed"`
+	Role             *string `json:"role" example:"master|worker|bastion" enums:"master,worker,bastion"`
+	Status           *string `json:"status,omitempty" example:"pending|provisioning|ready|failed" enums:"pending,provisioning,ready,failed"`
 }
 
 type ServerResponse struct {
@@ -30,8 +30,8 @@ type ServerResponse struct {
 	PrivateIPAddress string    `json:"private_ip_address"`
 	SSHUser          string    `json:"ssh_user"`
 	SshKeyID         uuid.UUID `json:"ssh_key_id"`
-	Role             string    `json:"role"`
-	Status           string    `json:"status"`
+	Role             string    `json:"role" example:"master|worker|bastion" enums:"master,worker,bastion"`
+	Status           string    `json:"status,omitempty" example:"pending|provisioning|ready|failed" enums:"pending,provisioning,ready,failed"`
 	CreatedAt        string    `json:"created_at,omitempty"`
 	UpdatedAt        string    `json:"updated_at,omitempty"`
 }

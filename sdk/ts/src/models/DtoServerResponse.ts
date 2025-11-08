@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from "../runtime";
 /**
  *
  * @export
@@ -60,7 +59,7 @@ export interface DtoServerResponse {
    * @type {string}
    * @memberof DtoServerResponse
    */
-  role?: string;
+  role?: DtoServerResponseRoleEnum;
   /**
    *
    * @type {string}
@@ -78,7 +77,7 @@ export interface DtoServerResponse {
    * @type {string}
    * @memberof DtoServerResponse
    */
-  status?: string;
+  status?: DtoServerResponseStatusEnum;
   /**
    *
    * @type {string}
@@ -86,6 +85,29 @@ export interface DtoServerResponse {
    */
   updated_at?: string;
 }
+
+/**
+ * @export
+ */
+export const DtoServerResponseRoleEnum = {
+  master: "master",
+  worker: "worker",
+  bastion: "bastion",
+} as const;
+export type DtoServerResponseRoleEnum =
+  (typeof DtoServerResponseRoleEnum)[keyof typeof DtoServerResponseRoleEnum];
+
+/**
+ * @export
+ */
+export const DtoServerResponseStatusEnum = {
+  pending: "pending",
+  provisioning: "provisioning",
+  ready: "ready",
+  failed: "failed",
+} as const;
+export type DtoServerResponseStatusEnum =
+  (typeof DtoServerResponseStatusEnum)[keyof typeof DtoServerResponseStatusEnum];
 
 /**
  * Check if a given object implements the DtoServerResponse interface.

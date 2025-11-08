@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -42,7 +41,7 @@ export interface DtoUpdateServerRequest {
      * @type {string}
      * @memberof DtoUpdateServerRequest
      */
-    role?: string;
+    role?: DtoUpdateServerRequestRoleEnum;
     /**
      * 
      * @type {string}
@@ -60,8 +59,31 @@ export interface DtoUpdateServerRequest {
      * @type {string}
      * @memberof DtoUpdateServerRequest
      */
-    status?: string;
+    status?: DtoUpdateServerRequestStatusEnum;
 }
+
+
+/**
+ * @export
+ */
+export const DtoUpdateServerRequestRoleEnum = {
+    master: 'master',
+    worker: 'worker',
+    bastion: 'bastion'
+} as const;
+export type DtoUpdateServerRequestRoleEnum = typeof DtoUpdateServerRequestRoleEnum[keyof typeof DtoUpdateServerRequestRoleEnum];
+
+/**
+ * @export
+ */
+export const DtoUpdateServerRequestStatusEnum = {
+    pending: 'pending',
+    provisioning: 'provisioning',
+    ready: 'ready',
+    failed: 'failed'
+} as const;
+export type DtoUpdateServerRequestStatusEnum = typeof DtoUpdateServerRequestStatusEnum[keyof typeof DtoUpdateServerRequestStatusEnum];
+
 
 /**
  * Check if a given object implements the DtoUpdateServerRequest interface.

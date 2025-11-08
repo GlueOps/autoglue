@@ -19,8 +19,9 @@ type Server struct {
 	SSHUser          string       `gorm:"not null" json:"ssh_user"`
 	SshKeyID         uuid.UUID    `gorm:"type:uuid;not null" json:"ssh_key_id"`
 	SshKey           SshKey       `gorm:"foreignKey:SshKeyID" json:"ssh_key"`
-	Role             string       `gorm:"not null" json:"role"`            // e.g., "master", "worker", "bastion"
-	Status           string       `gorm:"default:'pending'" json:"status"` // pending, provisioning, ready, failed
+	Role             string       `gorm:"not null" json:"role" enums:"master,worker,bastion"`                           // e.g., "master", "worker", "bastion"
+	Status           string       `gorm:"default:'pending'" json:"status" enums:"pending, provisioning, ready, failed"` // pending, provisioning, ready, failed
+	NodePools        []NodePool   `gorm:"many2many:node_servers;constraint:OnDelete:CASCADE" json:"node_pools,omitempty"`
 	CreatedAt        time.Time    `gorm:"not null;default:now()" json:"created_at" format:"date-time"`
 	UpdatedAt        time.Time    `gorm:"not null;default:now()" json:"updated_at" format:"date-time"`
 }

@@ -37,9 +37,9 @@ module "servers" {
     bastion = {
       hostname           = "bastion-01"
       private_ip_address = "10.0.0.10"
-      public_ip_address = "54.12.34.56" # required for role=bastion
+      public_ip_address = "65.109.95.175" # required for role=bastion
       role               = "bastion"
-      ssh_user           = "ubuntu"
+      ssh_user           = "root"
       ssh_key_ref = "bastionKey"  # points to module.ssh["bastionKey"].id
       status             = "pending"
     }
@@ -47,7 +47,7 @@ module "servers" {
     manager1 = {
       hostname           = "k3s-mgr-01"
       private_ip_address = "10.0.1.11"
-      role               = "manager"
+      role               = "master"
       ssh_user           = "ubuntu"
       ssh_key_ref        = "clusterKey"
       status             = "pending"
@@ -56,7 +56,7 @@ module "servers" {
     agent1 = {
       hostname           = "k3s-agent-01"
       private_ip_address = "10.0.2.21"
-      role               = "agent"
+      role               = "worker"
       ssh_user           = "ubuntu"
       ssh_key_ref        = "clusterKey"
       status             = "pending"

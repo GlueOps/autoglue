@@ -38,7 +38,10 @@ func NewRuntime() *Runtime {
 		&models.Taint{},
 		&models.Label{},
 		&models.Annotation{},
+		&models.NodePool{},
+		&models.Cluster{},
 	)
+
 	if err != nil {
 		log.Fatalf("Error initializing database: %v", err)
 	}
