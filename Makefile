@@ -103,7 +103,7 @@ DOCS_YAML := docs/swagger.yaml
 # Prefer git for speed; fall back to find. Exclude UI dir.
 #GO_SRCS := $(shell (git ls-files '*.go' ':!$(UI_DIR)/**' 2>/dev/null || find . -name '*.go' -not -path './$(UI_DIR)/*' -type f))
 GO_SRCS := $(shell ( \
-  git ls-files '*.go' ':!$(UI_DIR)/**' ':!docs/**' ':!sdk/**' 2>/dev/null \
+  git ls-files '*.go' ':!$(UI_DIR)/**' ':!docs/**' ':!sdk/**' ':!terraform-provider-autoglue/**' 2>/dev/null \
   || find . -name '*.go' -not -path './$(UI_DIR)/*' -not -path './docs/*' -type f \
 ))
 
