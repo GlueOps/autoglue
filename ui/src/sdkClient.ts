@@ -8,6 +8,7 @@ import {
   LabelsApi,
   MeApi,
   MeAPIKeysApi,
+  MetaApi,
   NodePoolsApi,
   OrgsApi,
   ServersApi,
@@ -107,4 +108,8 @@ export function makeArcherAdminApi() {
 
 export function makeNodePoolApi() {
   return makeApiClient(NodePoolsApi)
+}
+
+export function makeMetaApi() {
+  return makeApiClient(MetaApi)
 }

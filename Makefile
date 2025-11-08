@@ -23,7 +23,7 @@ MODULE_PATH  ?= $(GIT_HOST)/$(GIT_USER)/$(BIN)
 
 # SDK / module settings (Go)
 SDK_REPO     ?= $(BIN)-sdk-go               # repo name used for module path
-SDK_OUTDIR   ?= sdk/go                      # output directory (inside repo)
+SDK_OUTDIR   ?= ../autoglue-sdk-go          # output directory (inside repo)
 SDK_PKG      ?= ${BIN}                      # package name inside the SDK
 
 UI_SSG_ROUTES ?= /,/login,/docs,/pricing
@@ -247,7 +247,6 @@ TS_PROPS      := -p npmName=$(SDK_TS_NPM_NAME) -p npmVersion=$(SDK_TS_NPM_VER) $
 # --- sdk generation (Go) ---
 sdk-go: $(DOCS_JSON) validate-spec check-tags ## Generate Go SDK + tidy module
 	@echo ">> Generating Go SDK (module $(GIT_HOST_CLEAN)/$(GIT_USER_CLEAN)/$(SDK_REPO_CLEAN), Go $(GO_VERSION))..."
-	@rm -rf "$(SDK_OUTDIR_CLEAN)"; mkdir -p "$(SDK_OUTDIR_CLEAN)"
 	@$(call OGC_GENERATE,go,$(SDK_OUTDIR_CLEAN),--additional-properties=packageName=$(SDK_PKG_CLEAN) $(OAG_GIT_PROPS))
 	@cd "$(SDK_OUTDIR_CLEAN)"; \
 	$(GOCMD) mod edit -go=$(GO_VERSION); \

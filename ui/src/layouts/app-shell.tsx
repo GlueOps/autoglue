@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { meApi } from "@/api/me.ts"
 import { orgStore } from "@/auth/org.ts"
-import { authStore } from "@/auth/store.ts"
+import { Footer } from "@/layouts/footer.tsx"
 import { adminNav, mainNav, orgNav, userNav } from "@/layouts/nav-config.ts"
 import { OrgSwitcher } from "@/layouts/org-switcher.tsx"
 import { Topbar } from "@/layouts/topbar.tsx"
@@ -171,11 +171,12 @@ export const AppShell = () => {
         </SidebarFooter>
       </Sidebar>
 
-      <SidebarInset className="min-h-screen">
+      <SidebarInset className="flex min-h-screen flex-col">
         <Topbar />
         <main className="p-4">
           <Outlet />
         </main>
+        <Footer />
       </SidebarInset>
     </SidebarProvider>
   )
