@@ -5,6 +5,7 @@ import {
   ArcherAdminApi,
   AuthApi,
   Configuration,
+  CredentialsApi,
   LabelsApi,
   MeApi,
   MeAPIKeysApi,
@@ -112,4 +113,8 @@ export function makeNodePoolApi() {
 
 export function makeMetaApi() {
   return makeApiClient(MetaApi)
+}
+
+export function makeCredentialsApi() {
+  return makeApiClient(CredentialsApi)
 }

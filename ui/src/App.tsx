@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom"
 import { ProtectedRoute } from "@/components/protected-route.tsx"
 import { AnnotationPage } from "@/pages/annotations/annotation-page.tsx"
 import { Login } from "@/pages/auth/login.tsx"
+import { CredentialPage } from "@/pages/credentials/credential-page.tsx"
 import { JobsPage } from "@/pages/jobs/jobs-page.tsx"
 import { LabelsPage } from "@/pages/labels/labels-page.tsx"
 import { MePage } from "@/pages/me/me-page.tsx"
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/labels" element={<LabelsPage />} />
           <Route path="/annotations" element={<AnnotationPage />} />
           <Route path="/node-pools" element={<NodePoolsPage />} />
+          <Route path="/credentials" element={<CredentialPage />} />
 
           <Route path="/admin/jobs" element={<JobsPage />} />
         </Route>

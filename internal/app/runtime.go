@@ -40,6 +40,7 @@ func NewRuntime() *Runtime {
 		&models.Annotation{},
 		&models.NodePool{},
 		&models.Cluster{},
+		&models.Credential{},
 	)
 
 	if err != nil {

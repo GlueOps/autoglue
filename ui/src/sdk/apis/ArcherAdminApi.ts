@@ -14,15 +14,15 @@
 
 
 import * as runtime from "../runtime"
-import type { DtoJob, DtoPageJob, DtoQueueInfo, } from "../models/index"
-import { DtoJobFromJSON, DtoPageJobFromJSON, DtoQueueInfoFromJSON, } from "../models/index"
+import type { DtoEnqueueRequest, DtoJob, DtoPageJob, DtoQueueInfo, } from "../models/index"
+import { DtoEnqueueRequestToJSON, DtoJobFromJSON, DtoPageJobFromJSON, DtoQueueInfoFromJSON, } from "../models/index"
 
 export interface AdminCancelArcherJobRequest {
     id: string;
 }
 
 export interface AdminEnqueueArcherJobRequest {
-    body: object;
+    body: DtoEnqueueRequest;
 }
 
 export interface AdminListArcherJobsRequest {
@@ -115,7 +115,7 @@ export class ArcherAdminApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: requestParameters['body'] as any,
+            body: DtoEnqueueRequestToJSON(requestParameters['body']),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => DtoJobFromJSON(jsonValue));

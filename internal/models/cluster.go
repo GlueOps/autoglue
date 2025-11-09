@@ -16,6 +16,7 @@ type Cluster struct {
 	Status              string       `json:"status"`
 	CaptainDomain       string       `gorm:"not null" json:"captain_domain"`
 	ClusterLoadBalancer string       `json:"cluster_load_balancer"`
+	ControlLoadBalancer string       `json:"control_load_balancer"`
 	RandomToken         string       `json:"random_token"`
 	CertificateKey      string       `json:"certificate_key"`
 	EncryptedKubeconfig string       `gorm:"type:text" json:"-"`

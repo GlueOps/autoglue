@@ -5,6 +5,7 @@ import {
   ComponentIcon,
   FileKey2Icon,
   KeyRound,
+  LockKeyholeIcon,
   ServerIcon,
   SprayCanIcon,
   TagsIcon,
@@ -28,6 +29,7 @@ export const mainNav: NavItem[] = [
   { to: "/taints", label: "Taints", icon: SprayCanIcon },
   { to: "/servers", label: "Servers", icon: ServerIcon },
   { to: "/ssh", label: "SSH Keys", icon: FileKey2Icon },
+  { to: "/credentials", label: "Credentials", icon: LockKeyholeIcon },
 ]
 
 export const orgNav: NavItem[] = [

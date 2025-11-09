@@ -49,12 +49,114 @@ definitions:
         example: https://accounts.google.com/o/oauth2/v2/auth?client_id=...
         type: string
     type: object
+  dto.ClusterResponse:
+    properties:
+      bastion_server:
+        $ref: '#/definitions/dto.ServerResponse'
+      captain_domain:
+        type: string
+      certificate_key:
+        type: string
+      cluster_load_balancer:
+        type: string
+      control_load_balancer:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      node_pools:
+        items:
+          $ref: '#/definitions/dto.NodePoolResponse'
+        type: array
+      provider:
+        type: string
+      random_token:
+        type: string
+      region:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
   dto.CreateAnnotationRequest:
     properties:
       key:
         type: string
       value:
         type: string
+    type: object
+  dto.CreateClusterRequest:
+    properties:
+      captain_domain:
+        type: string
+      cluster_load_balancer:
+        type: string
+      control_load_balancer:
+        type: string
+      name:
+        type: string
+      provider:
+        type: string
+      region:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.CreateCredentialRequest:
+    properties:
+      account_id:
+        maxLength: 32
+        type: string
+      kind:
+        description: aws_access_key, api_token, basic_auth, oauth2
+        type: string
+      name:
+        description: human label
+        maxLength: 100
+        type: string
+      provider:
+        enum:
+        - aws
+        - cloudflare
+        - hetzner
+        - digitalocean
+        - generic
+        type: string
+      region:
+        maxLength: 32
+        type: string
+      schema_version:
+        description: secret schema version
+        minimum: 1
+        type: integer
+      scope:
+        description: '{"service":"route53"} or {"arn":"..."}'
+        type: object
+      scope_kind:
+        enum:
+        - provider
+        - service
+        - resource
+        type: string
+      scope_version:
+        description: scope schema version
+        minimum: 1
+        type: integer
+      secret:
+        description: encrypted later
+        type: object
+    required:
+    - kind
+    - provider
+    - schema_version
+    - scope
+    - scope_kind
+    - scope_version
+    - secret
     type: object
   dto.CreateLabelRequest:
     properties:
@@ -124,7 +226,46 @@ definitions:
       value:
         type: string
     type: object
+  dto.CredentialOut:
+    properties:
+      account_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      kind:
+        type: string
+      name:
+        type: string
+      provider:
+        type: string
+      region:
+        type: string
+      schema_version:
+        type: integer
+      scope:
+        type: object
+      scope_kind:
+        type: string
+      scope_version:
+        type: integer
+      updated_at:
+        type: string
+    type: object
   dto.EnqueueRequest:
+    properties:
+      payload:
+        type: object
+      queue:
+        example: default
+        type: string
+      run_at:
+        example: "2025-11-05T08:00:00Z"
+        type: string
+      type:
+        example: email.send
+        type: string
     type: object
   dto.JWK:
     properties:
@@ -415,6 +556,24 @@ definitions:
         type: string
       value:
         type: string
+    type: object
+  dto.UpdateCredentialRequest:
+    properties:
+      account_id:
+        type: string
+      name:
+        type: string
+      region:
+        type: string
+      scope:
+        type: object
+      scope_kind:
+        type: string
+      scope_version:
+        type: integer
+      secret:
+        description: set if rotating
+        type: object
     type: object
   dto.UpdateLabelRequest:
     properties:
@@ -1320,6 +1479,339 @@ paths:
       summary: Rotate refresh token
       tags:
       - Auth
+  /clusters:
+    get:
+      description: Returns clusters for the organization in X-Org-ID. Filter by `q`
+        (name contains).
+      operationId: ListClusters
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Name contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClusterResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: failed to list clusters
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List clusters (org scoped)
+      tags:
+      - Clusters
+    post:
+      consumes:
+      - application/json
+      description: Creates a cluster. If `kubeconfig` is provided, it will be encrypted
+        per-organization and stored securely (never returned).
+      operationId: CreateCluster
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ClusterResponse'
+        "400":
+          description: invalid json
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: create failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Create cluster (org scoped)
+      tags:
+      - Clusters
+  /credentials:
+    get:
+      consumes:
+      - application/json
+      description: Returns credential metadata for the current org. Secrets are never
+        returned.
+      operationId: ListCredentials
+      parameters:
+      - description: Organization ID (UUID)
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Filter by provider (e.g., aws)
+        in: query
+        name: provider
+        type: string
+      - description: Filter by kind (e.g., aws_access_key)
+        in: query
+        name: kind
+        type: string
+      - description: Filter by scope kind (provider/service/resource)
+        in: query
+        name: scope_kind
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.CredentialOut'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List credentials (metadata only)
+      tags:
+      - Credentials
+    post:
+      consumes:
+      - application/json
+      operationId: CreateCredential
+      parameters:
+      - description: Organization ID (UUID)
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Credential payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCredentialRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CredentialOut'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Create a credential (encrypts secret)
+      tags:
+      - Credentials
+  /credentials/{id}:
+    delete:
+      consumes:
+      - application/json
+      operationId: DeleteCredential
+      parameters:
+      - description: Organization ID (UUID)
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Credential ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Delete credential
+      tags:
+      - Credentials
+    get:
+      consumes:
+      - application/json
+      operationId: GetCredential
+      parameters:
+      - description: Organization ID (UUID)
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Credential ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CredentialOut'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Get credential by ID (metadata only)
+      tags:
+      - Credentials
+    patch:
+      consumes:
+      - application/json
+      operationId: UpdateCredential
+      parameters:
+      - description: Organization ID (UUID)
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Credential ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCredentialRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CredentialOut'
+        "403":
+          description: X-Org-ID required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Update credential metadata and/or rotate secret
+      tags:
+      - Credentials
+  /credentials/{id}/reveal:
+    post:
+      consumes:
+      - application/json
+      operationId: RevealCredential
+      parameters:
+      - description: Organization ID (UUID)
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Credential ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Reveal decrypted secret (one-time read)
+      tags:
+      - Credentials
   /healthz:
     get:
       consumes:

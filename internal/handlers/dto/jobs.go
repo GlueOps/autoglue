@@ -57,6 +57,6 @@ type PageJob struct {
 type EnqueueRequest struct {
 	Queue   string          `json:"queue" example:"default"`
 	Type    string          `json:"type" example:"email.send"`
-	Payload json.RawMessage `json:"payload"`
+	Payload json.RawMessage `json:"payload" swaggertype:"object"`
 	RunAt   *time.Time      `json:"run_at" example:"2025-11-05T08:00:00Z"`
 }

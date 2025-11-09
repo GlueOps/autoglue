@@ -127,6 +127,16 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs) http.Handler {
 				})
 			})
 
+			v1.Route("/credentials", func(c chi.Router) {
+				c.Use(authOrg)
+				c.Get("/", handlers.ListCredentials(db))
+				c.Post("/", handlers.CreateCredential(db))
+				c.Get("/{id}", handlers.GetCredential(db))
+				c.Patch("/{id}", handlers.UpdateCredential(db))
+				c.Delete("/{id}", handlers.DeleteCredential(db))
+				c.Post("/{id}/reveal", handlers.RevealCredential(db))
+			})
+
 			v1.Route("/ssh", func(s chi.Router) {
 				s.Use(authOrg)
 				s.Get("/", handlers.ListPublicSshKeys(db))

@@ -113,8 +113,8 @@ async function example() {
   const api = new ArcherAdminApi(config);
 
   const body = {
-    // object | Job parameters
-    body: Object,
+    // DtoEnqueueRequest | Job parameters
+    body: ...,
   } satisfies AdminEnqueueArcherJobRequest;
 
   try {
@@ -134,7 +134,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **body** | `object` | Job parameters | |
+| **body** | [DtoEnqueueRequest](DtoEnqueueRequest.md) | Job parameters | |
 
 ### Return type
 
