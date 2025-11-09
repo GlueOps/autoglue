@@ -18,7 +18,12 @@ export const archerAdminApi = {
       return await archerAdmin.adminListArcherJobs(params)
     })
   },
-  enqueue: (body: { queue: string; type: string; payload?: unknown; run_at?: string }) => {
+  enqueue: (body: {
+    queue: string
+    type: string
+    payload?: object | undefined
+    run_at?: string
+  }) => {
     return withRefresh(async () => {
       return await archerAdmin.adminEnqueueArcherJob({ body })
     })

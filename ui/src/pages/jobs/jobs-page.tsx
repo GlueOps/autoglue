@@ -1,4 +1,4 @@
-import { useEffect, useState, type FC } from "react"
+import { type FC, useEffect, useState } from "react"
 import { archerAdminApi } from "@/api/archer_admin"
 import type { AdminListArcherJobsRequest } from "@/sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -19,21 +19,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 
 // Types (align with generated client camelCase)
@@ -145,8 +132,12 @@ export const JobsPage: FC = () => {
 
   // Mutations
   const enqueueM = useMutation({
-    mutationFn: (body: { queue: string; type: string; payload?: unknown; run_at?: string }) =>
-      archerAdminApi.enqueue(body),
+    mutationFn: (body: {
+      queue: string
+      type: string
+      payload?: object | undefined
+      run_at?: string
+    }) => archerAdminApi.enqueue(body),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["archer", "jobs"] }),
   })
   const retryM = useMutation({
@@ -462,7 +453,7 @@ function EnqueueDialog({
   onSubmit: (body: {
     queue: string
     type: string
-    payload?: unknown
+    payload?: object | undefined
     run_at?: string
   }) => Promise<unknown>
   submitting?: boolean
