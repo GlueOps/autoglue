@@ -152,7 +152,7 @@ const updateCredentialSchema = createCredentialSchema.partial().extend({
 
 function pretty(obj: unknown) {
   try {
-    return JSON.stringify(obj, null, 2)
+    return JSON.stringify(JSON.parse(obj), null, 2)
   } catch {
     return ""
   }
