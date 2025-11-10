@@ -138,3 +138,5 @@ notes.txt
 .terraform
 .terraform.lock*
 terraform.tfstate*
+
+ui/src/sdk

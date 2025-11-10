@@ -7,7 +7,7 @@ import (
 )
 
 // RawJSON is a swagger-friendly wrapper for json.RawMessage.
-type RawJSON json.RawMessage
+type RawJSON = json.RawMessage
 
 var Validate = validator.New()
 
