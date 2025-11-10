@@ -2,7 +2,6 @@ import { withRefresh } from "@/api/with-refresh.ts"
 import type { DtoCreateLabelRequest, DtoUpdateLabelRequest } from "@/sdk"
 import { makeLabelsApi } from "@/sdkClient.ts"
 
-
 const labels = makeLabelsApi()
 
 export const labelsApi = {
