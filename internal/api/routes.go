@@ -27,7 +27,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
-func NewRouter(db *gorm.DB, jobs *bg.Jobs) http.Handler {
+func NewRouter(db *gorm.DB, jobs *bg.Jobs, studio http.Handler) http.Handler {
 	zerolog.TimeFieldFormat = time.RFC3339
 
 	l := log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "15:04:05"})
@@ -212,6 +212,17 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs) http.Handler {
 			})
 		})
 	})
+
+	if studio != nil {
+		r.Group(func(gr chi.Router) {
+			authUser := httpmiddleware.AuthMiddleware(db, false)
+			adminOnly := httpmiddleware.RequirePlatformAdmin()
+			gr.Use(authUser)
+			gr.Use(adminOnly)
+			gr.Mount("/db-studio", http.StripPrefix("/db-studio", studio))
+		})
+	}
+
 	if config.IsDebug() {
 		r.Route("/debug/pprof", func(pr chi.Router) {
 			pr.Get("/", httpPprof.Index)
@@ -251,6 +262,7 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs) http.Handler {
 		mux.Handle("/api/", r)
 		mux.Handle("/api", r)
 		mux.Handle("/swagger/", r)
+		mux.Handle("/db-studio/", r)
 		mux.Handle("/debug/pprof/", r)
 		// Everything else (/, /brand-preview, assets) → proxy (no middlewares)
 		mux.Handle("/", proxy)

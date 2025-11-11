@@ -310,6 +310,9 @@ doctor: ## Print environment diagnostics (shell, versions, generator availabilit
 		$(OGC_BIN) version || true; \
 	}
 
+fetch-pgweb: ## Fetch PGWeb Binaries for embedding
+	go run ./tools/pgweb_fetch.go
+
 help: ## Show this help
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
 	awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

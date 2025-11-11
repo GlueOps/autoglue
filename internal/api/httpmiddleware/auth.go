@@ -49,6 +49,14 @@ func AuthMiddleware(db *gorm.DB, requireOrg bool) func(http.Handler) http.Handle
 				} else if appKey := r.Header.Get("X-APP-KEY"); appKey != "" {
 					secret := r.Header.Get("X-APP-SECRET")
 					user = auth.ValidateAppKeyPair(appKey, secret, db)
+				} else if c, err := r.Cookie("ag_jwt"); err == nil {
+					tok := strings.TrimSpace(c.Value)
+					if strings.HasPrefix(strings.ToLower(tok), "bearer ") {
+						tok = tok[7:]
+					}
+					if tok != "" {
+						user = auth.ValidateJWT(tok, db)
+					}
 				}
 
 				if user == nil {

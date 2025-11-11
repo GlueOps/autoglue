@@ -273,6 +273,21 @@ func AuthCallback(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
+		secure := strings.HasPrefix(cfg.OAuthRedirectBase, "https://")
+		if xf := r.Header.Get("X-Forwarded-Proto"); xf != "" {
+			secure = strings.EqualFold(xf, "https")
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "ag_jwt",
+			Value:    "Bearer " + access,
+			Path:     "/",
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+			Secure:   secure,
+			MaxAge:   int((time.Hour * 8).Seconds()),
+		})
+
 		// If the state indicates SPA popup mode, postMessage tokens to the opener and close
 		state := r.URL.Query().Get("state")
 		if strings.Contains(state, "mode=spa") {
@@ -377,6 +392,7 @@ func Refresh(db *gorm.DB) http.HandlerFunc {
 //	@Router		/auth/logout [post]
 func Logout(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		cfg, _ := config.Load()
 		var req dto.LogoutRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			utils.WriteError(w, 400, "invalid_json", err.Error())
@@ -385,13 +401,27 @@ func Logout(db *gorm.DB) http.HandlerFunc {
 		rec, err := auth.ValidateRefreshToken(db, req.RefreshToken)
 		if err != nil {
 			w.WriteHeader(204) // already invalid/revoked
-			return
+			goto clearCookie
 		}
 		if err := auth.RevokeFamily(db, rec.FamilyID); err != nil {
 			utils.WriteError(w, 500, "revoke_failed", err.Error())
 			return
 		}
+
+	clearCookie:
+		http.SetCookie(w, &http.Cookie{
+			Name:     "ag_jwt",
+			Value:    "",
+			Path:     "/",
+			HttpOnly: true,
+			MaxAge:   -1,
+			Expires:  time.Unix(0, 0),
+			SameSite: http.SameSiteLaxMode,
+			Secure:   strings.HasPrefix(cfg.OAuthRedirectBase, "https"),
+		})
+
 		w.WriteHeader(204)
+
 	}
 }
 

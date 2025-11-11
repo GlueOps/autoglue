@@ -13,6 +13,7 @@ import (
 
 type Config struct {
 	DbURL              string
+	DbURLRO            string
 	Port               string
 	Host               string
 	JWTIssuer          string
@@ -29,6 +30,12 @@ type Config struct {
 	Debug       bool
 	Swagger     bool
 	SwaggerHost string
+
+	DBStudioEnabled bool
+	DBStudioBind    string
+	DBStudioPort    string
+	DBStudioUser    string
+	DBStudioPass    string
 }
 
 var (
@@ -48,6 +55,12 @@ func Load() (Config, error) {
 		v.SetDefault("bind.address", "127.0.0.1")
 		v.SetDefault("bind.port", "8080")
 		v.SetDefault("database.url", "postgres://user:pass@localhost:5432/db?sslmode=disable")
+		v.SetDefault("database.url_ro", "")
+		v.SetDefault("db_studio.enabled", false)
+		v.SetDefault("db_studio.bind", "127.0.0.1")
+		v.SetDefault("db_studio.port", "0") // 0 = random
+		v.SetDefault("db_studio.user", "")
+		v.SetDefault("db_studio.pass", "")
 
 		v.SetDefault("ui.dev", false)
 		v.SetDefault("env", "development")
@@ -63,6 +76,7 @@ func Load() (Config, error) {
 			"bind.address",
 			"bind.port",
 			"database.url",
+			"database.url_ro",
 			"jwt.issuer",
 			"jwt.audience",
 			"jwt.private.enc.key",
@@ -76,6 +90,11 @@ func Load() (Config, error) {
 			"debug",
 			"swagger",
 			"swagger.host",
+			"db_studio.enabled",
+			"db_studio.bind",
+			"db_studio.port",
+			"db_studio.user",
+			"db_studio.pass",
 		}
 		for _, k := range keys {
 			_ = v.BindEnv(k)
@@ -84,6 +103,7 @@ func Load() (Config, error) {
 		// Build config
 		cfg := Config{
 			DbURL:              v.GetString("database.url"),
+			DbURLRO:            v.GetString("database.url_ro"),
 			Port:               v.GetString("bind.port"),
 			Host:               v.GetString("bind.address"),
 			JWTIssuer:          v.GetString("jwt.issuer"),
@@ -100,6 +120,12 @@ func Load() (Config, error) {
 			Debug:       v.GetBool("debug"),
 			Swagger:     v.GetBool("swagger"),
 			SwaggerHost: v.GetString("swagger.host"),
+
+			DBStudioEnabled: v.GetBool("db_studio.enabled"),
+			DBStudioBind:    v.GetString("db_studio.bind"),
+			DBStudioPort:    v.GetString("db_studio.port"),
+			DBStudioUser:    v.GetString("db_studio.user"),
+			DBStudioPass:    v.GetString("db_studio.pass"),
 		}
 
 		// Validate

@@ -61,6 +61,7 @@ func SPAHandler() (http.Handler, error) {
 		if strings.HasPrefix(r.URL.Path, "/api/") ||
 			r.URL.Path == "/api" ||
 			strings.HasPrefix(r.URL.Path, "/swagger") ||
+			strings.HasPrefix(r.URL.Path, "/db-studio") ||
 			strings.HasPrefix(r.URL.Path, "/debug/pprof") {
 			http.NotFound(w, r)
 			return

@@ -18,6 +18,7 @@ import (
 	"github.com/glueops/autoglue/internal/auth"
 	"github.com/glueops/autoglue/internal/bg"
 	"github.com/glueops/autoglue/internal/config"
+	"github.com/glueops/autoglue/internal/web"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
@@ -32,6 +33,8 @@ var serveCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		var pgwebInst *web.Pgweb
 
 		jobs, err := bg.NewJobs(rt.DB, cfg.DbURL)
 		if err != nil {
@@ -119,7 +122,31 @@ var serveCmd = &cobra.Command{
 			}
 		}()
 
-		r := api.NewRouter(rt.DB, jobs)
+		var studioHandler http.Handler
+		r := api.NewRouter(rt.DB, jobs, nil)
+
+		if cfg.DBStudioEnabled {
+			dbURL := cfg.DbURLRO
+			if dbURL == "" {
+				dbURL = cfg.DbURL
+			}
+
+			pgwebInst, err = web.StartPgweb(
+				dbURL,
+				cfg.DBStudioBind,
+				cfg.DBStudioPort,
+				true,
+				cfg.DBStudioUser,
+				cfg.DBStudioPass,
+			)
+			if err != nil {
+				log.Printf("pgweb failed to start: %v", err)
+			} else {
+				studioHandler = http.HandlerFunc(pgwebInst.Proxy())
+				r = api.NewRouter(rt.DB, jobs, studioHandler)
+				log.Printf("pgweb running on http://%s:%s (proxied at /db-studio/)", cfg.DBStudioBind, pgwebInst.Port())
+			}
+		}
 
 		addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 
@@ -143,6 +170,9 @@ var serveCmd = &cobra.Command{
 
 		<-ctx.Done()
 		fmt.Println("\n⏳ Shutting down...")
+		if pgwebInst != nil {
+			_ = pgwebInst.Stop(context.Background())
+		}
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		return srv.Shutdown(shutdownCtx)

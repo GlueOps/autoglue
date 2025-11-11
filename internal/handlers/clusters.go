@@ -106,20 +106,20 @@ func clusterToDTO(c models.Cluster) dto.ClusterResponse {
 	}
 
 	return dto.ClusterResponse{
-		ID:                  c.ID,
-		Name:                c.Name,
-		Provider:            c.Provider,
-		Region:              c.Region,
-		Status:              c.Status,
-		CaptainDomain:       c.CaptainDomain,
-		ClusterLoadBalancer: c.ClusterLoadBalancer,
-		RandomToken:         c.RandomToken,
-		CertificateKey:      c.CertificateKey,
-		ControlLoadBalancer: c.ControlLoadBalancer,
-		NodePools:           nps,
-		BastionServer:       bastion,
-		CreatedAt:           c.CreatedAt,
-		UpdatedAt:           c.UpdatedAt,
+		ID:            c.ID,
+		Name:          c.Name,
+		Provider:      c.Provider,
+		Region:        c.Region,
+		Status:        c.Status,
+		CaptainDomain: c.CaptainDomain,
+		//ClusterLoadBalancer: c.ClusterLoadBalancer,
+		RandomToken:    c.RandomToken,
+		CertificateKey: c.CertificateKey,
+		//ControlLoadBalancer: c.ControlLoadBalancer,
+		NodePools:     nps,
+		BastionServer: bastion,
+		CreatedAt:     c.CreatedAt,
+		UpdatedAt:     c.UpdatedAt,
 	}
 }
 
