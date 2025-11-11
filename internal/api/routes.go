@@ -219,7 +219,7 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs, studio http.Handler) http.Handler {
 			adminOnly := httpmiddleware.RequirePlatformAdmin()
 			gr.Use(authUser)
 			gr.Use(adminOnly)
-			gr.Mount("/db-studio", http.StripPrefix("/db-studio", studio))
+			gr.Mount("/db-studio", studio)
 		})
 	}
 
