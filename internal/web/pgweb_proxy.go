@@ -35,7 +35,7 @@ func StartPgweb(dbURL, host, port string, readonly bool, user, pass string) (*Pg
 		"--url", dbURL,
 		"--bind", host,
 		"--listen", port,
-		"--prefix", "/db-studio",
+		"--prefix", "db-studio",
 		"--skip-open",
 	}
 	if readonly {
