@@ -67,7 +67,7 @@ func NewJobs(gdb *gorm.DB, dbUrl string) (*Jobs, error) {
 		archer.WithSetTableName("jobs"), // <- ensure correct table
 		archer.WithSleepInterval(1*time.Second), // fast poll while debugging
 		archer.WithErrHandler(func(err error) { // bubble up worker SQL errors
-			log.Printf("[archer] ERROR: %v", err)
+			log.Error().Err(err).Msg("[archer] worker error")
 		}),
 	)
 
@@ -94,6 +94,12 @@ func NewJobs(gdb *gorm.DB, dbUrl string) (*Jobs, error) {
 		archer.WithTimeout(5*time.Minute),
 	)
 
+	c.Register(
+		"db_backup_s3",
+		DbBackupWorker(gdb, jobs),
+		archer.WithInstances(1),
+		archer.WithTimeout(15*time.Minute),
+	)
 	return jobs, nil
 }
 

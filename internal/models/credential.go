@@ -9,7 +9,7 @@ import (
 
 type Credential struct {
 	ID               uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	OrganizationID   uuid.UUID      `gorm:"type:uuid;not null;index" json:"organization_id"`
+	OrganizationID   uuid.UUID      `gorm:"type:uuid;not null;index;uniqueIndex:uniq_org_provider_scopekind_scope,priority:1" json:"organization_id"`
 	Organization     Organization   `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE" json:"organization"`
 	Provider         string         `gorm:"type:varchar(50);not null;uniqueIndex:uniq_org_provider_scopekind_scope,priority:2;index:idx_provider_kind"`
 	Kind             string         `gorm:"type:varchar(50);not null;index:idx_provider_kind;index:idx_kind_scope"`

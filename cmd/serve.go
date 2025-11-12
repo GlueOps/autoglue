@@ -72,6 +72,15 @@ var serveCmd = &cobra.Command{
 				archer.WithScheduleTime(next2),
 				archer.WithMaxRetries(1),
 			)
+
+			_, _ = jobs.Enqueue(
+				context.Background(),
+				uuid.NewString(),
+				"db_backup_s3",
+				bg.DbBackupArgs{},
+				archer.WithMaxRetries(1),
+				archer.WithScheduleTime(time.Now().Add(1*time.Hour)),
+			)
 		}
 
 		// Periodic scheduler
@@ -97,16 +106,6 @@ var serveCmd = &cobra.Command{
 					if err != nil {
 						log.Printf("failed to enqueue bootstrap_bastion: %v", err)
 					}
-					/*
-						_, _ = jobs.Enqueue(
-							context.Background(),
-							uuid.NewString(),
-							"tokens_cleanup",
-							bg.TokensCleanupArgs{},
-							archer.WithMaxRetries(3),
-							archer.WithScheduleTime(time.Now().Add(10*time.Second)),
-						)
-					*/
 				case <-schedCtx.Done():
 					return
 				}
