@@ -18,7 +18,7 @@ import (
 	"github.com/glueops/autoglue/internal/auth"
 	"github.com/glueops/autoglue/internal/bg"
 	"github.com/glueops/autoglue/internal/config"
-	"github.com/glueops/autoglue/internal/web"
+	"github.com/glueops/autoglue/internal/models"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
@@ -34,12 +34,12 @@ var serveCmd = &cobra.Command{
 			return err
 		}
 
-		var pgwebInst *web.Pgweb
-
 		jobs, err := bg.NewJobs(rt.DB, cfg.DbURL)
 		if err != nil {
 			log.Fatalf("failed to init background jobs: %v", err)
 		}
+
+		rt.DB.Where("status IN ?", []string{"scheduled", "queued", "pending"}).Delete(&models.Job{})
 
 		// Start workers in background ONCE
 		go func() {
@@ -53,7 +53,7 @@ var serveCmd = &cobra.Command{
 		{
 			// schedule next 03:30 local time
 			next := time.Now().Truncate(24 * time.Hour).Add(24 * time.Hour).Add(3*time.Hour + 30*time.Minute)
-			_, _ = jobs.Enqueue(
+			_, err = jobs.Enqueue(
 				context.Background(),
 				uuid.NewString(),
 				"archer_cleanup",
@@ -61,10 +61,13 @@ var serveCmd = &cobra.Command{
 				archer.WithScheduleTime(next),
 				archer.WithMaxRetries(1),
 			)
+			if err != nil {
+				log.Fatalf("failed to enqueue archer cleanup job: %v", err)
+			}
 
 			// schedule next 03:45 local time
 			next2 := time.Now().Truncate(24 * time.Hour).Add(24 * time.Hour).Add(3*time.Hour + 45*time.Minute)
-			_, _ = jobs.Enqueue(
+			_, err = jobs.Enqueue(
 				context.Background(),
 				uuid.NewString(),
 				"tokens_cleanup",
@@ -72,45 +75,47 @@ var serveCmd = &cobra.Command{
 				archer.WithScheduleTime(next2),
 				archer.WithMaxRetries(1),
 			)
+			if err != nil {
+				log.Fatalf("failed to enqueue token cleanup job: %v", err)
+			}
 
-			_, _ = jobs.Enqueue(
+			_, err = jobs.Enqueue(
 				context.Background(),
 				uuid.NewString(),
 				"db_backup_s3",
-				bg.DbBackupArgs{},
+				bg.DbBackupArgs{IntervalS: 3600},
 				archer.WithMaxRetries(1),
 				archer.WithScheduleTime(time.Now().Add(1*time.Hour)),
 			)
-		}
-
-		// Periodic scheduler
-		schedCtx, schedCancel := context.WithCancel(context.Background())
-		defer schedCancel()
-
-		ticker := time.NewTicker(10 * time.Second)
-		defer ticker.Stop()
-
-		go func() {
-			for {
-				select {
-				case <-ticker.C:
-					_, err := jobs.Enqueue(
-						context.Background(),
-						uuid.NewString(),
-						"bootstrap_bastion",
-						bg.BastionBootstrapArgs{},
-						archer.WithMaxRetries(3),
-						// while debugging, avoid extra schedule delay:
-						archer.WithScheduleTime(time.Now().Add(60*time.Second)),
-					)
-					if err != nil {
-						log.Printf("failed to enqueue bootstrap_bastion: %v", err)
-					}
-				case <-schedCtx.Done():
-					return
-				}
+			if err != nil {
+				log.Fatalf("failed to enqueue backup jobs: %v", err)
 			}
-		}()
+
+			_, err = jobs.Enqueue(
+				context.Background(),
+				uuid.NewString(),
+				"dns_reconcile",
+				bg.DNSReconcileArgs{MaxDomains: 25, MaxRecords: 100, IntervalS: 10},
+				archer.WithScheduleTime(time.Now().Add(5*time.Second)),
+				archer.WithMaxRetries(1),
+			)
+			if err != nil {
+				log.Fatalf("failed to enqueue dns reconcile: %v", err)
+			}
+
+			_, err := jobs.Enqueue(
+				context.Background(),
+				uuid.NewString(),
+				"bootstrap_bastion",
+				bg.BastionBootstrapArgs{IntervalS: 10},
+				archer.WithMaxRetries(3),
+				// while debugging, avoid extra schedule delay:
+				archer.WithScheduleTime(time.Now().Add(60*time.Second)),
+			)
+			if err != nil {
+				log.Printf("failed to enqueue bootstrap_bastion: %v", err)
+			}
+		}
 
 		_ = auth.Refresh(rt.DB, rt.Cfg.JWTPrivateEncKey)
 		go func() {
@@ -121,7 +126,6 @@ var serveCmd = &cobra.Command{
 			}
 		}()
 
-		var studioHandler http.Handler
 		r := api.NewRouter(rt.DB, jobs, nil)
 
 		if cfg.DBStudioEnabled {
@@ -130,20 +134,16 @@ var serveCmd = &cobra.Command{
 				dbURL = cfg.DbURL
 			}
 
-			pgwebInst, err = web.StartPgweb(
+			studio, err := api.PgwebHandler(
 				dbURL,
-				cfg.DBStudioBind,
-				cfg.DBStudioPort,
-				true,
-				cfg.DBStudioUser,
-				cfg.DBStudioPass,
+				"db-studio",
+				false,
 			)
 			if err != nil {
-				log.Printf("pgweb failed to start: %v", err)
+				log.Fatalf("failed to init db studio: %v", err)
 			} else {
-				studioHandler = http.HandlerFunc(pgwebInst.Proxy())
-				r = api.NewRouter(rt.DB, jobs, studioHandler)
-				log.Printf("pgweb running on http://%s:%s (proxied at /db-studio/)", cfg.DBStudioBind, pgwebInst.Port())
+				r = api.NewRouter(rt.DB, jobs, studio)
+				log.Printf("pgweb mounted at /db-studio/")
 			}
 		}
 
@@ -169,9 +169,6 @@ var serveCmd = &cobra.Command{
 
 		<-ctx.Done()
 		fmt.Println("\n⏳ Shutting down...")
-		if pgwebInst != nil {
-			_ = pgwebInst.Stop(context.Background())
-		}
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		return srv.Shutdown(shutdownCtx)

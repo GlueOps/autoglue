@@ -371,6 +371,21 @@ func Refresh(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
+		secure := strings.HasPrefix(cfg.OAuthRedirectBase, "https://")
+		if xf := r.Header.Get("X-Forwarded-Proto"); xf != "" {
+			secure = strings.EqualFold(xf, "https")
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "ag_jwt",
+			Value:    "Bearer " + access,
+			Path:     "/",
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+			Secure:   secure,
+			MaxAge:   int((time.Hour * 8).Seconds()),
+		})
+
 		utils.WriteJSON(w, 200, dto.TokenPair{
 			AccessToken:  access,
 			RefreshToken: newPair.Plain,

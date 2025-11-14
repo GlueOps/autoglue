@@ -41,6 +41,8 @@ func NewRuntime() *Runtime {
 		&models.NodePool{},
 		&models.Cluster{},
 		&models.Credential{},
+		&models.Domain{},
+		&models.RecordSet{},
 	)
 
 	if err != nil {

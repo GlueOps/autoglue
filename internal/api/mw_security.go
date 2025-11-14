@@ -36,7 +36,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 				// Google font files
 				"font-src 'self' data: https://fonts.gstatic.com",
 				// HMR connections
-				"connect-src 'self' http://localhost:5173 ws://localhost:5173 ws://localhost:8080",
+				"connect-src 'self' http://localhost:5173 ws://localhost:5173 ws://localhost:8080 https://api.github.com",
 				"frame-ancestors 'none'",
 			}, "; "))
 		} else {
@@ -53,7 +53,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 				"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 				"img-src 'self' data: blob:",
 				"font-src 'self' data: https://fonts.gstatic.com",
-				"connect-src 'self'",
+				"connect-src 'self' ws://localhost:8080 https://api.github.com",
 				"frame-ancestors 'none'",
 			}, "; "))
 		}

@@ -6,6 +6,7 @@ import {
   AuthApi,
   Configuration,
   CredentialsApi,
+  DNSApi,
   LabelsApi,
   MeApi,
   MeAPIKeysApi,
@@ -117,4 +118,8 @@ export function makeMetaApi() {
 
 export function makeCredentialsApi() {
   return makeApiClient(CredentialsApi)
+}
+
+export function makeDnsApi() {
+  return makeApiClient(DNSApi)
 }

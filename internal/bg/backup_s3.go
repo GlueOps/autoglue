@@ -29,7 +29,7 @@ import (
 )
 
 type DbBackupArgs struct {
-	// kept in case you want to change retention or add dry-run later
+	IntervalS int `json:"interval_seconds,omitempty"`
 }
 
 type s3Scope struct {
@@ -44,6 +44,13 @@ type encAWS struct {
 
 func DbBackupWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 	return func(ctx context.Context, j job.Job) (any, error) {
+		args := DbBackupArgs{IntervalS: 3600}
+		_ = j.ParseArguments(&args)
+
+		if args.IntervalS <= 0 {
+			args.IntervalS = 3600
+		}
+
 		if err := DbBackup(ctx, db); err != nil {
 			return nil, err
 		}
@@ -53,7 +60,7 @@ func DbBackupWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 			queue = "db_backup_s3"
 		}
 
-		next := time.Now().UTC().Add(1 * time.Hour)
+		next := time.Now().Add(time.Duration(args.IntervalS) * time.Second)
 
 		payload := DbBackupArgs{}
 
@@ -73,7 +80,6 @@ func DbBackupWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 
 func DbBackup(ctx context.Context, db *gorm.DB) error {
 	cfg, err := config.Load()
-	log.Info().Err(err).Msg("loading config")
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}

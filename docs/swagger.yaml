@@ -158,6 +158,19 @@ definitions:
     - scope_version
     - secret
     type: object
+  dto.CreateDomainRequest:
+    properties:
+      credential_id:
+        type: string
+      domain_name:
+        type: string
+      zone_id:
+        maxLength: 128
+        type: string
+    required:
+    - credential_id
+    - domain_name
+    type: object
   dto.CreateLabelRequest:
     properties:
       key:
@@ -174,6 +187,28 @@ definitions:
         - master
         - worker
         type: string
+    type: object
+  dto.CreateRecordSetRequest:
+    properties:
+      name:
+        description: |-
+          Name relative to domain ("endpoint") OR FQDN ("endpoint.example.com").
+          Server normalizes to relative.
+        maxLength: 253
+        type: string
+      ttl:
+        maximum: 86400
+        minimum: 1
+        type: integer
+      type:
+        type: string
+      values:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    - type
     type: object
   dto.CreateSSHRequest:
     properties:
@@ -251,6 +286,27 @@ definitions:
       scope_version:
         type: integer
       updated_at:
+        type: string
+    type: object
+  dto.DomainResponse:
+    properties:
+      created_at:
+        type: string
+      credential_id:
+        type: string
+      domain_name:
+        type: string
+      id:
+        type: string
+      last_error:
+        type: string
+      organization_id:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      zone_id:
         type: string
     type: object
   dto.EnqueueRequest:
@@ -440,6 +496,34 @@ definitions:
         example: 7
         type: integer
     type: object
+  dto.RecordSetResponse:
+    properties:
+      created_at:
+        type: string
+      domain_id:
+        type: string
+      fingerprint:
+        type: string
+      id:
+        type: string
+      last_error:
+        type: string
+      name:
+        type: string
+      owner:
+        type: string
+      status:
+        type: string
+      ttl:
+        type: integer
+      type:
+        type: string
+      updated_at:
+        type: string
+      values:
+        description: '[]string JSON'
+        type: object
+    type: object
   dto.RefreshRequest:
     properties:
       refresh_token:
@@ -575,6 +659,23 @@ definitions:
         description: set if rotating
         type: object
     type: object
+  dto.UpdateDomainRequest:
+    properties:
+      credential_id:
+        type: string
+      domain_name:
+        type: string
+      status:
+        enum:
+        - pending
+        - provisioning
+        - ready
+        - failed
+        type: string
+      zone_id:
+        maxLength: 128
+        type: string
+    type: object
   dto.UpdateLabelRequest:
     properties:
       key:
@@ -591,6 +692,30 @@ definitions:
         - master
         - worker
         type: string
+    type: object
+  dto.UpdateRecordSetRequest:
+    properties:
+      name:
+        description: Any change flips status back to pending (worker will UPSERT)
+        maxLength: 253
+        type: string
+      status:
+        enum:
+        - pending
+        - provisioning
+        - ready
+        - failed
+        type: string
+      ttl:
+        maximum: 86400
+        minimum: 1
+        type: integer
+      type:
+        type: string
+      values:
+        items:
+          type: string
+        type: array
     type: object
   dto.UpdateServerRequest:
     properties:
@@ -1812,6 +1937,406 @@ paths:
       summary: Reveal decrypted secret (one-time read)
       tags:
       - Credentials
+  /dns/domains:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns domains for X-Org-ID. Filters: `domain_name`, `status`,
+        `q` (contains).'
+      operationId: ListDomains
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Exact domain name (lowercase, no trailing dot)
+        in: query
+        name: domain_name
+        type: string
+      - description: pending|provisioning|ready|failed
+        in: query
+        name: status
+        type: string
+      - description: Domain contains (case-insensitive)
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.DomainResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: db error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List domains (org scoped)
+      tags:
+      - DNS
+    post:
+      consumes:
+      - application/json
+      description: Creates a domain bound to a Route 53 scoped credential. Archer
+        will backfill ZoneID if omitted.
+      operationId: CreateDomain
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Domain payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateDomainRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.DomainResponse'
+        "400":
+          description: validation error
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "500":
+          description: db error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Create a domain (org scoped)
+      tags:
+      - DNS
+  /dns/domains/{domain_id}/records:
+    get:
+      consumes:
+      - application/json
+      description: 'Filters: `name`, `type`, `status`.'
+      operationId: ListRecordSets
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Domain ID (UUID)
+        in: path
+        name: domain_id
+        required: true
+        type: string
+      - description: Exact relative name or FQDN (server normalizes)
+        in: query
+        name: name
+        type: string
+      - description: RR type (A, AAAA, CNAME, TXT, MX, NS, SRV, CAA)
+        in: query
+        name: type
+        type: string
+      - description: pending|provisioning|ready|failed
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.RecordSetResponse'
+            type: array
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: domain not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List record sets for a domain
+      tags:
+      - DNS
+    post:
+      consumes:
+      - application/json
+      operationId: CreateRecordSet
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Domain ID (UUID)
+        in: path
+        name: domain_id
+        required: true
+        type: string
+      - description: Record set payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateRecordSetRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.RecordSetResponse'
+        "400":
+          description: validation error
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: domain not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Create a record set (pending; Archer will UPSERT to Route 53)
+      tags:
+      - DNS
+  /dns/domains/{id}:
+    delete:
+      consumes:
+      - application/json
+      operationId: DeleteDomain
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Domain ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Delete a domain
+      tags:
+      - DNS
+    get:
+      consumes:
+      - application/json
+      operationId: GetDomain
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Domain ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DomainResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Get a domain (org scoped)
+      tags:
+      - DNS
+    patch:
+      consumes:
+      - application/json
+      operationId: UpdateDomain
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Domain ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateDomainRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DomainResponse'
+        "400":
+          description: validation error
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Update a domain (org scoped)
+      tags:
+      - DNS
+  /dns/records/{id}:
+    delete:
+      consumes:
+      - application/json
+      operationId: DeleteRecordSet
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Record Set ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Delete a record set (API removes row; worker can optionally handle
+        external deletion policy)
+      tags:
+      - DNS
+    patch:
+      consumes:
+      - application/json
+      operationId: UpdateRecordSet
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Record Set ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateRecordSetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RecordSetResponse'
+        "400":
+          description: validation error
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Update a record set (flips to pending for reconciliation)
+      tags:
+      - DNS
   /healthz:
     get:
       consumes:
@@ -3619,6 +4144,57 @@ paths:
       - OrgKeyAuth: []
       - OrgSecretAuth: []
       summary: Update server (org scoped)
+      tags:
+      - Servers
+  /servers/{id}/reset-hostkey:
+    post:
+      consumes:
+      - application/json
+      description: Clears the stored SSH host key for this server. The next SSH connection
+        will re-learn the host key (trust-on-first-use).
+      operationId: ResetServerHostKey
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        type: string
+      - description: Server ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ServerResponse'
+        "400":
+          description: invalid id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: organization required
+          schema:
+            type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "500":
+          description: reset failed
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Reset SSH host key (org scoped)
       tags:
       - Servers
   /ssh:

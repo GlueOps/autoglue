@@ -27,22 +27,22 @@ func main() {
 		{
 			Name:   "pgweb-linux-amd64",
 			URL:    fmt.Sprintf("https://github.com/sosedoff/pgweb/releases/download/v%s/pgweb_linux_amd64.zip", version),
-			SHA256: "",
+			SHA256: "3d6c2063e1040b8a625eb7c43c9b84f8ed12cfc9a798eacbce85179963ee2554",
 		},
 		{
 			Name:   "pgweb-linux-arm64",
 			URL:    fmt.Sprintf("https://github.com/sosedoff/pgweb/releases/download/v%s/pgweb_linux_arm64.zip", version),
-			SHA256: "",
+			SHA256: "079c698a323ed6431ce7e6343ee5847c7da62afbf45dfb2e78f8289d7b381783",
 		},
 		{
 			Name:   "pgweb-darwin-amd64",
 			URL:    fmt.Sprintf("https://github.com/sosedoff/pgweb/releases/download/v%s/pgweb_darwin_amd64.zip", version),
-			SHA256: "",
+			SHA256: "c0a098e2eb9cf9f7c20161a2947522eb67eacbf2b6c3389c2f8e8c5ed7238957",
 		},
 		{
 			Name:   "pgweb-darwin-arm64",
 			URL:    fmt.Sprintf("https://github.com/sosedoff/pgweb/releases/download/v%s/pgweb_darwin_arm64.zip", version),
-			SHA256: "",
+			SHA256: "c8f5fca847f461ba22a619e2d96cb1656cefdffd8f2aef2340e14fc5b518d3a2",
 		},
 	}
 
@@ -105,67 +105,33 @@ func fileSHA256(path string) (string, error) {
 }
 
 func unzipSingle(zipPath, outPath string) error {
-	// minimal unzip: because pgweb zip has only one binary
-	r, err := os.Open(zipPath)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-
-	// use archive/zip
-	stat, err := os.Stat(zipPath)
-	if err != nil {
-		return err
-	}
-	return unzipFile(zipPath, outPath, stat.Size())
-}
-
-func unzipFile(zipFile, outFile string, _ int64) error {
-	r, err := os.Open(zipFile)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-	fi, _ := r.Stat()
-
-	// rely on standard zip reader
-	data, err := io.ReadAll(r)
-	if err != nil {
-		return err
-	}
-	tmpZip := filepath.Join(os.TempDir(), fi.Name())
-	if err := os.WriteFile(tmpZip, data, 0o644); err != nil {
-		return err
-	}
-	defer os.Remove(tmpZip)
-
-	zr, err := os.Open(tmpZip)
+	zr, err := zip.OpenReader(zipPath)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
-	// extract using standard lib
-	zr2, err := zip.OpenReader(tmpZip)
+
+	if len(zr.File) == 0 {
+		return fmt.Errorf("zip file %s is empty", zipPath)
+	}
+
+	f := zr.File[0]
+
+	rc, err := f.Open()
 	if err != nil {
 		return err
 	}
-	defer zr2.Close()
-	for _, f := range zr2.File {
-		rc, err := f.Open()
-		if err != nil {
-			return err
-		}
-		defer rc.Close()
-		out, err := os.Create(outFile)
-		if err != nil {
-			return err
-		}
-		if _, err := io.Copy(out, rc); err != nil {
-			out.Close()
-			return err
-		}
-		out.Close()
-		break
+	defer rc.Close()
+
+	out, err := os.Create(outPath)
+	if err != nil {
+		return err
 	}
+	defer out.Close()
+
+	if _, err := io.Copy(out, rc); err != nil {
+		return err
+	}
+
 	return nil
 }

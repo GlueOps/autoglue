@@ -2,8 +2,8 @@ package bg
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
-	"log"
 	"net"
 	"strings"
 	"time"
@@ -13,13 +13,16 @@ import (
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
 )
 
 // ----- Public types -----
 
-type BastionBootstrapArgs struct{}
+type BastionBootstrapArgs struct {
+	IntervalS int `json:"interval_seconds,omitempty"`
+}
 
 type BastionBootstrapFailure struct {
 	ID     uuid.UUID `json:"id"`
@@ -39,10 +42,16 @@ type BastionBootstrapResult struct {
 
 // ----- Worker -----
 
-func BastionBootstrapWorker(db *gorm.DB) archer.WorkerFn {
+func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 	return func(ctx context.Context, j job.Job) (any, error) {
+		args := BastionBootstrapArgs{IntervalS: 120}
 		jobID := j.ID
 		start := time.Now()
+
+		_ = j.ParseArguments(&args)
+		if args.IntervalS <= 0 {
+			args.IntervalS = 120
+		}
 
 		var servers []models.Server
 		if err := db.
@@ -105,7 +114,7 @@ func BastionBootstrapWorker(db *gorm.DB) archer.WorkerFn {
 			// 4) SSH + install docker
 			host := net.JoinHostPort(*s.PublicIPAddress, "22")
 			runCtx, cancel := context.WithTimeout(ctx, perHostTimeout)
-			out, err := sshInstallDockerWithOutput(runCtx, host, s.SSHUser, []byte(privKey))
+			out, err := sshInstallDockerWithOutput(runCtx, db, s, host, s.SSHUser, []byte(privKey))
 			cancel()
 
 			if err != nil {
@@ -147,9 +156,17 @@ func BastionBootstrapWorker(db *gorm.DB) archer.WorkerFn {
 			Failures:     failures,
 		}
 
-		// log.Printf("[bastion] level=INFO job=%s step=finish processed=%d ready=%d failed=%d elapsed_ms=%d",
-		// 	jobID, proc, ok, fail, res.ElapsedMs)
+		log.Debug().Int("processed", proc).Int("ready", ok).Int("failed", fail).Msg("[bastion] reconcile tick ok")
 
+		next := time.Now().Add(time.Duration(args.IntervalS) * time.Second)
+		_, _ = jobs.Enqueue(
+			ctx,
+			uuid.NewString(),
+			"bootstrap_bastion",
+			args,
+			archer.WithScheduleTime(next),
+			archer.WithMaxRetries(1),
+		)
 		return res, nil
 	}
 }
@@ -187,16 +204,24 @@ func logHostInfo(jobID string, s *models.Server, step, msg string, kv ...any) {
 // ----- SSH & command execution -----
 
 // returns combined stdout/stderr so caller can log it on error
-func sshInstallDockerWithOutput(ctx context.Context, host, user string, privateKeyPEM []byte) (string, error) {
+func sshInstallDockerWithOutput(
+	ctx context.Context,
+	db *gorm.DB,
+	s *models.Server,
+	host, user string,
+	privateKeyPEM []byte,
+) (string, error) {
 	signer, err := ssh.ParsePrivateKey(privateKeyPEM)
 	if err != nil {
 		return "", fmt.Errorf("parse private key: %w", err)
 	}
 
+	hkcb := makeDBHostKeyCallback(db, s)
+
 	config := &ssh.ClientConfig{
 		User:            user,
 		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signer)},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // TODO: known_hosts verification
+		HostKeyCallback: hkcb,
 		Timeout:         30 * time.Second,
 	}
 
@@ -493,4 +518,39 @@ func wrapSSHError(err error, output string) error {
 // super simple escaping for a here-string; avoids quoting hell
 func sshEscape(s string) string {
 	return fmt.Sprintf("%q", s)
+}
+
+// makeDBHostKeyCallback returns a HostKeyCallback bound to a specific server row.
+// TOFU semantics:
+//   - If s.SSHHostKey is empty: store the current key in DB and accept.
+//   - If s.SSHHostKey is set: require exact match, else error (possible MITM/reinstall).
+func makeDBHostKeyCallback(db *gorm.DB, s *models.Server) ssh.HostKeyCallback {
+	return func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+		algo := key.Type()
+		enc := base64.StdEncoding.EncodeToString(key.Marshal())
+
+		// First-time connect: persist key (TOFU).
+		if s.SSHHostKey == "" {
+			if err := db.Model(&models.Server{}).
+				Where("id = ? AND (ssh_host_key IS NULL or ssh_host_key = '')", s.ID).
+				Updates(map[string]any{
+					"ssh_host_key":      enc,
+					"ssh_host_key_algo": algo,
+				}).Error; err != nil {
+				return fmt.Errorf("store new host key for %s (%s): %w", hostname, s.ID, err)
+			}
+
+			s.SSHHostKey = enc
+			s.SSHHostKeyAlgo = algo
+			return nil
+		}
+
+		if s.SSHHostKeyAlgo != algo || s.SSHHostKey != enc {
+			return fmt.Errorf(
+				"host key mismatch for %s (server_id=%s, stored=%s/%s, got=%s/%s) - POSSIBLE MITM or host reinstalled",
+				hostname, s.ID, s.SSHHostKeyAlgo, s.SSHHostKey, algo, enc,
+			)
+		}
+		return nil
+	}
 }

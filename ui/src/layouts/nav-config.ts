@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { AiOutlineCluster } from "react-icons/ai"
 import { GrUserWorker } from "react-icons/gr"
+import { MdOutlineDns } from "react-icons/md"
 
 export type NavItem = {
   to: string
@@ -23,6 +24,7 @@ export type NavItem = {
 
 export const mainNav: NavItem[] = [
   { to: "/clusters", label: "Clusters", icon: AiOutlineCluster },
+  { to: "/dns", label: "DNS", icon: MdOutlineDns },
   { to: "/node-pools", label: "Node Pools", icon: BoxesIcon },
   { to: "/annotations", label: "Annotations", icon: ComponentIcon },
   { to: "/labels", label: "Labels", icon: TagsIcon },

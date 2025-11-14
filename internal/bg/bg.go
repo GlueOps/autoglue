@@ -75,7 +75,7 @@ func NewJobs(gdb *gorm.DB, dbUrl string) (*Jobs, error) {
 
 	c.Register(
 		"bootstrap_bastion",
-		BastionBootstrapWorker(gdb),
+		BastionBootstrapWorker(gdb, jobs),
 		archer.WithInstances(instances),
 		archer.WithTimeout(time.Duration(timeoutSec)*time.Second),
 	)
@@ -99,6 +99,13 @@ func NewJobs(gdb *gorm.DB, dbUrl string) (*Jobs, error) {
 		DbBackupWorker(gdb, jobs),
 		archer.WithInstances(1),
 		archer.WithTimeout(15*time.Minute),
+	)
+
+	c.Register(
+		"dns_reconcile",
+		DNSReconsileWorker(gdb, jobs),
+		archer.WithInstances(1),
+		archer.WithTimeout(2*time.Minute),
 	)
 	return jobs, nil
 }

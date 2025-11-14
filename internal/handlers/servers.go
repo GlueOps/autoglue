@@ -370,6 +370,63 @@ func DeleteServer(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
+// ResetServerHostKey godoc
+//
+//	@ID				ResetServerHostKey
+//	@Summary		Reset SSH host key (org scoped)
+//	@Description	Clears the stored SSH host key for this server. The next SSH connection will re-learn the host key (trust-on-first-use).
+//	@Tags			Servers
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"Server ID (UUID)"
+//	@Success		200			{object}	dto.ServerResponse
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"reset failed"
+//	@Router			/servers/{id}/reset-hostkey [post]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
+func ResetServerHostKey(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
+		if !ok {
+			utils.WriteError(w, http.StatusForbidden, "org_required", "specify X-Org-ID")
+			return
+		}
+
+		id, err := uuid.Parse(chi.URLParam(r, "id"))
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, "id_invalid", "invalid id")
+			return
+		}
+
+		var server models.Server
+		if err := db.Where("id = ? AND organization_id = ?", id, orgID).First(&server).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "server_not_found", "server not found")
+				return
+			}
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to get server")
+			return
+		}
+
+		// Clear stored host key so next SSH handshake will TOFU and persist a new one.
+		server.SSHHostKey = ""
+		server.SSHHostKeyAlgo = ""
+
+		if err := db.Save(&server).Error; err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to reset host key")
+			return
+		}
+
+		utils.WriteJSON(w, http.StatusOK, server)
+	}
+}
+
 // --- Helpers ---
 
 func validStatus(status string) bool {
