@@ -1294,6 +1294,199 @@ func ClearClusterKubeconfig(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
+// AttachNodePool godoc
+//
+//	@ID				AttachNodePool
+//	@Summary		Attach a node pool to a cluster
+//	@Description	Adds an entry in the cluster_node_pools join table.
+//	@Tags			Clusters
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Org-ID	header		string						false	"Organization UUID"
+//	@Param			clusterID	path		string						true	"Cluster ID"
+//	@Param			body		body		dto.AttachNodePoolRequest	true	"payload"
+//	@Success		200			{object}	dto.ClusterResponse
+//	@Failure		400			{string}	string	"bad request"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"cluster or node pool not found"
+//	@Failure		500			{string}	string	"db error"
+//	@Router			/clusters/{clusterID}/node-pools [post]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
+func AttachNodePool(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
+		if !ok {
+			utils.WriteError(w, http.StatusForbidden, "org_required", "specify X-Org-ID")
+			return
+		}
+
+		clusterID, err := uuid.Parse(chi.URLParam(r, "clusterID"))
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, "bad_cluster_id", "invalid cluster id")
+			return
+		}
+
+		var in dto.AttachNodePoolRequest
+		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+			utils.WriteError(w, http.StatusBadRequest, "bad_json", err.Error())
+			return
+		}
+
+		// Load cluster (org scoped)
+		var cluster models.Cluster
+		if err := db.
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			First(&cluster).Error; err != nil {
+
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+
+		// Load node pool (org scoped)
+		var np models.NodePool
+		if err := db.
+			Where("id = ? AND organization_id = ?", in.NodePoolID, orgID).
+			First(&np).Error; err != nil {
+
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "nodepool_not_found", "node pool not found for organization")
+				return
+			}
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+
+		// Create association in join table
+		if err := db.Model(&cluster).Association("NodePools").Append(&np); err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to attach node pool")
+			return
+		}
+
+		_ = markClusterNeedsValidation(db, cluster.ID)
+
+		// Reload for rich response
+		if err := db.
+			Preload("CaptainDomain").
+			Preload("ControlPlaneRecordSet").
+			Preload("AppsLoadBalancer").
+			Preload("GlueOpsLoadBalancer").
+			Preload("BastionServer").
+			Preload("NodePools").
+			Preload("NodePools.Labels").
+			Preload("NodePools.Annotations").
+			Preload("NodePools.Taints").
+			Preload("NodePools.Servers").
+			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
+
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+	}
+}
+
+// DetachNodePool godoc
+//
+//	@ID				DetachNodePool
+//	@Summary		Detach a node pool from a cluster
+//	@Description	Removes an entry from the cluster_node_pools join table.
+//	@Tags			Clusters
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			clusterID	path		string	true	"Cluster ID"
+//	@Param			nodePoolID	path		string	true	"Node Pool ID"
+//	@Success		200			{object}	dto.ClusterResponse
+//	@Failure		400			{string}	string	"bad request"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"cluster or node pool not found"
+//	@Failure		500			{string}	string	"db error"
+//	@Router			/clusters/{clusterID}/node-pools/{nodePoolID} [delete]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
+func DetachNodePool(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
+		if !ok {
+			utils.WriteError(w, http.StatusForbidden, "org_required", "specify X-Org-ID")
+			return
+		}
+
+		clusterID, err := uuid.Parse(chi.URLParam(r, "clusterID"))
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, "bad_cluster_id", "invalid cluster id")
+			return
+		}
+
+		nodePoolID, err := uuid.Parse(chi.URLParam(r, "nodePoolID"))
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, "bad_nodepool_id", "invalid node pool id")
+			return
+		}
+
+		var cluster models.Cluster
+		if err := db.
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			First(&cluster).Error; err != nil {
+
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+
+		var np models.NodePool
+		if err := db.
+			Where("id = ? AND organization_id = ?", nodePoolID, orgID).
+			First(&np).Error; err != nil {
+
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "nodepool_not_found", "node pool not found for organization")
+				return
+			}
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+
+		if err := db.Model(&cluster).Association("NodePools").Delete(&np); err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to detach node pool")
+			return
+		}
+
+		_ = markClusterNeedsValidation(db, cluster.ID)
+
+		if err := db.
+			Preload("CaptainDomain").
+			Preload("ControlPlaneRecordSet").
+			Preload("AppsLoadBalancer").
+			Preload("GlueOpsLoadBalancer").
+			Preload("BastionServer").
+			Preload("NodePools").
+			Preload("NodePools.Labels").
+			Preload("NodePools.Annotations").
+			Preload("NodePools.Taints").
+			Preload("NodePools.Servers").
+			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
+
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+	}
+}
+
 // -- Helpers
 
 func clusterToDTO(c models.Cluster) dto.ClusterResponse {

@@ -35,5 +35,7 @@ func mountClusterRoutes(r chi.Router, db *gorm.DB, authOrg func(http.Handler) ht
 		c.Post("/{clusterID}/kubeconfig", handlers.SetClusterKubeconfig(db))
 		c.Delete("/{clusterID}/kubeconfig", handlers.ClearClusterKubeconfig(db))
 
+		c.Post("/{clusterID}/node-pools", handlers.AttachNodePool(db))
+		c.Delete("/{clusterID}/node-pools/{nodePoolID}", handlers.DeleteNodePool(db))
 	})
 }

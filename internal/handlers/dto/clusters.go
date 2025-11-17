@@ -56,3 +56,7 @@ type AttachBastionRequest struct {
 type SetKubeconfigRequest struct {
 	Kubeconfig string `json:"kubeconfig"`
 }
+
+type AttachNodePoolRequest struct {
+	NodePoolID uuid.UUID `json:"node_pool_id"`
+}

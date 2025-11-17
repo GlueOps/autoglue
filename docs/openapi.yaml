@@ -46,6 +46,11 @@ components:
         load_balancer_id:
           type: string
       type: object
+    dto.AttachNodePoolRequest:
+      properties:
+        node_pool_id:
+          type: string
+      type: object
     dto.AttachRecordSetRequest:
       properties:
         record_set_id:
@@ -1154,7 +1159,7 @@ info:
     name: GlueOps
   description: API for managing K3s clusters across cloud providers
   title: AutoGlue API
-  version: "1.0"
+  version: ""
 openapi: 3.1.0
 paths:
   /.well-known/jwks.json:
@@ -2851,6 +2856,139 @@ paths:
       - OrgKeyAuth: []
       - OrgSecretAuth: []
       summary: Set (or replace) the kubeconfig for a cluster
+      tags:
+      - Clusters
+  /clusters/{clusterID}/node-pools:
+    post:
+      description: Adds an entry in the cluster_node_pools join table.
+      operationId: AttachNodePool
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Cluster ID
+        in: path
+        name: clusterID
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/dto.AttachNodePoolRequest'
+        description: payload
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dto.ClusterResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: cluster or node pool not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: db error
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Attach a node pool to a cluster
+      tags:
+      - Clusters
+  /clusters/{clusterID}/node-pools/{nodePoolID}:
+    delete:
+      description: Removes an entry from the cluster_node_pools join table.
+      operationId: DetachNodePool
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Cluster ID
+        in: path
+        name: clusterID
+        required: true
+        schema:
+          type: string
+      - description: Node Pool ID
+        in: path
+        name: nodePoolID
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dto.ClusterResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: cluster or node pool not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: db error
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Detach a node pool from a cluster
       tags:
       - Clusters
   /credentials:

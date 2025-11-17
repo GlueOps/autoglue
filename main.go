@@ -2,10 +2,12 @@ package main
 
 import (
 	"github.com/glueops/autoglue/cmd"
+	"github.com/glueops/autoglue/docs"
+	"github.com/glueops/autoglue/internal/version"
 )
 
 // @title AutoGlue API
-// @version 1.0
+// @version dev
 // @description API for managing K3s clusters across cloud providers
 // @contact.name GlueOps
 
@@ -37,5 +39,6 @@ import (
 // @description	Org-level secret
 
 func main() {
+	docs.SwaggerInfo.Version = version.Version
 	cmd.Execute()
 }

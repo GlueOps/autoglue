@@ -2,22 +2,23 @@ import { AppShell } from "@/layouts/app-shell.tsx"
 import { Route, Routes } from "react-router-dom"
 
 import { ProtectedRoute } from "@/components/protected-route.tsx"
-import { AnnotationPage } from "@/pages/annotations/annotation-page.tsx"
-import { Login } from "@/pages/auth/login.tsx"
-import { CredentialPage } from "@/pages/credentials/credential-page.tsx"
-import { DnsPage } from "@/pages/dns/dns-page.tsx"
-import { DocsPage } from "@/pages/docs/docs-page.tsx"
-import { JobsPage } from "@/pages/jobs/jobs-page.tsx"
-import { LabelsPage } from "@/pages/labels/labels-page.tsx"
-import { LoadBalancersPage } from "@/pages/loadbalancers/load-balancers-page"
-import { MePage } from "@/pages/me/me-page.tsx"
-import { NodePoolsPage } from "@/pages/nodepools/node-pools-page.tsx"
+import { AnnotationPage } from "@/pages/annotation-page.tsx"
+import { ClustersPage } from "@/pages/cluster-page"
+import { CredentialPage } from "@/pages/credential-page.tsx"
+import { DnsPage } from "@/pages/dns-page.tsx"
+import { DocsPage } from "@/pages/docs-page.tsx"
+import { JobsPage } from "@/pages/jobs-page.tsx"
+import { LabelsPage } from "@/pages/labels-page.tsx"
+import { LoadBalancersPage } from "@/pages/load-balancers-page"
+import { Login } from "@/pages/login.tsx"
+import { MePage } from "@/pages/me-page.tsx"
+import { NodePoolsPage } from "@/pages/node-pools-page.tsx"
 import { OrgApiKeys } from "@/pages/org/api-keys.tsx"
 import { OrgMembers } from "@/pages/org/members.tsx"
 import { OrgSettings } from "@/pages/org/settings.tsx"
-import { ServerPage } from "@/pages/servers/server-page.tsx"
-import { SshPage } from "@/pages/ssh/ssh-page.tsx"
-import { TaintsPage } from "@/pages/taints/taints-page.tsx"
+import { ServerPage } from "@/pages/server-page.tsx"
+import { SshPage } from "@/pages/ssh-page.tsx"
+import { TaintsPage } from "@/pages/taints-page.tsx"
 
 export default function App() {
   return (
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/credentials" element={<CredentialPage />} />
           <Route path="/dns" element={<DnsPage />} />
           <Route path="/load-balancers" element={<LoadBalancersPage />} />
+          <Route path="/clusters" element={<ClustersPage />} />
 
           <Route path="/admin/jobs" element={<JobsPage />} />
         </Route>
