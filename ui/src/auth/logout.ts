@@ -12,7 +12,7 @@ export async function logoutEverywhere(): Promise<void> {
 
   try {
     const body: DtoLogoutRequest = { refresh_token: tokens.refresh_token } as DtoLogoutRequest
-    await makeAuthApi().logout({ body })
+    await makeAuthApi().logout({ dtoLogoutRequest: body })
   } catch (err) {
     console.warn("Logout API failed; clearing local state anyway", err)
   } finally {

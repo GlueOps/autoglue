@@ -31,32 +31,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog.tsx"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form.tsx"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form.tsx"
 import { Input } from "@/components/ui/input.tsx"
 import { Label } from "@/components/ui/label.tsx"
 import { Separator } from "@/components/ui/separator.tsx"
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table.tsx"
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table.tsx"
 
 const orgsApi = makeOrgsApi()
 
 const orgApi = {
   create: (body: { name: string; domain?: string }) =>
-    withRefresh(async () => orgsApi.createOrg({ body })), // POST /orgs
+    withRefresh(async () => orgsApi.createOrg({ handlersOrgCreateReq: body })), // POST /orgs
 }
 
 const profileSchema = z.object({

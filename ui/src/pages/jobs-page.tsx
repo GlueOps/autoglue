@@ -1,8 +1,14 @@
-import { useEffect, useState, type FC } from "react"
+import { type FC, useEffect, useState } from "react"
 import { archerAdminApi } from "@/api/archer_admin"
-import type { AdminListArcherJobsRequest } from "@/sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Loader2, Plus, RefreshCw, Search, X } from "lucide-react"
+import {
+  type AdminListArcherJobsRequest,
+  AdminListArcherJobsStatusEnum,
+  type DtoJob,
+  type DtoPageJob,
+  type DtoQueueInfo,
+} from "@/sdk"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -19,67 +25,20 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 
-// Types (align with generated client camelCase)
-type JobStatus =
-  | "queued"
-  | "running"
-  | "succeeded"
-  | "failed"
-  | "canceled"
-  | "retrying"
-  | "scheduled"
-type DtoJob = {
-  id: string
-  type: string
-  queue: string
-  status: JobStatus
-  attempts: number
-  maxAttempts?: number
-  createdAt: string
-  updatedAt?: string
-  lastError?: string | null
-  runAt?: string | null
-  payload?: unknown
-}
-type DtoPageJob = {
-  items: DtoJob[]
-  total: number
-  page: number
-  pageSize: number
-}
-type QueueInfo = {
-  name: string
-  pending: number
-  running: number
-  failed: number
-  scheduled: number
-}
+type JobStatus = AdminListArcherJobsStatusEnum
 
 const STATUS: JobStatus[] = [
-  "queued",
-  "running",
-  "succeeded",
-  "failed",
-  "canceled",
-  "retrying",
-  "scheduled",
+  AdminListArcherJobsStatusEnum.queued,
+  AdminListArcherJobsStatusEnum.running,
+  AdminListArcherJobsStatusEnum.succeeded,
+  AdminListArcherJobsStatusEnum.failed,
+  AdminListArcherJobsStatusEnum.canceled,
+  AdminListArcherJobsStatusEnum.retrying,
+  AdminListArcherJobsStatusEnum.scheduled,
 ]
 
 const statusClass: Record<JobStatus, string> = {
@@ -95,7 +54,10 @@ const statusClass: Record<JobStatus, string> = {
 function fmt(dt?: string | null) {
   if (!dt) return "—"
   const d = new Date(dt)
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(d)
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d)
 }
 
 // Small debounce hook for search input
@@ -126,12 +88,12 @@ export const JobsPage: FC = () => {
     queryKey: key,
     queryFn: () =>
       archerAdminApi.listJobs({
-        status: status,
+        status: status ? (status as JobStatus) : undefined,
         queue: queue || undefined,
         q: debouncedQ || undefined,
         page,
         pageSize,
-      } as AdminListArcherJobsRequest) as Promise<DtoPageJob>,
+      } as AdminListArcherJobsRequest),
     placeholderData: (prev) => prev,
     staleTime: 10_000,
   })
@@ -139,7 +101,7 @@ export const JobsPage: FC = () => {
   // Queues summary (optional header)
   const queuesQ = useQuery({
     queryKey: ["archer", "queues"],
-    queryFn: () => archerAdminApi.listQueues() as Promise<QueueInfo[]>,
+    queryFn: () => archerAdminApi.listQueues() as Promise<DtoQueueInfo[]>,
     staleTime: 30_000,
   })
 
@@ -153,10 +115,12 @@ export const JobsPage: FC = () => {
     }) => archerAdminApi.enqueue(body),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["archer", "jobs"] }),
   })
+
   const retryM = useMutation({
     mutationFn: (id: string) => archerAdminApi.retryJob(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["archer", "jobs"] }),
   })
+
   const cancelM = useMutation({
     mutationFn: (id: string) => archerAdminApi.cancelJob(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["archer", "jobs"] }),
@@ -164,8 +128,10 @@ export const JobsPage: FC = () => {
 
   const busy = jobsQ.isFetching
 
-  const data = jobsQ.data as DtoPageJob
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1
+  const data = jobsQ.data as DtoPageJob | undefined
+  const items: DtoJob[] = data?.items ?? []
+  const total = data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
   return (
     <div className="container mx-auto space-y-6 p-6">
@@ -204,10 +170,10 @@ export const JobsPage: FC = () => {
               <CardTitle className="text-base">{q.name}</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-2 text-sm">
-              <Metric label="Pending" value={q.pending} />
-              <Metric label="Running" value={q.running} />
-              <Metric label="Failed" value={q.failed} />
-              <Metric label="Scheduled" value={q.scheduled} />
+              <Metric label="Pending" value={q.pending ?? 0} />
+              <Metric label="Running" value={q.running ?? 0} />
+              <Metric label="Failed" value={q.failed ?? 0} />
+              <Metric label="Scheduled" value={q.scheduled ?? 0} />
             </CardContent>
           </Card>
         ))}
@@ -321,67 +287,85 @@ export const JobsPage: FC = () => {
                   </TableCell>
                 </TableRow>
               )}
-              {!jobsQ.isLoading && data && data.items.length === 0 && (
+              {!jobsQ.isLoading && items.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-muted-foreground py-8 text-center">
                     No jobs match your filters.
                   </TableCell>
                 </TableRow>
               )}
-              {data?.items.map((j) => (
-                <TableRow key={j.id}>
-                  <TableCell>
-                    <code className="text-xs">{j.id}</code>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{j.queue}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <span className={cn("rounded-md px-2 py-0.5 text-xs", statusClass[j.status])}>
-                      {j.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {j.maxAttempts ? `${j.attempts}/${j.maxAttempts}` : j.attempts}
-                  </TableCell>
-                  <TableCell>{fmt(j.runAt)}</TableCell>
-                  <TableCell>{fmt(j.updatedAt ?? j.createdAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {(j.status === "failed" || j.status === "canceled") && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={retryM.isPending}
-                          onClick={() => retryM.mutate(j.id)}
-                        >
-                          Retry
-                        </Button>
-                      )}
-                      {(j.status === "queued" ||
-                        j.status === "running" ||
-                        j.status === "scheduled") && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={cancelM.isPending}
-                          onClick={() => cancelM.mutate(j.id)}
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                      <DetailsButton job={j} />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {items.map((j) => {
+                const jobStatus: JobStatus =
+                  (j.status as JobStatus | undefined) ??
+                  AdminListArcherJobsStatusEnum.queued
+
+                return (
+                  <TableRow key={j.id}>
+                    <TableCell>
+                      <code className="text-xs">{j.id}</code>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{j.queue}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={cn(
+                          "rounded-md px-2 py-0.5 text-xs",
+                          statusClass[jobStatus],
+                        )}
+                      >
+                        {jobStatus}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {j.max_attempts ? `${j.attempts}/${j.max_attempts}` : j.attempts}
+                    </TableCell>
+                    <TableCell>{fmt(j.run_at)}</TableCell>
+                    <TableCell>{fmt(j.updated_at ?? j.created_at)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {(jobStatus === AdminListArcherJobsStatusEnum.failed ||
+                          jobStatus === AdminListArcherJobsStatusEnum.canceled) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={retryM.isPending || !j.id}
+                            onClick={() => {
+                              if (!j.id) return
+                              retryM.mutate(j.id)
+                            }}
+                          >
+                            Retry
+                          </Button>
+                        )}
+                        {(jobStatus === AdminListArcherJobsStatusEnum.queued ||
+                          jobStatus === AdminListArcherJobsStatusEnum.running ||
+                          jobStatus === AdminListArcherJobsStatusEnum.scheduled) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={cancelM.isPending || !j.id}
+                            onClick={() => {
+                              if (!j.id) return
+                              cancelM.mutate(j.id)
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                        <DetailsButton job={j} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
 
           {/* Pagination */}
           <div className="flex items-center justify-between border-t p-3 text-sm">
             <div>
-              Page {page} of {totalPages} • {data?.total ?? 0} total
+              Page {page} of {totalPages} • {total} total
             </div>
             <div className="flex gap-2">
               <Button
@@ -428,13 +412,15 @@ function DetailsButton({ job }: { job: DtoJob }) {
           <DialogTitle>Job {job.id}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-3">
-          {job.lastError && (
+          {job.last_error && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Last error</CardTitle>
               </CardHeader>
               <CardContent>
-                <pre className="overflow-auto text-xs whitespace-pre-wrap">{job.lastError}</pre>
+                <pre className="overflow-auto text-xs whitespace-pre-wrap">
+                  {job.last_error}
+                </pre>
               </CardContent>
             </Card>
           )}
@@ -460,9 +446,9 @@ function DetailsButton({ job }: { job: DtoJob }) {
 }
 
 function EnqueueDialog({
-  onSubmit,
-  submitting,
-}: {
+                         onSubmit,
+                         submitting,
+                       }: {
   onSubmit: (body: {
     queue: string
     type: string
@@ -527,7 +513,11 @@ function EnqueueDialog({
           </div>
           <div className="grid gap-2">
             <Label>Run at (optional)</Label>
-            <Input type="datetime-local" value={runAt} onChange={(e) => setRunAt(e.target.value)} />
+            <Input
+              type="datetime-local"
+              value={runAt}
+              onChange={(e) => setRunAt(e.target.value)}
+            />
           </div>
         </div>
         <DialogFooter>

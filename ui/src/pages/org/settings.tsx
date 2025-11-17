@@ -10,14 +10,7 @@ import { z } from "zod"
 
 import { Button } from "@/components/ui/button.tsx"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form.tsx"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form.tsx"
 import { Input } from "@/components/ui/input.tsx"
 
 /*
@@ -80,7 +73,7 @@ export const OrgSettings = () => {
   }, [q.data, form])
 
   const updateMut = useMutation({
-    mutationFn: (v: Partial<Values>) => api.updateOrg({ id: orgId!, body: v }),
+    mutationFn: (v: Partial<Values>) => api.updateOrg({ id: orgId!, handlersOrgUpdateReq: v }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["org", orgId] })
       toast.success("Organization updated")
