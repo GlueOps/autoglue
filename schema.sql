@@ -59,6 +59,18 @@ CREATE INDEX "idx_refresh_tokens_family_id" ON "public"."refresh_tokens" ("famil
 CREATE UNIQUE INDEX "idx_refresh_tokens_token_hash" ON "public"."refresh_tokens" ("token_hash");
 -- Create index "idx_refresh_tokens_user_id" to table: "refresh_tokens"
 CREATE INDEX "idx_refresh_tokens_user_id" ON "public"."refresh_tokens" ("user_id");
+-- Create "users" table
+CREATE TABLE "public"."users" (
+  "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+  "display_name" text NULL,
+  "primary_email" text NULL,
+  "avatar_url" text NULL,
+  "is_disabled" boolean NULL,
+  "is_admin" boolean NULL DEFAULT false,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY ("id")
+);
 -- Create "signing_keys" table
 CREATE TABLE "public"."signing_keys" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -77,18 +89,6 @@ CREATE TABLE "public"."signing_keys" (
 );
 -- Create index "idx_signing_keys_kid" to table: "signing_keys"
 CREATE UNIQUE INDEX "idx_signing_keys_kid" ON "public"."signing_keys" ("kid");
--- Create "users" table
-CREATE TABLE "public"."users" (
-  "id" uuid NOT NULL DEFAULT gen_random_uuid(),
-  "display_name" text NULL,
-  "primary_email" text NULL,
-  "avatar_url" text NULL,
-  "is_disabled" boolean NULL,
-  "is_admin" boolean NULL DEFAULT false,
-  "created_at" timestamptz NOT NULL DEFAULT now(),
-  "updated_at" timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY ("id")
-);
 -- Create "accounts" table
 CREATE TABLE "public"."accounts" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -178,6 +178,21 @@ CREATE TABLE "public"."backups" (
 CREATE INDEX "idx_backups_organization_id" ON "public"."backups" ("organization_id");
 -- Create index "uniq_org_credential" to table: "backups"
 CREATE UNIQUE INDEX "uniq_org_credential" ON "public"."backups" ("organization_id", "credential_id");
+-- Create "load_balancers" table
+CREATE TABLE "public"."load_balancers" (
+  "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+  "organization_id" uuid NULL,
+  "name" text NOT NULL,
+  "kind" text NOT NULL,
+  "public_ip_address" text NOT NULL,
+  "private_ip_address" text NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY ("id"),
+  CONSTRAINT "fk_load_balancers_organization" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+);
+-- Create index "idx_load_balancers_organization_id" to table: "load_balancers"
+CREATE INDEX "idx_load_balancers_organization_id" ON "public"."load_balancers" ("organization_id");
 -- Create "ssh_keys" table
 CREATE TABLE "public"."ssh_keys" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -216,6 +231,48 @@ CREATE TABLE "public"."servers" (
   CONSTRAINT "fk_servers_organization" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   CONSTRAINT "fk_servers_ssh_key" FOREIGN KEY ("ssh_key_id") REFERENCES "public"."ssh_keys" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
+-- Create "domains" table
+CREATE TABLE "public"."domains" (
+  "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+  "organization_id" uuid NOT NULL,
+  "domain_name" character varying(253) NOT NULL,
+  "zone_id" character varying(128) NOT NULL DEFAULT '',
+  "status" character varying(20) NOT NULL DEFAULT 'pending',
+  "last_error" text NOT NULL DEFAULT '',
+  "credential_id" uuid NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY ("id"),
+  CONSTRAINT "fk_domains_credential" FOREIGN KEY ("credential_id") REFERENCES "public"."credentials" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "fk_domains_organization" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+);
+-- Create index "idx_domains_organization_id" to table: "domains"
+CREATE INDEX "idx_domains_organization_id" ON "public"."domains" ("organization_id");
+-- Create index "uniq_org_domain" to table: "domains"
+CREATE UNIQUE INDEX "uniq_org_domain" ON "public"."domains" ("organization_id", "domain_name");
+-- Create "record_sets" table
+CREATE TABLE "public"."record_sets" (
+  "id" uuid NOT NULL DEFAULT gen_random_uuid(),
+  "domain_id" uuid NOT NULL,
+  "name" character varying(253) NOT NULL,
+  "type" character varying(10) NOT NULL,
+  "ttl" bigint NULL,
+  "values" jsonb NOT NULL DEFAULT '[]',
+  "fingerprint" character(64) NOT NULL,
+  "status" character varying(20) NOT NULL DEFAULT 'pending',
+  "owner" character varying(16) NOT NULL DEFAULT 'unknown',
+  "last_error" text NOT NULL DEFAULT '',
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY ("id"),
+  CONSTRAINT "fk_record_sets_domain" FOREIGN KEY ("domain_id") REFERENCES "public"."domains" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
+);
+-- Create index "idx_record_sets_domain_id" to table: "record_sets"
+CREATE INDEX "idx_record_sets_domain_id" ON "public"."record_sets" ("domain_id");
+-- Create index "idx_record_sets_fingerprint" to table: "record_sets"
+CREATE INDEX "idx_record_sets_fingerprint" ON "public"."record_sets" ("fingerprint");
+-- Create index "idx_record_sets_type" to table: "record_sets"
+CREATE INDEX "idx_record_sets_type" ON "public"."record_sets" ("type");
 -- Create "clusters" table
 CREATE TABLE "public"."clusters" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -223,21 +280,26 @@ CREATE TABLE "public"."clusters" (
   "name" text NOT NULL,
   "provider" text NULL,
   "region" text NULL,
-  "status" text NULL,
-  "captain_domain" text NOT NULL,
-  "apps_load_balancer" text NULL,
-  "glue_ops_load_balancer" text NULL,
-  "control_plane" text NULL,
+  "status" character varying(20) NOT NULL DEFAULT 'pre_pending',
+  "last_error" text NOT NULL DEFAULT '',
+  "captain_domain_id" uuid NULL,
+  "control_plane_record_set_id" uuid NULL,
+  "apps_load_balancer_id" uuid NULL,
+  "glue_ops_load_balancer_id" uuid NULL,
+  "bastion_server_id" uuid NULL,
   "random_token" text NULL,
   "certificate_key" text NULL,
   "encrypted_kubeconfig" text NULL,
   "kube_iv" text NULL,
   "kube_tag" text NULL,
-  "bastion_server_id" uuid NULL,
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY ("id"),
+  CONSTRAINT "fk_clusters_apps_load_balancer" FOREIGN KEY ("apps_load_balancer_id") REFERENCES "public"."load_balancers" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT "fk_clusters_bastion_server" FOREIGN KEY ("bastion_server_id") REFERENCES "public"."servers" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "fk_clusters_captain_domain" FOREIGN KEY ("captain_domain_id") REFERENCES "public"."domains" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "fk_clusters_control_plane_record_set" FOREIGN KEY ("control_plane_record_set_id") REFERENCES "public"."record_sets" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "fk_clusters_glue_ops_load_balancer" FOREIGN KEY ("glue_ops_load_balancer_id") REFERENCES "public"."load_balancers" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT "fk_clusters_organization" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
 );
 -- Create "node_pools" table
@@ -261,25 +323,6 @@ CREATE TABLE "public"."cluster_node_pools" (
   CONSTRAINT "fk_cluster_node_pools_cluster" FOREIGN KEY ("cluster_id") REFERENCES "public"."clusters" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   CONSTRAINT "fk_cluster_node_pools_node_pool" FOREIGN KEY ("node_pool_id") REFERENCES "public"."node_pools" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
 );
--- Create "domains" table
-CREATE TABLE "public"."domains" (
-  "id" uuid NOT NULL DEFAULT gen_random_uuid(),
-  "organization_id" uuid NOT NULL,
-  "domain_name" character varying(253) NOT NULL,
-  "zone_id" character varying(128) NOT NULL DEFAULT '',
-  "status" character varying(20) NOT NULL DEFAULT 'pending',
-  "last_error" text NOT NULL DEFAULT '',
-  "credential_id" uuid NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT now(),
-  "updated_at" timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "fk_domains_credential" FOREIGN KEY ("credential_id") REFERENCES "public"."credentials" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "fk_domains_organization" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
-);
--- Create index "idx_domains_organization_id" to table: "domains"
-CREATE INDEX "idx_domains_organization_id" ON "public"."domains" ("organization_id");
--- Create index "uniq_org_domain" to table: "domains"
-CREATE UNIQUE INDEX "uniq_org_domain" ON "public"."domains" ("organization_id", "domain_name");
 -- Create "labels" table
 CREATE TABLE "public"."labels" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -293,21 +336,6 @@ CREATE TABLE "public"."labels" (
 );
 -- Create index "idx_labels_organization_id" to table: "labels"
 CREATE INDEX "idx_labels_organization_id" ON "public"."labels" ("organization_id");
--- Create "load_balancers" table
-CREATE TABLE "public"."load_balancers" (
-  "id" uuid NOT NULL DEFAULT gen_random_uuid(),
-  "organization_id" uuid NULL,
-  "name" text NOT NULL,
-  "kind" text NOT NULL,
-  "public_ip_address" text NOT NULL,
-  "private_ip_address" text NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT now(),
-  "updated_at" timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "fk_load_balancers_organization" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
-);
--- Create index "idx_load_balancers_organization_id" to table: "load_balancers"
-CREATE INDEX "idx_load_balancers_organization_id" ON "public"."load_balancers" ("organization_id");
 -- Create "memberships" table
 CREATE TABLE "public"."memberships" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -391,29 +419,6 @@ CREATE TABLE "public"."organization_keys" (
   CONSTRAINT "fk_organization_keys_master_key" FOREIGN KEY ("master_key_id") REFERENCES "public"."master_keys" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   CONSTRAINT "fk_organization_keys_organization" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
 );
--- Create "record_sets" table
-CREATE TABLE "public"."record_sets" (
-  "id" uuid NOT NULL DEFAULT gen_random_uuid(),
-  "domain_id" uuid NOT NULL,
-  "name" character varying(253) NOT NULL,
-  "type" character varying(10) NOT NULL,
-  "ttl" bigint NULL,
-  "values" jsonb NOT NULL DEFAULT '[]',
-  "fingerprint" character(64) NOT NULL,
-  "status" character varying(20) NOT NULL DEFAULT 'pending',
-  "owner" character varying(16) NOT NULL DEFAULT 'unknown',
-  "last_error" text NOT NULL DEFAULT '',
-  "created_at" timestamptz NOT NULL DEFAULT now(),
-  "updated_at" timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "fk_record_sets_domain" FOREIGN KEY ("domain_id") REFERENCES "public"."domains" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
-);
--- Create index "idx_record_sets_domain_id" to table: "record_sets"
-CREATE INDEX "idx_record_sets_domain_id" ON "public"."record_sets" ("domain_id");
--- Create index "idx_record_sets_fingerprint" to table: "record_sets"
-CREATE INDEX "idx_record_sets_fingerprint" ON "public"."record_sets" ("fingerprint");
--- Create index "idx_record_sets_type" to table: "record_sets"
-CREATE INDEX "idx_record_sets_type" ON "public"."record_sets" ("type");
 -- Create "user_emails" table
 CREATE TABLE "public"."user_emails" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid(),
