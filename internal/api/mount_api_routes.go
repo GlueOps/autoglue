@@ -32,6 +32,8 @@ func mountAPIRoutes(r chi.Router, db *gorm.DB, jobs *bg.Jobs) {
 			mountAnnotationRoutes(v1, db, authOrg)
 			mountNodePoolRoutes(v1, db, authOrg)
 			mountDNSRoutes(v1, db, authOrg)
+			mountLoadBalancerRoutes(v1, db, authOrg)
+			mountClusterRoutes(v1, db, authOrg)
 		})
 	})
 }

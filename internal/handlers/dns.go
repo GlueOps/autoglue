@@ -166,7 +166,6 @@ func mustSameOrgDomainWithCredential(db *gorm.DB, orgID uuid.UUID, credID uuid.U
 //	@Summary		List domains (org scoped)
 //	@Description	Returns domains for X-Org-ID. Filters: `domain_name`, `status`, `q` (contains).
 //	@Tags			DNS
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			domain_name	query		string	false	"Exact domain name (lowercase, no trailing dot)"
@@ -213,21 +212,20 @@ func ListDomains(db *gorm.DB) http.HandlerFunc {
 
 // GetDomain godoc
 //
-//	@ID				GetDomain
-//	@Summary		Get a domain (org scoped)
-//	@Tags			DNS
-//	@Accept			json
-//	@Produce		json
-//	@Param			X-Org-ID	header	string	false	"Organization UUID"
-//	@Param			id			path	string	true	"Domain ID (UUID)"
-//	@Success		200			{object}	dto.DomainResponse
-//	@Failure		401			{string}	string	"Unauthorized"
-//	@Failure		403			{string}	string	"organization required"
-//	@Failure		404			{string}	string	"not found"
-//	@Router			/dns/domains/{id} [get]
-//	@Security		BearerAuth
-//	@Security		OrgKeyAuth
-//	@Security		OrgSecretAuth
+//	@ID			GetDomain
+//	@Summary	Get a domain (org scoped)
+//	@Tags		DNS
+//	@Produce	json
+//	@Param		X-Org-ID	header		string	false	"Organization UUID"
+//	@Param		id			path		string	true	"Domain ID (UUID)"
+//	@Success	200			{object}	dto.DomainResponse
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Router		/dns/domains/{id} [get]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func GetDomain(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -261,7 +259,7 @@ func GetDomain(db *gorm.DB) http.HandlerFunc {
 //	@Tags			DNS
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			X-Org-ID	header		string					false	"Organization UUID"
 //	@Param			body		body		dto.CreateDomainRequest	true	"Domain payload"
 //	@Success		201			{object}	dto.DomainResponse
 //	@Failure		400			{string}	string	"validation error"
@@ -312,22 +310,22 @@ func CreateDomain(db *gorm.DB) http.HandlerFunc {
 
 // UpdateDomain godoc
 //
-//	@ID				UpdateDomain
-//	@Summary		Update a domain (org scoped)
-//	@Tags			DNS
-//	@Accept			json
-//	@Produce		json
-//	@Param			X-Org-ID	header	string	false	"Organization UUID"
-//	@Param			id			path	string	true	"Domain ID (UUID)"
-//	@Param			body		body	dto.UpdateDomainRequest true "Fields to update"
-//	@Success		200			{object} dto.DomainResponse
-//	@Failure		400			{string} string "validation error"
-//	@Failure		403			{string} string "organization required"
-//	@Failure		404			{string} string "not found"
-//	@Router			/dns/domains/{id} [patch]
-//	@Security		BearerAuth
-//	@Security		OrgKeyAuth
-//	@Security		OrgSecretAuth
+//	@ID			UpdateDomain
+//	@Summary	Update a domain (org scoped)
+//	@Tags		DNS
+//	@Accept		json
+//	@Produce	json
+//	@Param		X-Org-ID	header		string					false	"Organization UUID"
+//	@Param		id			path		string					true	"Domain ID (UUID)"
+//	@Param		body		body		dto.UpdateDomainRequest	true	"Fields to update"
+//	@Success	200			{object}	dto.DomainResponse
+//	@Failure	400			{string}	string	"validation error"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Router		/dns/domains/{id} [patch]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func UpdateDomain(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -390,20 +388,19 @@ func UpdateDomain(db *gorm.DB) http.HandlerFunc {
 
 // DeleteDomain godoc
 //
-//	@ID				DeleteDomain
-//	@Summary		Delete a domain
-//	@Tags			DNS
-//	@Accept			json
-//	@Produce		json
-//	@Param			X-Org-ID	header	string	false	"Organization UUID"
-//	@Param			id			path	string	true	"Domain ID (UUID)"
-//	@Success		204
-//	@Failure		403			{string}	string	"organization required"
-//	@Failure		404			{string}	string	"not found"
-//	@Router			/dns/domains/{id} [delete]
-//	@Security		BearerAuth
-//	@Security		OrgKeyAuth
-//	@Security		OrgSecretAuth
+//	@ID			DeleteDomain
+//	@Summary	Delete a domain
+//	@Tags		DNS
+//	@Produce	json
+//	@Param		X-Org-ID	header	string	false	"Organization UUID"
+//	@Param		id			path	string	true	"Domain ID (UUID)"
+//	@Success	204
+//	@Failure	403	{string}	string	"organization required"
+//	@Failure	404	{string}	string	"not found"
+//	@Router		/dns/domains/{id} [delete]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func DeleteDomain(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -437,13 +434,12 @@ func DeleteDomain(db *gorm.DB) http.HandlerFunc {
 //	@Summary		List record sets for a domain
 //	@Description	Filters: `name`, `type`, `status`.
 //	@Tags			DNS
-//	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header	string	false	"Organization UUID"
-//	@Param			domain_id	path	string	true	"Domain ID (UUID)"
-//	@Param			name		query	string	false	"Exact relative name or FQDN (server normalizes)"
-//	@Param			type		query	string	false	"RR type (A, AAAA, CNAME, TXT, MX, NS, SRV, CAA)"
-//	@Param			status		query	string	false	"pending|provisioning|ready|failed"
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			domain_id	path		string	true	"Domain ID (UUID)"
+//	@Param			name		query		string	false	"Exact relative name or FQDN (server normalizes)"
+//	@Param			type		query		string	false	"RR type (A, AAAA, CNAME, TXT, MX, NS, SRV, CAA)"
+//	@Param			status		query		string	false	"pending|provisioning|ready|failed"
 //	@Success		200			{array}		dto.RecordSetResponse
 //	@Failure		403			{string}	string	"organization required"
 //	@Failure		404			{string}	string	"domain not found"
@@ -509,22 +505,22 @@ func ListRecordSets(db *gorm.DB) http.HandlerFunc {
 
 // CreateRecordSet godoc
 //
-//	@ID				CreateRecordSet
-//	@Summary		Create a record set (pending; Archer will UPSERT to Route 53)
-//	@Tags			DNS
-//	@Accept			json
-//	@Produce		json
-//	@Param			X-Org-ID	header	string	false	"Organization UUID"
-//	@Param			domain_id	path	string	true	"Domain ID (UUID)"
-//	@Param			body		body	dto.CreateRecordSetRequest true "Record set payload"
-//	@Success		201			{object} dto.RecordSetResponse
-//	@Failure		400			{string} string "validation error"
-//	@Failure		403			{string} string "organization required"
-//	@Failure		404			{string} string "domain not found"
-//	@Router			/dns/domains/{domain_id}/records [post]
-//	@Security		BearerAuth
-//	@Security		OrgKeyAuth
-//	@Security		OrgSecretAuth
+//	@ID			CreateRecordSet
+//	@Summary	Create a record set (pending; Archer will UPSERT to Route 53)
+//	@Tags		DNS
+//	@Accept		json
+//	@Produce	json
+//	@Param		X-Org-ID	header		string						false	"Organization UUID"
+//	@Param		domain_id	path		string						true	"Domain ID (UUID)"
+//	@Param		body		body		dto.CreateRecordSetRequest	true	"Record set payload"
+//	@Success	201			{object}	dto.RecordSetResponse
+//	@Failure	400			{string}	string	"validation error"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"domain not found"
+//	@Router		/dns/domains/{domain_id}/records [post]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func CreateRecordSet(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -610,22 +606,22 @@ func CreateRecordSet(db *gorm.DB) http.HandlerFunc {
 
 // UpdateRecordSet godoc
 //
-//	@ID				UpdateRecordSet
-//	@Summary		Update a record set (flips to pending for reconciliation)
-//	@Tags			DNS
-//	@Accept			json
-//	@Produce		json
-//	@Param			X-Org-ID	header	string	false	"Organization UUID"
-//	@Param			id			path	string	true	"Record Set ID (UUID)"
-//	@Param			body		body	dto.UpdateRecordSetRequest true "Fields to update"
-//	@Success		200			{object} dto.RecordSetResponse
-//	@Failure		400			{string} string "validation error"
-//	@Failure		403			{string} string "organization required"
-//	@Failure		404			{string} string "not found"
-//	@Router			/dns/records/{id} [patch]
-//	@Security		BearerAuth
-//	@Security		OrgKeyAuth
-//	@Security		OrgSecretAuth
+//	@ID			UpdateRecordSet
+//	@Summary	Update a record set (flips to pending for reconciliation)
+//	@Tags		DNS
+//	@Accept		json
+//	@Produce	json
+//	@Param		X-Org-ID	header		string						false	"Organization UUID"
+//	@Param		id			path		string						true	"Record Set ID (UUID)"
+//	@Param		body		body		dto.UpdateRecordSetRequest	true	"Fields to update"
+//	@Success	200			{object}	dto.RecordSetResponse
+//	@Failure	400			{string}	string	"validation error"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Router		/dns/records/{id} [patch]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func UpdateRecordSet(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -720,20 +716,19 @@ func UpdateRecordSet(db *gorm.DB) http.HandlerFunc {
 
 // DeleteRecordSet godoc
 //
-//	@ID				DeleteRecordSet
-//	@Summary		Delete a record set (API removes row; worker can optionally handle external deletion policy)
-//	@Tags			DNS
-//	@Accept			json
-//	@Produce		json
-//	@Param			X-Org-ID	header	string	false	"Organization UUID"
-//	@Param			id			path	string	true	"Record Set ID (UUID)"
-//	@Success		204
-//	@Failure		403			{string}	string	"organization required"
-//	@Failure		404			{string}	string	"not found"
-//	@Router			/dns/records/{id} [delete]
-//	@Security		BearerAuth
-//	@Security		OrgKeyAuth
-//	@Security		OrgSecretAuth
+//	@ID			DeleteRecordSet
+//	@Summary	Delete a record set (API removes row; worker can optionally handle external deletion policy)
+//	@Tags		DNS
+//	@Produce	json
+//	@Param		X-Org-ID	header	string	false	"Organization UUID"
+//	@Param		id			path	string	true	"Record Set ID (UUID)"
+//	@Success	204
+//	@Failure	403	{string}	string	"organization required"
+//	@Failure	404	{string}	string	"not found"
+//	@Router		/dns/records/{id} [delete]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func DeleteRecordSet(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())

@@ -1,0 +1,100 @@
+# AutoGlue Semgrep configuration
+# Use with: opengrep scan --config .semgrep.yml .
+
+rules:
+
+  #
+  # 1. Suppress known benign “direct write to ResponseWriter” warnings
+  #
+  - id: autoglue.ignore.direct-write-static
+    message: Ignore direct writes for static or binary responses
+    languages: [go]
+    severity: INFO
+    metadata:
+      category: suppression
+      project: autoglue
+    patterns:
+      - pattern: |
+          _, _ = $W.Write($DATA)
+    pattern-inside: |
+      func $F($X...) {
+        ...
+      }
+    paths:
+      include:
+        - internal/api/utils.go
+        - internal/handlers/ssh_keys.go
+
+
+  #
+  # 2. Enforce Allowed Origins checking in writePostMessageHTML
+  #
+  - id: autoglue.auth.require-origin-validation
+    message: >
+      writePostMessageHTML must validate `origin` against known allowed origins
+      to prevent token exfiltration via crafted state/redirect parameters.
+    languages: [go]
+    severity: ERROR
+    metadata:
+      category: security
+      project: autoglue
+
+    # Look for the JS snippet inside the Go string literal using a regex.
+    # This is NOT Go code, so we must use pattern-regex, not pattern.
+    pattern-regex: |
+      window\.opener\.postMessage\(\{ type: 'autoglue:auth', payload: data \}, .*?\);
+
+    paths:
+      include:
+        - internal/handlers/auth.go
+
+
+  #
+  # 3. Require httpOnly+Secure cookies for JWT cookies
+  #
+  - id: autoglue.cookies.ensure-secure-jwt
+    message: >
+      JWT cookies must always have a Secure field (true in prod, false only for localhost dev).
+    languages: [go]
+    severity: WARNING
+    metadata:
+      category: security
+      project: autoglue
+
+    patterns:
+      # 1) Find any SetCookie for ag_jwt
+      - pattern: |
+          http.SetCookie($W, &http.Cookie{
+            Name: "ag_jwt",
+            ...
+          })
+      # 2) BUT ignore cases where the Secure field is present
+      - pattern-not: |
+          http.SetCookie($W, &http.Cookie{
+            Name: "ag_jwt",
+            Secure: $SECURE,
+            ...
+          })
+
+    paths:
+      include:
+        - internal/handlers/auth.go
+
+
+  #
+  # 4. Ban path.Clean for user-controlled paths
+  #
+  - id: autoglue.filesystem.no-path-clean
+    message: Use securejoin instead of path.Clean() for file paths.
+    languages: [go]
+    severity: WARNING
+    metadata:
+      category: security
+      project: autoglue
+
+    pattern: |
+      path.Clean($X)
+
+    paths:
+      include:
+        - internal/web/static.go

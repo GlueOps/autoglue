@@ -6,5 +6,5 @@ RUN cd /var/lib/postgresql/ && \
     openssl req -x509 -in server.req -text -key server.key -out server.crt && \
     chmod 600 server.key && \
     chown postgres:postgres server.key
-
+USER non-root
 CMD ["postgres", "-c", "ssl=on", "-c", "ssl_cert_file=/var/lib/postgresql/server.crt", "-c", "ssl_key_file=/var/lib/postgresql/server.key" ]

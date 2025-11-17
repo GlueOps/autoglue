@@ -29,14 +29,14 @@ func SecurityHeaders(next http.Handler) http.Handler {
 				"base-uri 'self'",
 				"form-action 'self'",
 				// Vite dev & inline preamble/eval:
-				"script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173",
+				"script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173 https://unpkg.com",
 				// allow dev style + Google Fonts
 				"style-src 'self' 'unsafe-inline' http://localhost:5173 https://fonts.googleapis.com",
 				"img-src 'self' data: blob:",
 				// Google font files
 				"font-src 'self' data: https://fonts.gstatic.com",
 				// HMR connections
-				"connect-src 'self' http://localhost:5173 ws://localhost:5173 ws://localhost:8080 https://api.github.com",
+				"connect-src 'self' http://localhost:5173 ws://localhost:5173 ws://localhost:8080 https://api.github.com https://unpkg.com",
 				"frame-ancestors 'none'",
 			}, "; "))
 		} else {
@@ -49,11 +49,11 @@ func SecurityHeaders(next http.Handler) http.Handler {
 				"default-src 'self'",
 				"base-uri 'self'",
 				"form-action 'self'",
-				"script-src 'self' 'unsafe-inline'",
+				"script-src 'self' 'unsafe-inline' https://unpkg.com",
 				"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 				"img-src 'self' data: blob:",
 				"font-src 'self' data: https://fonts.gstatic.com",
-				"connect-src 'self' ws://localhost:8080 https://api.github.com",
+				"connect-src 'self' ws://localhost:8080 https://api.github.com https://unpkg.com",
 				"frame-ancestors 'none'",
 			}, "; "))
 		}

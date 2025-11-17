@@ -25,7 +25,6 @@ import (
 //	@Summary		List Archer jobs (admin)
 //	@Description	Paginated background jobs with optional filters. Search `q` may match id, type, error, payload (implementation-dependent).
 //	@Tags			ArcherAdmin
-//	@Accept			json
 //	@Produce		json
 //	@Param			status		query		string	false	"Filter by status"	Enums(queued,running,succeeded,failed,canceled,retrying,scheduled)
 //	@Param			queue		query		string	false	"Filter by queue name / worker name"
@@ -283,7 +282,6 @@ func AdminCancelArcherJob(db *gorm.DB) http.HandlerFunc {
 //	@Summary		List Archer queues (admin)
 //	@Description	Summary metrics per queue (pending, running, failed, scheduled).
 //	@Tags			ArcherAdmin
-//	@Accept			json
 //	@Produce		json
 //	@Success		200	{array}		dto.QueueInfo
 //	@Failure		401	{string}	string	"Unauthorized"

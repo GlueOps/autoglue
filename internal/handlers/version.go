@@ -30,7 +30,6 @@ type VersionResponse struct {
 //	@Description	Returns build/runtime metadata for the running service.
 //	@Tags			Meta
 //	@ID				Version                 // operationId
-//	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	VersionResponse
 //	@Router			/version [get]

@@ -1,21 +1,20 @@
 package main
 
 import (
-	"os"
-
 	"github.com/glueops/autoglue/cmd"
-	"github.com/glueops/autoglue/docs"
-	"github.com/joho/godotenv"
 )
 
 //	@title			AutoGlue API
 //	@version		1.0
 //	@description	API for managing K3s clusters across cloud providers
-
 //	@contact.name	GlueOps
 
-//	@BasePath	/api/v1
-//	@schemes	http https
+//	@servers.url			https://autoglue.onglueops.rocks/api/v1
+//	@servers.description	Production API
+//	@servers.url			https://autoglue.apps.nonprod.earth.onglueops.rocks/api/v1
+//	@servers.description	Staging API
+//	@servers.url			http://localhost:8080/api/v1
+//	@servers.description	Local dev
 
 //	@securityDefinitions.apikey	BearerAuth
 //	@in							header
@@ -38,7 +37,5 @@ import (
 //	@description				Org-level secret
 
 func main() {
-	_ = godotenv.Load()
-	docs.SwaggerInfo.Host = os.Getenv("SWAGGER_HOST")
 	cmd.Execute()
 }

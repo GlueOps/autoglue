@@ -22,7 +22,6 @@ import (
 //	@Summary		List annotations (org scoped)
 //	@Description	Returns annotations for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
 //	@Tags			Annotations
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			key			query		string	false	"Exact key"
@@ -75,7 +74,6 @@ func ListAnnotations(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Get annotation by ID (org scoped)
 //	@Description	Returns one annotation. Add `include=node_pools` to include node pools.
 //	@Tags			Annotations
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			id			path		string	true	"Annotation ID (UUID)"
@@ -255,11 +253,10 @@ func UpdateAnnotation(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Delete annotation (org scoped)
 //	@Description	Permanently deletes the annotation.
 //	@Tags			Annotations
-//	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header		string	false	"Organization UUID"
-//	@Param			id			path		string	true	"Annotation ID (UUID)"
-//	@Success		204			{string}	string	"No Content"
+//	@Param			X-Org-ID	header	string	false	"Organization UUID"
+//	@Param			id			path	string	true	"Annotation ID (UUID)"
+//	@Success		204			"No Content"
 //	@Failure		400			{string}	string	"invalid id"
 //	@Failure		401			{string}	string	"Unauthorized"
 //	@Failure		403			{string}	string	"organization required"

@@ -16,7 +16,6 @@ type HealthStatus struct {
 //	@Description	Returns 200 OK when the service is up
 //	@Tags			Health
 //	@ID				HealthCheck               // operationId
-//	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	HealthStatus
 //	@Router			/healthz [get]

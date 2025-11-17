@@ -10,7 +10,7 @@ import (
 	pgcmd "github.com/sosedoff/pgweb/pkg/command"
 )
 
-func PgwebHandler(dbURL, prefix string, readonly bool) (http.Handler, error) {
+func MountDbStudio(dbURL, prefix string, readonly bool) (http.Handler, error) {
 	// Normalize prefix for pgweb:
 	//  - no leading slash
 	//  - always trailing slash if not empty

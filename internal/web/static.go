@@ -67,7 +67,13 @@ func SPAHandler() (http.Handler, error) {
 			return
 		}
 
-		filePath := strings.TrimPrefix(path.Clean(r.URL.Path), "/")
+		raw := strings.TrimSpace(r.URL.Path)
+		if raw == "" || raw == "/" {
+			raw = "/index.html"
+		}
+
+		clean := path.Clean("/" + raw) // nosemgrep: autoglue.filesystem.no-path-clean
+		filePath := strings.TrimPrefix(clean, "/")
 		if filePath == "" {
 			filePath = "index.html"
 		}

@@ -140,10 +140,7 @@ func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 				_ = setServerStatus(db, s.ID, "failed")
 				continue
 			}
-
 			ok++
-			//  logHostInfo(jobID, s, "done", "host completed",
-			//	  "elapsed_ms", time.Since(hostStart).Milliseconds())
 		}
 
 		res := BastionBootstrapResult{

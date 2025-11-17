@@ -4,14 +4,6 @@ import { makeArcherAdminApi } from "@/sdkClient.ts"
 
 const archerAdmin = makeArcherAdminApi()
 
-type ListParams = {
-  status?: "queued" | "running" | "succeeded" | "failed" | "canceled" | "retrying" | "scheduled"
-  queue?: string
-  q?: string
-  page?: number
-  pageSize?: number
-}
-
 export const archerAdminApi = {
   listJobs: (params: AdminListArcherJobsRequest = {}) => {
     return withRefresh(async () => {

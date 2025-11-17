@@ -22,7 +22,6 @@ import (
 //	@Summary		List node pool taints (org scoped)
 //	@Description	Returns node taints for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node pools.
 //	@Tags			Taints
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			key			query		string	false	"Exact key"
@@ -70,7 +69,6 @@ func ListTaints(db *gorm.DB) http.HandlerFunc {
 //	@ID			GetTaint
 //	@Summary	Get node taint by ID (org scoped)
 //	@Tags		Taints
-//	@Accept		json
 //	@Produce	json
 //	@Param		X-Org-ID	header		string	false	"Organization UUID"
 //	@Param		id			path		string	true	"Node Taint ID (UUID)"
@@ -279,11 +277,10 @@ func UpdateTaint(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Delete taint (org scoped)
 //	@Description	Permanently deletes the taint.
 //	@Tags			Taints
-//	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header		string	false	"Organization UUID"
-//	@Param			id			path		string	true	"Node Taint ID (UUID)"
-//	@Success		204			{string}	string	"No Content"
+//	@Param			X-Org-ID	header	string	false	"Organization UUID"
+//	@Param			id			path	string	true	"Node Taint ID (UUID)"
+//	@Success		204			"No Content"
 //	@Failure		400			{string}	string	"invalid id"
 //	@Failure		401			{string}	string	"Unauthorized"
 //	@Failure		403			{string}	string	"organization required"

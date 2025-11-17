@@ -60,6 +60,7 @@ Create your org (http://localhost:8080/me) - you should be redirected here after
 
 Once you have an org - create a set of api keys for your org:
 They will be in the format of:
+Example values only; these are not real secrets.
 ```text
 Org Key: org_lnJwmyyWH7JC-JgZo5v3Kw
 Org Secret: fqd9yebGMfK6h5HSgWn4sXrwr9xlFbvbIYtNylRElMQ

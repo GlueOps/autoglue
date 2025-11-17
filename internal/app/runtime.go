@@ -39,10 +39,11 @@ func NewRuntime() *Runtime {
 		&models.Label{},
 		&models.Annotation{},
 		&models.NodePool{},
-		&models.Cluster{},
 		&models.Credential{},
 		&models.Domain{},
 		&models.RecordSet{},
+		&models.LoadBalancer{},
+		&models.Cluster{},
 	)
 
 	if err != nil {

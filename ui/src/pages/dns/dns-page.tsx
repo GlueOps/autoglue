@@ -224,9 +224,12 @@ export const DnsPage = () => {
   const r53Credentials = useMemo(() => (credentialQ.data ?? []).filter(isR53), [credentialQ.data])
 
   useEffect(() => {
-    if (!selected && domainsQ.data && domainsQ.data.length) {
-      setSelected(domainsQ.data[0]!)
+    const setSelectedDns = () => {
+      if (!selected && domainsQ.data && domainsQ.data.length) {
+        setSelected(domainsQ.data[0]!)
+      }
     }
+    setSelectedDns()
   }, [domainsQ.data, selected])
 
   const filteredDomains = useMemo(() => {

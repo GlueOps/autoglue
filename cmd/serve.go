@@ -134,7 +134,7 @@ var serveCmd = &cobra.Command{
 				dbURL = cfg.DbURL
 			}
 
-			studio, err := api.PgwebHandler(
+			studio, err := api.MountDbStudio(
 				dbURL,
 				"db-studio",
 				false,

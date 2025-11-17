@@ -30,6 +30,7 @@ UI_SSG_ROUTES ?= /,/login,/docs,/pricing
 
 # Go versioning (go.mod uses major.minor; you’re on 1.25.4)
 GO_VERSION   ?= 1.25.4
+SWAG_FLAGS   ?= --v3.1 --outputTypes json,yaml,go
 
 # SDK / package settings (TypeScript)
 SDK_TS_OUTDIR     ?= sdk/ts
@@ -112,10 +113,11 @@ $(DOCS_JSON) $(DOCS_YAML): $(GO_SRCS)
 	@echo ">> Generating Swagger docs..."
 	@if ! command -v swag >/dev/null 2>&1; then \
 		echo "Installing swag/v2 CLI @v2.0.0-rc4..."; \
-		$(GOINSTALL) github.com/swaggo/swag/v2/cmd/swag@v2.0.0-rc4; \
+		$(GOINSTALL) github.com/swaggo/swag/v2/cmd/swag@latest; \
 	fi
 	@rm -rf docs/swagger.* docs/docs.go
-	@swag init -g $(MAIN) -o docs
+	@swag fmt -d .
+	@swag init $(SWAG_FLAGS) -g $(MAIN) -o docs
 
 # --- spec validation + tag guard ---
 validate-spec: $(DOCS_JSON) ## Validate docs/swagger.json and pin the core OpenAPI Generator version

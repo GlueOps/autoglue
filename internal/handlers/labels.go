@@ -22,7 +22,6 @@ import (
 //	@Summary		List node labels (org scoped)
 //	@Description	Returns node labels for the organization in X-Org-ID. Filters: `key`, `value`, and `q` (key contains). Add `include=node_pools` to include linked node groups.
 //	@Tags			Labels
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			key			query		string	false	"Exact key"
@@ -74,7 +73,6 @@ func ListLabels(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Get label by ID (org scoped)
 //	@Description	Returns one label.
 //	@Tags			Labels
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			id			path		string	true	"Label ID (UUID)"
@@ -253,11 +251,10 @@ func UpdateLabel(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Delete label (org scoped)
 //	@Description	Permanently deletes the label.
 //	@Tags			Labels
-//	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header		string	false	"Organization UUID"
-//	@Param			id			path		string	true	"Label ID (UUID)"
-//	@Success		204			{string}	string	"No Content"
+//	@Param			X-Org-ID	header	string	false	"Organization UUID"
+//	@Param			id			path	string	true	"Label ID (UUID)"
+//	@Success		204			"No Content"
 //	@Failure		400			{string}	string	"invalid id"
 //	@Failure		401			{string}	string	"Unauthorized"
 //	@Failure		403			{string}	string	"organization required"

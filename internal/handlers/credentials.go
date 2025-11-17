@@ -23,24 +23,24 @@ import (
 )
 
 // ListCredentials godoc
-// @ID ListCredentials
-// @Summary List credentials (metadata only)
-// @Description Returns credential metadata for the current org. Secrets are never returned.
-// @Tags Credentials
-// @Accept json
-// @Produce json
-// @Param X-Org-ID header string false "Organization ID (UUID)"
-// @Param provider query string false "Filter by provider (e.g., aws)"
-// @Param kind query string false "Filter by kind (e.g., aws_access_key)"
-// @Param scope_kind query string false "Filter by scope kind (provider/service/resource)"
-// @Success 200 {array} dto.CredentialOut
-// @Failure		401	{string}	string	"Unauthorized"
-// @Failure		403	{string}	string	"organization required"
-// @Failure 500 {string} string "internal server error"
-// @Router /credentials [get]
-// @Security		BearerAuth
-// @Security		OrgKeyAuth
-// @Security		OrgSecretAuth
+//
+//	@ID				ListCredentials
+//	@Summary		List credentials (metadata only)
+//	@Description	Returns credential metadata for the current org. Secrets are never returned.
+//	@Tags			Credentials
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization ID (UUID)"
+//	@Param			provider	query		string	false	"Filter by provider (e.g., aws)"
+//	@Param			kind		query		string	false	"Filter by kind (e.g., aws_access_key)"
+//	@Param			scope_kind	query		string	false	"Filter by scope kind (provider/service/resource)"
+//	@Success		200			{array}		dto.CredentialOut
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"internal server error"
+//	@Router			/credentials [get]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
 func ListCredentials(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -73,21 +73,21 @@ func ListCredentials(db *gorm.DB) http.HandlerFunc {
 }
 
 // GetCredential godoc
-// @ID GetCredential
-// @Summary Get credential by ID (metadata only)
-// @Tags Credentials
-// @Accept json
-// @Produce json
-// @Param X-Org-ID header string false "Organization ID (UUID)"
-// @Param id path string true "Credential ID (UUID)"
-// @Success 200 {object} dto.CredentialOut
-// @Failure		401	{string}	string	"Unauthorized"
-// @Failure		403	{string}	string	"organization required"
-// @Failure 500 {string} string "internal server error"
-// @Router /credentials/{id} [get]
-// @Security		BearerAuth
-// @Security		OrgKeyAuth
-// @Security		OrgSecretAuth
+//
+//	@ID			GetCredential
+//	@Summary	Get credential by ID (metadata only)
+//	@Tags		Credentials
+//	@Produce	json
+//	@Param		X-Org-ID	header		string	false	"Organization ID (UUID)"
+//	@Param		id			path		string	true	"Credential ID (UUID)"
+//	@Success	200			{object}	dto.CredentialOut
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	500			{string}	string	"internal server error"
+//	@Router		/credentials/{id} [get]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func GetCredential(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -117,21 +117,22 @@ func GetCredential(db *gorm.DB) http.HandlerFunc {
 }
 
 // CreateCredential godoc
-// @ID CreateCredential
-// @Summary Create a credential (encrypts secret)
-// @Tags Credentials
-// @Accept json
-// @Produce json
-// @Param X-Org-ID header string false "Organization ID (UUID)"
-// @Param body body dto.CreateCredentialRequest true "Credential payload"
-// @Success 201 {object} dto.CredentialOut
-// @Failure		401	{string}	string	"Unauthorized"
-// @Failure		403	{string}	string	"organization required"
-// @Failure 500 {string} string "internal server error"
-// @Router /credentials [post]
-// @Security		BearerAuth
-// @Security		OrgKeyAuth
-// @Security		OrgSecretAuth
+//
+//	@ID			CreateCredential
+//	@Summary	Create a credential (encrypts secret)
+//	@Tags		Credentials
+//	@Accept		json
+//	@Produce	json
+//	@Param		X-Org-ID	header		string						false	"Organization ID (UUID)"
+//	@Param		body		body		dto.CreateCredentialRequest	true	"Credential payload"
+//	@Success	201			{object}	dto.CredentialOut
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	500			{string}	string	"internal server error"
+//	@Router		/credentials [post]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func CreateCredential(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -166,21 +167,22 @@ func CreateCredential(db *gorm.DB) http.HandlerFunc {
 }
 
 // UpdateCredential godoc
-// @ID UpdateCredential
-// @Summary Update credential metadata and/or rotate secret
-// @Tags Credentials
-// @Accept json
-// @Produce json
-// @Param X-Org-ID header string false "Organization ID (UUID)"
-// @Param id path string true "Credential ID (UUID)"
-// @Param body body dto.UpdateCredentialRequest true "Fields to update"
-// @Success 200 {object} dto.CredentialOut
-// @Failure		403	{string}	string	"X-Org-ID required"
-// @Failure		404	{string}	string	"not found"
-// @Router /credentials/{id} [patch]
-// @Security		BearerAuth
-// @Security		OrgKeyAuth
-// @Security		OrgSecretAuth
+//
+//	@ID			UpdateCredential
+//	@Summary	Update credential metadata and/or rotate secret
+//	@Tags		Credentials
+//	@Accept		json
+//	@Produce	json
+//	@Param		X-Org-ID	header		string						false	"Organization ID (UUID)"
+//	@Param		id			path		string						true	"Credential ID (UUID)"
+//	@Param		body		body		dto.UpdateCredentialRequest	true	"Fields to update"
+//	@Success	200			{object}	dto.CredentialOut
+//	@Failure	403			{string}	string	"X-Org-ID required"
+//	@Failure	404			{string}	string	"not found"
+//	@Router		/credentials/{id} [patch]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func UpdateCredential(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -296,19 +298,19 @@ func UpdateCredential(db *gorm.DB) http.HandlerFunc {
 }
 
 // DeleteCredential godoc
-// @ID DeleteCredential
-// @Summary Delete credential
-// @Tags Credentials
-// @Accept json
-// @Produce json
-// @Param X-Org-ID header string false "Organization ID (UUID)"
-// @Param id path string true "Credential ID (UUID)"
-// @Success 204
-// @Failure		404	{string}	string	"not found"
-// @Router /credentials/{id} [delete]
-// @Security		BearerAuth
-// @Security		OrgKeyAuth
-// @Security		OrgSecretAuth
+//
+//	@ID			DeleteCredential
+//	@Summary	Delete credential
+//	@Tags		Credentials
+//	@Produce	json
+//	@Param		X-Org-ID	header	string	false	"Organization ID (UUID)"
+//	@Param		id			path	string	true	"Credential ID (UUID)"
+//	@Success	204
+//	@Failure	404	{string}	string	"not found"
+//	@Router		/credentials/{id} [delete]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func DeleteCredential(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
@@ -335,20 +337,21 @@ func DeleteCredential(db *gorm.DB) http.HandlerFunc {
 }
 
 // RevealCredential godoc
-// @ID RevealCredential
-// @Summary Reveal decrypted secret (one-time read)
-// @Tags Credentials
-// @Accept json
-// @Produce json
-// @Param X-Org-ID header string false "Organization ID (UUID)"
-// @Param id path string true "Credential ID (UUID)"
-// @Success 200 {object} map[string]any
-// @Failure		403	{string}	string	"organization required"
-// @Failure		404	{string}	string	"not found"
-// @Router /credentials/{id}/reveal [post]
-// @Security		BearerAuth
-// @Security		OrgKeyAuth
-// @Security		OrgSecretAuth
+//
+//	@ID			RevealCredential
+//	@Summary	Reveal decrypted secret (one-time read)
+//	@Tags		Credentials
+//	@Accept		json
+//	@Produce	json
+//	@Param		X-Org-ID	header		string	false	"Organization ID (UUID)"
+//	@Param		id			path		string	true	"Credential ID (UUID)"
+//	@Success	200			{object}	map[string]any
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Router		/credentials/{id}/reveal [post]
+//	@Security	BearerAuth
+//	@Security	OrgKeyAuth
+//	@Security	OrgSecretAuth
 func RevealCredential(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())

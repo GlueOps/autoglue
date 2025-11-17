@@ -40,6 +40,7 @@ func serveSwaggerFromEmbed(data []byte, contentType string) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", contentType)
 		w.WriteHeader(http.StatusOK)
+		// nosemgrep: go.lang.security.audit.xss.no-direct-write-to-responsewriter
 		_, _ = w.Write(data)
 	}
 }

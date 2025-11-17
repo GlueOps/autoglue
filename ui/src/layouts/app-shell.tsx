@@ -4,6 +4,7 @@ import { orgStore } from "@/auth/org.ts"
 import { Footer } from "@/layouts/footer.tsx"
 import { adminNav, mainNav, orgNav, userNav } from "@/layouts/nav-config.ts"
 import { OrgSwitcher } from "@/layouts/org-switcher.tsx"
+import { ThemePillSwitcher } from "@/layouts/theme-switcher"
 import { Topbar } from "@/layouts/topbar.tsx"
 import { NavLink, Outlet } from "react-router-dom"
 
@@ -147,6 +148,7 @@ export const AppShell = () => {
                     <SidebarMenuButton asChild tooltip={n.label}>
                       <NavLink
                         to={n.to}
+                        target={n.target ? n.target : "_self"}
                         className={({ isActive }) =>
                           cn("flex items-center gap-2", isActive && "text-primary")
                         }
@@ -160,6 +162,9 @@ export const AppShell = () => {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+          <div className="mt-auto flex items-center justify-center p-3">
+            <ThemePillSwitcher />
+          </div>
         </SidebarContent>
 
         <SidebarFooter>

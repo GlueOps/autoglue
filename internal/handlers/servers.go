@@ -22,7 +22,6 @@ import (
 //	@Summary		List servers (org scoped)
 //	@Description	Returns servers for the organization in X-Org-ID. Optional filters: status, role.
 //	@Tags			Servers
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			status		query		string	false	"Filter by status (pending|provisioning|ready|failed)"
@@ -89,7 +88,6 @@ func ListServers(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Get server by ID (org scoped)
 //	@Description	Returns one server in the given organization.
 //	@Tags			Servers
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			id			path		string	true	"Server ID (UUID)"
@@ -329,11 +327,10 @@ func UpdateServer(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Delete server (org scoped)
 //	@Description	Permanently deletes the server.
 //	@Tags			Servers
-//	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header		string	false	"Organization UUID"
-//	@Param			id			path		string	true	"Server ID (UUID)"
-//	@Success		204			{string}	string	"No Content"
+//	@Param			X-Org-ID	header	string	false	"Organization UUID"
+//	@Param			id			path	string	true	"Server ID (UUID)"
+//	@Success		204			"No Content"
 //	@Failure		400			{string}	string	"invalid id"
 //	@Failure		401			{string}	string	"Unauthorized"
 //	@Failure		403			{string}	string	"organization required"

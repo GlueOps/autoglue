@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react"
 import { annotationsApi } from "@/api/annotations.ts"
-import { labelsApi } from "@/api/labels.ts"
 import type { DtoLabelResponse } from "@/sdk"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"

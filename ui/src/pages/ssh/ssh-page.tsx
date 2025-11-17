@@ -4,11 +4,10 @@ import type { DtoCreateSSHRequest, DtoSshRevealResponse } from "@/sdk"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Download, Eye, Loader2, Plus, Trash2 } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
-import { truncateMiddle } from "@/lib/utils.ts"
 import { Badge } from "@/components/ui/badge.tsx"
 import { Button } from "@/components/ui/button.tsx"
 import {
@@ -103,6 +102,11 @@ export const SshPage = () => {
       type: "rsa",
       bits: "4096",
     },
+  })
+
+  const watchedType = useWatch({
+    control: form.control,
+    name: "type",
   })
 
   const createMutation = useMutation({
@@ -257,7 +261,7 @@ export const SshPage = () => {
                         <FormControl>
                           <Select
                             value={field.value}
-                            disabled={form.watch("type") === "ed25519"}
+                            disabled={watchedType === "ed25519"}
                             onValueChange={field.onChange}
                           >
                             <SelectTrigger className="w-[180px]">
@@ -316,7 +320,6 @@ export const SshPage = () => {
               <TableBody>
                 {filtered.map((k) => {
                   const keyType = getKeyType(k.public_key!)
-                  const truncated = truncateMiddle(k.public_key!, 18)
                   return (
                     <TableRow key={k.id}>
                       <TableCell className="font-medium">{k.name || "—"}</TableCell>

@@ -38,6 +38,7 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs, studio http.Handler) http.Handler {
 	r.Use(SecurityHeaders)
 	r.Use(requestBodyLimit(10 << 20))
 	r.Use(httprate.LimitByIP(100, 1*time.Minute))
+	r.Use(middleware.StripSlashes)
 
 	allowed := getAllowedOrigins()
 	r.Use(cors.Handler(cors.Options{
@@ -103,18 +104,19 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs, studio http.Handler) http.Handler {
 		mux := http.NewServeMux()
 		mux.Handle("/api/", r)
 		mux.Handle("/api", r)
+		mux.Handle("/swagger", r)
 		mux.Handle("/swagger/", r)
 		mux.Handle("/db-studio/", r)
 		mux.Handle("/debug/pprof/", r)
 		mux.Handle("/", proxy)
 		return mux
-	}
-
-	fmt.Println("Running in production mode")
-	if h, err := web.SPAHandler(); err == nil {
-		r.NotFound(h.ServeHTTP)
 	} else {
-		log.Error().Err(err).Msg("spa handler init failed")
+		fmt.Println("Running in production mode")
+		if h, err := web.SPAHandler(); err == nil {
+			r.NotFound(h.ServeHTTP)
+		} else {
+			log.Error().Err(err).Msg("spa handler init failed")
+		}
 	}
 
 	return r

@@ -1,8 +1,6 @@
-import { useEffect, useMemo } from "react"
-import { credentialsApi } from "@/api/credentials.ts"
+import { useEffect } from "react"
 import { withRefresh } from "@/api/with-refresh.ts"
 import { orgStore } from "@/auth/org.ts"
-import type { DtoCredentialOut } from "@/sdk"
 import { makeOrgsApi } from "@/sdkClient.ts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -22,6 +20,7 @@ import {
 } from "@/components/ui/form.tsx"
 import { Input } from "@/components/ui/input.tsx"
 
+/*
 const isS3 = (c: DtoCredentialOut) =>
   c.provider === "aws" &&
   c.scope_kind === "service" &&
@@ -35,6 +34,7 @@ const isS3 = (c: DtoCredentialOut) =>
       return false
     }
   })()
+*/
 
 const schema = z.object({
   name: z.string().min(1, "Required"),
@@ -54,13 +54,14 @@ export const OrgSettings = () => {
     queryFn: () => withRefresh(() => api.getOrg({ id: orgId! })),
   })
 
+  /*
   const credentialQ = useQuery({
     queryKey: ["credentials", "s3"],
     queryFn: () => credentialsApi.listCredentials(), // client-side filter
   })
 
   const s3Credentials = useMemo(() => (credentialQ.data ?? []).filter(isS3), [credentialQ.data])
-
+  */
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -76,7 +77,7 @@ export const OrgSettings = () => {
         domain: q.data.domain ?? "",
       })
     }
-  }, [q.data])
+  }, [q.data, form])
 
   const updateMut = useMutation({
     mutationFn: (v: Partial<Values>) => api.updateOrg({ id: orgId!, body: v }),

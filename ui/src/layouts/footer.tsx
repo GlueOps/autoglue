@@ -33,7 +33,7 @@ function asClipboardText(v?: VersionInfo) {
   return `v${v.version} (${shortCommit(v.commit)}) • built ${v.built} • ${v.go} ${v.goOS}/${v.goArch}`
 }
 
-export const Footer = memo(function Footer({ className }: { className?: string }) {
+export const Footer = memo(function Footer() {
   const footerQ = useQuery({
     queryKey: ["footer"],
     queryFn: () => metaApi.footer() as Promise<VersionInfo>,

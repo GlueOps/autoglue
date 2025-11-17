@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { formatDistanceToNow } from "date-fns"
 import { Plus, Search } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
@@ -136,8 +136,17 @@ export const ServerPage = () => {
     mode: "onChange",
   })
 
-  const roleIsBastion = createForm.watch("role") === "bastion"
-  const pubCreate = createForm.watch("public_ip_address")?.trim() ?? ""
+  const watchedRoleCreate = useWatch({
+    control: createForm.control,
+    name: "role",
+  })
+  const roleIsBastion = watchedRoleCreate === "bastion"
+
+  const watchedPublicIpCreate = useWatch({
+    control: createForm.control,
+    name: "public_ip_address",
+  })
+  const pubCreate = watchedPublicIpCreate?.trim() ?? ""
   const needPubCreate = roleIsBastion && pubCreate === ""
 
   const createMut = useMutation({
@@ -160,8 +169,19 @@ export const ServerPage = () => {
     mode: "onChange",
   })
 
-  const roleIsBastionU = updateForm.watch("role") === "bastion"
-  const pubUpdate = updateForm.watch("public_ip_address")?.trim() ?? ""
+  const watchedRoleUpdate = useWatch({
+    control: updateForm.control,
+    name: "role",
+  })
+
+  const watchedPublicIpAddressUpdate = useWatch({
+    control: updateForm.control,
+    name: "public_ip_address",
+  })
+
+  const roleIsBastionU = watchedRoleUpdate === "bastion"
+
+  const pubUpdate = watchedPublicIpAddressUpdate?.trim() ?? ""
   const needPubUpdate = roleIsBastionU && pubUpdate === ""
 
   const updateMut = useMutation({

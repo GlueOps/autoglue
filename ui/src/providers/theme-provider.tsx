@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { type ReactNode } from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 
 export type Theme = "light" | "dark" | "system"

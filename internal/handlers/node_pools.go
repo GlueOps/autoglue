@@ -25,14 +25,13 @@ import (
 //	@Summary		List node pools (org scoped)
 //	@Description	Returns node pools for the organization in X-Org-ID.
 //	@Tags			NodePools
-//	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header	string	false	"Organization UUID"
-//	@Param			q			query	string	false	"Name contains (case-insensitive)"
-//	@Success		200	{array}		dto.NodePoolResponse
-//	@Failure		401	{string}	string	"Unauthorized"
-//	@Failure		403	{string}	string	"organization required"
-//	@Failure		500	{string}	string	"failed to list node pools"
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			q			query		string	false	"Name contains (case-insensitive)"
+//	@Success		200			{array}		dto.NodePoolResponse
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"failed to list node pools"
 //	@Router			/node-pools [get]
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
@@ -145,16 +144,15 @@ func ListNodePools(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Get node pool by ID (org scoped)
 //	@Description	Returns one node pool. Add `include=servers` to include servers.
 //	@Tags			NodePools
-//	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header	string	false	"Organization UUID"
-//	@Param			id			path	string	true	"Node Pool ID (UUID)"
-//	@Success		200	{object}	dto.NodePoolResponse
-//	@Failure		400	{string}	string	"invalid id"
-//	@Failure		401	{string}	string	"Unauthorized"
-//	@Failure		403	{string}	string	"organization required"
-//	@Failure		404	{string}	string	"not found"
-//	@Failure		500	{string}	string	"fetch failed"
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"Node Pool ID (UUID)"
+//	@Success		200			{object}	dto.NodePoolResponse
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"fetch failed"
 //	@Router			/node-pools/{id} [get]
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
@@ -194,13 +192,13 @@ func GetNodePool(db *gorm.DB) http.HandlerFunc {
 //	@Tags			NodePools
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header	string					false	"Organization UUID"
-//	@Param			body		body	dto.CreateNodePoolRequest	true	"NodePool payload"
-//	@Success		201	{object}	dto.NodePoolResponse
-//	@Failure		400	{string}	string	"invalid json / missing fields / invalid server_ids"
-//	@Failure		401	{string}	string	"Unauthorized"
-//	@Failure		403	{string}	string	"organization required"
-//	@Failure		500	{string}	string	"create failed"
+//	@Param			X-Org-ID	header		string						false	"Organization UUID"
+//	@Param			body		body		dto.CreateNodePoolRequest	true	"NodePool payload"
+//	@Success		201			{object}	dto.NodePoolResponse
+//	@Failure		400			{string}	string	"invalid json / missing fields / invalid server_ids"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"create failed"
 //	@Router			/node-pools [post]
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
@@ -257,15 +255,15 @@ func CreateNodePool(db *gorm.DB) http.HandlerFunc {
 //	@Tags			NodePools
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header	string					false	"Organization UUID"
-//	@Param			id			path	string					true	"Node Pool ID (UUID)"
-//	@Param			body		body	dto.UpdateNodePoolRequest	true	"Fields to update"
-//	@Success		200	{object}	dto.NodePoolResponse
-//	@Failure		400	{string}	string	"invalid id / invalid json"
-//	@Failure		401	{string}	string	"Unauthorized"
-//	@Failure		403	{string}	string	"organization required"
-//	@Failure		404	{string}	string	"not found"
-//	@Failure		500	{string}	string	"update failed"
+//	@Param			X-Org-ID	header		string						false	"Organization UUID"
+//	@Param			id			path		string						true	"Node Pool ID (UUID)"
+//	@Param			body		body		dto.UpdateNodePoolRequest	true	"Fields to update"
+//	@Success		200			{object}	dto.NodePoolResponse
+//	@Failure		400			{string}	string	"invalid id / invalid json"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"update failed"
 //	@Router			/node-pools/{id} [patch]
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
@@ -327,15 +325,14 @@ func UpdateNodePool(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Delete node pool (org scoped)
 //	@Description	Permanently deletes the node pool.
 //	@Tags			NodePools
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header	string	false	"Organization UUID"
 //	@Param			id			path	string	true	"Node Pool ID (UUID)"
-//	@Success		204	{string}	string	"No Content"
-//	@Failure		400	{string}	string	"invalid id"
-//	@Failure		401	{string}	string	"Unauthorized"
-//	@Failure		403	{string}	string	"organization required"
-//	@Failure		500	{string}	string	"delete failed"
+//	@Success		204			"No Content"
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		500			{string}	string	"delete failed"
 //	@Router			/node-pools/{id} [delete]
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
@@ -369,16 +366,15 @@ func DeleteNodePool(db *gorm.DB) http.HandlerFunc {
 //	@ID			ListNodePoolServers
 //	@Summary	List servers attached to a node pool (org scoped)
 //	@Tags		NodePools
-//	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string	false	"Organization UUID"
-//	@Param		id			path	string	true	"Node Pool ID (UUID)"
-//	@Success	200	{array}		dto.ServerResponse
-//	@Failure	400	{string}	string	"invalid id"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"fetch failed"
+//	@Param		X-Org-ID	header		string	false	"Organization UUID"
+//	@Param		id			path		string	true	"Node Pool ID (UUID)"
+//	@Success	200			{array}		dto.ServerResponse
+//	@Failure	400			{string}	string	"invalid id"
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Failure	500			{string}	string	"fetch failed"
 //	@Router		/node-pools/{id}/servers [get]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -434,15 +430,15 @@ func ListNodePoolServers(db *gorm.DB) http.HandlerFunc {
 //	@Tags		NodePools
 //	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string					false	"Organization UUID"
-//	@Param		id			path	string					true	"Node Pool ID (UUID)"
-//	@Param		body		body	dto.AttachServersRequest	true	"Server IDs to attach"
-//	@Success	204	{string}	string	"No Content"
-//	@Failure	400	{string}	string	"invalid id / invalid server_ids"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"attach failed"
+//	@Param		X-Org-ID	header		string						false	"Organization UUID"
+//	@Param		id			path		string						true	"Node Pool ID (UUID)"
+//	@Param		body		body		dto.AttachServersRequest	true	"Server IDs to attach"
+//	@Success	204			{string}	string						"No Content"
+//	@Failure	400			{string}	string						"invalid id / invalid server_ids"
+//	@Failure	401			{string}	string						"Unauthorized"
+//	@Failure	403			{string}	string						"organization required"
+//	@Failure	404			{string}	string						"not found"
+//	@Failure	500			{string}	string						"attach failed"
 //	@Router		/node-pools/{id}/servers [post]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -521,17 +517,16 @@ func AttachNodePoolServers(db *gorm.DB) http.HandlerFunc {
 //	@ID			DetachNodePoolServer
 //	@Summary	Detach one server from a node pool (org scoped)
 //	@Tags		NodePools
-//	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string	false	"Organization UUID"
-//	@Param		id			path	string	true	"Node Pool ID (UUID)"
-//	@Param		serverId	path	string	true	"Server ID (UUID)"
-//	@Success	204	{string}	string	"No Content"
-//	@Failure	400	{string}	string	"invalid id"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"detach failed"
+//	@Param		X-Org-ID	header		string	false	"Organization UUID"
+//	@Param		id			path		string	true	"Node Pool ID (UUID)"
+//	@Param		serverId	path		string	true	"Server ID (UUID)"
+//	@Success	204			{string}	string	"No Content"
+//	@Failure	400			{string}	string	"invalid id"
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Failure	500			{string}	string	"detach failed"
 //	@Router		/node-pools/{id}/servers/{serverId} [delete]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -588,16 +583,15 @@ func DetachNodePoolServer(db *gorm.DB) http.HandlerFunc {
 //	@ID			ListNodePoolTaints
 //	@Summary	List taints attached to a node pool (org scoped)
 //	@Tags		NodePools
-//	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string	false	"Organization UUID"
-//	@Param		id			path	string	true	"Node Pool ID (UUID)"
-//	@Success	200	{array}		dto.TaintResponse
-//	@Failure	400	{string}	string	"invalid id"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"fetch failed"
+//	@Param		X-Org-ID	header		string	false	"Organization UUID"
+//	@Param		id			path		string	true	"Node Pool ID (UUID)"
+//	@Success	200			{array}		dto.TaintResponse
+//	@Failure	400			{string}	string	"invalid id"
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Failure	500			{string}	string	"fetch failed"
 //	@Router		/node-pools/{id}/taints [get]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -646,15 +640,15 @@ func ListNodePoolTaints(db *gorm.DB) http.HandlerFunc {
 //	@Tags		NodePools
 //	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string					false	"Organization UUID"
-//	@Param		id			path	string					true	"Node Pool ID (UUID)"
-//	@Param		body		body	dto.AttachTaintsRequest	true	"Taint IDs to attach"
-//	@Success	204	{string}	string	"No Content"
-//	@Failure	400	{string}	string	"invalid id / invalid taint_ids"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"attach failed"
+//	@Param		X-Org-ID	header		string					false	"Organization UUID"
+//	@Param		id			path		string					true	"Node Pool ID (UUID)"
+//	@Param		body		body		dto.AttachTaintsRequest	true	"Taint IDs to attach"
+//	@Success	204			{string}	string					"No Content"
+//	@Failure	400			{string}	string					"invalid id / invalid taint_ids"
+//	@Failure	401			{string}	string					"Unauthorized"
+//	@Failure	403			{string}	string					"organization required"
+//	@Failure	404			{string}	string					"not found"
+//	@Failure	500			{string}	string					"attach failed"
 //	@Router		/node-pools/{id}/taints [post]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -730,17 +724,16 @@ func AttachNodePoolTaints(db *gorm.DB) http.HandlerFunc {
 //	@ID			DetachNodePoolTaint
 //	@Summary	Detach one taint from a node pool (org scoped)
 //	@Tags		NodePools
-//	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string	false	"Organization UUID"
-//	@Param		id			path	string	true	"Node Pool ID (UUID)"
-//	@Param		taintId	path	string	true	"Taint ID (UUID)"
-//	@Success	204	{string}	string	"No Content"
-//	@Failure	400	{string}	string	"invalid id"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"detach failed"
+//	@Param		X-Org-ID	header		string	false	"Organization UUID"
+//	@Param		id			path		string	true	"Node Pool ID (UUID)"
+//	@Param		taintId		path		string	true	"Taint ID (UUID)"
+//	@Success	204			{string}	string	"No Content"
+//	@Failure	400			{string}	string	"invalid id"
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Failure	500			{string}	string	"detach failed"
 //	@Router		/node-pools/{id}/taints/{taintId} [delete]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -798,16 +791,15 @@ func DetachNodePoolTaint(db *gorm.DB) http.HandlerFunc {
 //	@ID			ListNodePoolLabels
 //	@Summary	List labels attached to a node pool (org scoped)
 //	@Tags		NodePools
-//	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string	false	"Organization UUID"
-//	@Param		id			path	string	true	"Label Pool ID (UUID)"
-//	@Success	200	{array}		dto.LabelResponse
-//	@Failure	400	{string}	string	"invalid id"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"fetch failed"
+//	@Param		X-Org-ID	header		string	false	"Organization UUID"
+//	@Param		id			path		string	true	"Label Pool ID (UUID)"
+//	@Success	200			{array}		dto.LabelResponse
+//	@Failure	400			{string}	string	"invalid id"
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Failure	500			{string}	string	"fetch failed"
 //	@Router		/node-pools/{id}/labels [get]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -859,15 +851,15 @@ func ListNodePoolLabels(db *gorm.DB) http.HandlerFunc {
 //	@Tags		NodePools
 //	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string					false	"Organization UUID"
-//	@Param		id			path	string					true	"Node Pool ID (UUID)"
-//	@Param		body		body	dto.AttachLabelsRequest	true	"Label IDs to attach"
-//	@Success	204	{string}	string	"No Content"
-//	@Failure	400	{string}	string	"invalid id / invalid server_ids"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"attach failed"
+//	@Param		X-Org-ID	header		string					false	"Organization UUID"
+//	@Param		id			path		string					true	"Node Pool ID (UUID)"
+//	@Param		body		body		dto.AttachLabelsRequest	true	"Label IDs to attach"
+//	@Success	204			{string}	string					"No Content"
+//	@Failure	400			{string}	string					"invalid id / invalid server_ids"
+//	@Failure	401			{string}	string					"Unauthorized"
+//	@Failure	403			{string}	string					"organization required"
+//	@Failure	404			{string}	string					"not found"
+//	@Failure	500			{string}	string					"attach failed"
 //	@Router		/node-pools/{id}/labels [post]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -940,17 +932,16 @@ func AttachNodePoolLabels(db *gorm.DB) http.HandlerFunc {
 //	@ID			DetachNodePoolLabel
 //	@Summary	Detach one label from a node pool (org scoped)
 //	@Tags		NodePools
-//	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string	false	"Organization UUID"
-//	@Param		id			path	string	true	"Node Pool ID (UUID)"
-//	@Param		labelId	path	string	true	"Label ID (UUID)"
-//	@Success	204	{string}	string	"No Content"
-//	@Failure	400	{string}	string	"invalid id"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"detach failed"
+//	@Param		X-Org-ID	header		string	false	"Organization UUID"
+//	@Param		id			path		string	true	"Node Pool ID (UUID)"
+//	@Param		labelId		path		string	true	"Label ID (UUID)"
+//	@Success	204			{string}	string	"No Content"
+//	@Failure	400			{string}	string	"invalid id"
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Failure	500			{string}	string	"detach failed"
 //	@Router		/node-pools/{id}/labels/{labelId} [delete]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -1008,16 +999,15 @@ func DetachNodePoolLabel(db *gorm.DB) http.HandlerFunc {
 //	@ID			ListNodePoolAnnotations
 //	@Summary	List annotations attached to a node pool (org scoped)
 //	@Tags		NodePools
-//	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string	false	"Organization UUID"
-//	@Param		id			path	string	true	"Node Pool ID (UUID)"
-//	@Success	200	{array}		dto.AnnotationResponse
-//	@Failure	400	{string}	string	"invalid id"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"fetch failed"
+//	@Param		X-Org-ID	header		string	false	"Organization UUID"
+//	@Param		id			path		string	true	"Node Pool ID (UUID)"
+//	@Success	200			{array}		dto.AnnotationResponse
+//	@Failure	400			{string}	string	"invalid id"
+//	@Failure	401			{string}	string	"Unauthorized"
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Failure	500			{string}	string	"fetch failed"
 //	@Router		/node-pools/{id}/annotations [get]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -1069,15 +1059,15 @@ func ListNodePoolAnnotations(db *gorm.DB) http.HandlerFunc {
 //	@Tags		NodePools
 //	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string					false	"Organization UUID"
-//	@Param		id			path	string					true	"Node Group ID (UUID)"
-//	@Param		body		body	dto.AttachAnnotationsRequest	true	"Annotation IDs to attach"
-//	@Success	204	{string}	string	"No Content"
-//	@Failure	400	{string}	string	"invalid id / invalid server_ids"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"attach failed"
+//	@Param		X-Org-ID	header		string							false	"Organization UUID"
+//	@Param		id			path		string							true	"Node Group ID (UUID)"
+//	@Param		body		body		dto.AttachAnnotationsRequest	true	"Annotation IDs to attach"
+//	@Success	204			{string}	string							"No Content"
+//	@Failure	400			{string}	string							"invalid id / invalid server_ids"
+//	@Failure	401			{string}	string							"Unauthorized"
+//	@Failure	403			{string}	string							"organization required"
+//	@Failure	404			{string}	string							"not found"
+//	@Failure	500			{string}	string							"attach failed"
 //	@Router		/node-pools/{id}/annotations [post]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth
@@ -1151,17 +1141,16 @@ func AttachNodePoolAnnotations(db *gorm.DB) http.HandlerFunc {
 //	@ID			DetachNodePoolAnnotation
 //	@Summary	Detach one annotation from a node pool (org scoped)
 //	@Tags		NodePools
-//	@Accept		json
 //	@Produce	json
-//	@Param		X-Org-ID	header	string	false	"Organization UUID"
-//	@Param		id			path	string	true	"Node Pool ID (UUID)"
-//	@Param		annotationId	path	string	true	"Annotation ID (UUID)"
-//	@Success	204	{string}	string	"No Content"
-//	@Failure	400	{string}	string	"invalid id"
-//	@Failure	401	{string}	string	"Unauthorized"
-//	@Failure	403	{string}	string	"organization required"
-//	@Failure	404	{string}	string	"not found"
-//	@Failure	500	{string}	string	"detach failed"
+//	@Param		X-Org-ID		header		string	false	"Organization UUID"
+//	@Param		id				path		string	true	"Node Pool ID (UUID)"
+//	@Param		annotationId	path		string	true	"Annotation ID (UUID)"
+//	@Success	204				{string}	string	"No Content"
+//	@Failure	400				{string}	string	"invalid id"
+//	@Failure	401				{string}	string	"Unauthorized"
+//	@Failure	403				{string}	string	"organization required"
+//	@Failure	404				{string}	string	"not found"
+//	@Failure	500				{string}	string	"detach failed"
 //	@Router		/node-pools/{id}/annotations/{annotationId} [delete]
 //	@Security	BearerAuth
 //	@Security	OrgKeyAuth

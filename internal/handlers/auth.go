@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"html/template"
 	"net/http"
 	"net/url"
 	"strings"
@@ -252,10 +254,11 @@ func AuthCallback(db *gorm.DB) http.HandlerFunc {
 		accessTTL := 1 * time.Hour
 		refreshTTL := 30 * 24 * time.Hour
 
+		cfgLoaded, _ := config.Load()
 		access, err := auth.IssueAccessToken(auth.IssueOpts{
 			Subject:  user.ID.String(),
-			Issuer:   cfg.JWTIssuer,
-			Audience: cfg.JWTAudience,
+			Issuer:   cfgLoaded.JWTIssuer,
+			Audience: cfgLoaded.JWTAudience,
 			TTL:      accessTTL,
 			Claims: map[string]any{
 				"email": email,
@@ -273,7 +276,10 @@ func AuthCallback(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		secure := strings.HasPrefix(cfg.OAuthRedirectBase, "https://")
+		secure := true
+		if u, err := url.Parse(cfg.OAuthRedirectBase); err == nil && isLocalDev(u) {
+			secure = false
+		}
 		if xf := r.Header.Get("X-Forwarded-Proto"); xf != "" {
 			secure = strings.EqualFold(xf, "https")
 		}
@@ -291,14 +297,7 @@ func AuthCallback(db *gorm.DB) http.HandlerFunc {
 		// If the state indicates SPA popup mode, postMessage tokens to the opener and close
 		state := r.URL.Query().Get("state")
 		if strings.Contains(state, "mode=spa") {
-			origin := ""
-			for _, part := range strings.Split(state, "|") {
-				if strings.HasPrefix(part, "origin=") {
-					origin, _ = url.QueryUnescape(strings.TrimPrefix(part, "origin="))
-					break
-				}
-			}
-			// fallback: restrict to backend origin if none supplied
+			origin := canonicalOrigin(cfg.OAuthRedirectBase)
 			if origin == "" {
 				origin = cfg.OAuthRedirectBase
 			}
@@ -371,7 +370,10 @@ func Refresh(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		secure := strings.HasPrefix(cfg.OAuthRedirectBase, "https://")
+		secure := true
+		if uParsed, err := url.Parse(cfg.OAuthRedirectBase); err == nil && isLocalDev(uParsed) {
+			secure = false
+		}
 		if xf := r.Header.Get("X-Forwarded-Proto"); xf != "" {
 			secure = strings.EqualFold(xf, "https")
 		}
@@ -424,6 +426,11 @@ func Logout(db *gorm.DB) http.HandlerFunc {
 		}
 
 	clearCookie:
+		secure := true
+		if uParsed, err := url.Parse(cfg.OAuthRedirectBase); err == nil && isLocalDev(uParsed) {
+			secure = false
+		}
+
 		http.SetCookie(w, &http.Cookie{
 			Name:     "ag_jwt",
 			Value:    "",
@@ -432,11 +439,10 @@ func Logout(db *gorm.DB) http.HandlerFunc {
 			MaxAge:   -1,
 			Expires:  time.Unix(0, 0),
 			SameSite: http.SameSiteLaxMode,
-			Secure:   strings.HasPrefix(cfg.OAuthRedirectBase, "https"),
+			Secure:   secure,
 		})
 
 		w.WriteHeader(204)
-
 	}
 }
 
@@ -506,21 +512,63 @@ func ensureAutoMembership(db *gorm.DB, userID uuid.UUID, email string) error {
 	}).Error
 }
 
+// postMessage HTML template
+var postMessageTpl = template.Must(template.New("postmsg").Parse(`<!doctype html>
+<html>
+  <body>
+    <script>
+      (function(){
+        try {
+          var data = JSON.parse(atob("{{.PayloadB64}}"));
+          if (window.opener) {
+            window.opener.postMessage(
+              { type: 'autoglue:auth', payload: data },
+              "{{.Origin}}"
+            );
+          }
+        } catch (e) {}
+        window.close();
+      })();
+    </script>
+  </body>
+</html>`))
+
+type postMessageData struct {
+	Origin     string
+	PayloadB64 string
+}
+
 // writePostMessageHTML sends a tiny HTML page that posts tokens to the SPA and closes the window.
 func writePostMessageHTML(w http.ResponseWriter, origin string, payload dto.TokenPair) {
 	b, _ := json.Marshal(payload)
+
+	data := postMessageData{
+		Origin:     origin,
+		PayloadB64: base64.StdEncoding.EncodeToString(b),
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`<!doctype html><html><body><script>
-(function(){
-  try {
-    var data = ` + string(b) + `;
-    if (window.opener) {
-      window.opener.postMessage({ type: 'autoglue:auth', payload: data }, '` + origin + `');
-    }
-  } catch (e) {}
-  window.close();
-})();
-</script></body></html>`))
+	_ = postMessageTpl.Execute(w, data)
+}
+
+// canonicalOrigin returns scheme://host[:port] for a given URL, or "" if invalid.
+func canonicalOrigin(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return ""
+	}
+
+	// Normalize: no path/query/fragment — just the origin.
+	return (&url.URL{
+		Scheme: u.Scheme,
+		Host:   u.Host,
+	}).String()
+}
+
+func isLocalDev(u *url.URL) bool {
+	host := strings.ToLower(u.Hostname())
+	return u.Scheme == "http" &&
+		(host == "localhost" || host == "127.0.0.1")
 }

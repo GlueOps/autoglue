@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { ThemePillSwitcher } from "@/layouts/theme-switcher"
 import { Link, useLocation } from "react-router-dom"
 
 import { useMe } from "@/hooks/use-me.ts"
@@ -69,6 +70,7 @@ export const Topbar = () => {
         </Breadcrumb>
       </div>
 
+      <ThemePillSwitcher variant="wide" />
       <Button variant="ghost" size="sm" asChild>
         <Link to="/me">{isLoading ? "…" : me?.display_name || "Profile"}</Link>
       </Button>

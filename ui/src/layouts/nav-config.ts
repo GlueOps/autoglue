@@ -15,11 +15,13 @@ import {
 import { AiOutlineCluster } from "react-icons/ai"
 import { GrUserWorker } from "react-icons/gr"
 import { MdOutlineDns } from "react-icons/md"
+import { SiSwagger } from "react-icons/si"
 
 export type NavItem = {
   to: string
   label: string
   icon: ComponentType<{ className?: string }>
+  target?: string
 }
 
 export const mainNav: NavItem[] = [
@@ -45,4 +47,5 @@ export const userNav: NavItem[] = [{ to: "/me", label: "Profile", icon: User2 }]
 export const adminNav: NavItem[] = [
   { to: "/admin/users", label: "Users Admin", icon: Users },
   { to: "/admin/jobs", label: "Jobs Admin", icon: GrUserWorker },
+  { to: "/docs", label: "API Docs ", icon: SiSwagger, target: "_blank" },
 ]

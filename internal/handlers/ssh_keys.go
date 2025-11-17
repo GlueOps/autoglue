@@ -31,7 +31,6 @@ import (
 //	@Summary		List ssh keys (org scoped)
 //	@Description	Returns ssh keys for the organization in X-Org-ID.
 //	@Tags			Ssh
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Success		200			{array}		dto.SshResponse
@@ -189,7 +188,6 @@ func CreateSSHKey(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Get ssh key by ID (org scoped)
 //	@Description	Returns public key fields. Append `?reveal=true` to include the private key PEM.
 //	@Tags			Ssh
-//	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			id			path		string	true	"SSH Key ID (UUID)"
@@ -283,11 +281,10 @@ func GetSSHKey(db *gorm.DB) http.HandlerFunc {
 //	@Summary		Delete ssh keypair (org scoped)
 //	@Description	Permanently deletes a keypair.
 //	@Tags			Ssh
-//	@Accept			json
 //	@Produce		json
-//	@Param			X-Org-ID	header		string	false	"Organization UUID"
-//	@Param			id			path		string	true	"SSH Key ID (UUID)"
-//	@Success		204			{string}	string	"No Content"
+//	@Param			X-Org-ID	header	string	false	"Organization UUID"
+//	@Param			id			path	string	true	"SSH Key ID (UUID)"
+//	@Success		204			"No Content"
 //	@Failure		400			{string}	string	"invalid id"
 //	@Failure		401			{string}	string	"Unauthorized"
 //	@Failure		403			{string}	string	"organization required"
