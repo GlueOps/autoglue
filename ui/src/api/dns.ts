@@ -20,11 +20,11 @@ export const dnsApi = {
     }),
   createDomain: async (body: DtoCreateDomainRequest) =>
     withRefresh(async () => {
-      return await dns.createDomain({ body })
+      return await dns.createDomain({ dtoCreateDomainRequest: body })
     }),
   updateDomain: async (id: string, body: DtoUpdateDomainRequest) =>
     withRefresh(async () => {
-      return await dns.updateDomain({ id, body })
+      return await dns.updateDomain({ id, dtoUpdateDomainRequest: body })
     }),
   deleteDomain: async (id: string) =>
     withRefresh(async () => {
@@ -36,11 +36,11 @@ export const dnsApi = {
     }),
   createRecordSetsByDomain: async (domainId: string, body: DtoCreateRecordSetRequest) =>
     withRefresh(async () => {
-      return await dns.createRecordSet({ domainId, body })
+      return await dns.createRecordSet({ domainId, dtoCreateRecordSetRequest: body })
     }),
   updateRecordSetsByDomain: async (id: string, body: DtoUpdateRecordSetRequest) =>
     withRefresh(async () => {
-      return await dns.updateRecordSet({ id, body })
+      return await dns.updateRecordSet({ id, dtoUpdateRecordSetRequest: body })
     }),
   deleteRecordSetsByDomain: async (id: string) =>
     withRefresh(async () => {

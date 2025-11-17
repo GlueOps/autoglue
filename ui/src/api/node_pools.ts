@@ -22,7 +22,7 @@ export const nodePoolsApi = {
     }),
   createNodePool: (body: DtoCreateNodePoolRequest) =>
     withRefresh(async () => {
-      return await nodePools.createNodePool({ body })
+      return await nodePools.createNodePool({ dtoCreateNodePoolRequest: body })
     }),
   getNodePool: (id: string) =>
     withRefresh(async () => {
@@ -34,7 +34,7 @@ export const nodePoolsApi = {
     }),
   updateNodePool: (id: string, body: DtoUpdateNodePoolRequest) =>
     withRefresh(async () => {
-      return await nodePools.updateNodePool({ id, body })
+      return await nodePools.updateNodePool({ id, dtoUpdateNodePoolRequest: body })
     }),
   // Servers
   listNodePoolServers: (id: string) =>
@@ -43,7 +43,7 @@ export const nodePoolsApi = {
     }),
   attachNodePoolServer: (id: string, body: DtoAttachServersRequest) =>
     withRefresh(async () => {
-      return await nodePools.attachNodePoolServers({ id, body })
+      return await nodePools.attachNodePoolServers({ id, dtoAttachServersRequest: body })
     }),
   detachNodePoolServers: (id: string, serverId: string) =>
     withRefresh(async () => {
@@ -56,7 +56,7 @@ export const nodePoolsApi = {
     }),
   attachNodePoolTaints: (id: string, body: DtoAttachTaintsRequest) =>
     withRefresh(async () => {
-      return await nodePools.attachNodePoolTaints({ id, body })
+      return await nodePools.attachNodePoolTaints({ id, dtoAttachTaintsRequest: body })
     }),
   detachNodePoolTaints: (id: string, taintId: string) =>
     withRefresh(async () => {
@@ -69,7 +69,7 @@ export const nodePoolsApi = {
     }),
   attachNodePoolLabels: (id: string, body: DtoAttachLabelsRequest) =>
     withRefresh(async () => {
-      return await nodePools.attachNodePoolLabels({ id, body })
+      return await nodePools.attachNodePoolLabels({ id, dtoAttachLabelsRequest: body })
     }),
   detachNodePoolLabels: (id: string, labelId: string) =>
     withRefresh(async () => {
@@ -82,7 +82,7 @@ export const nodePoolsApi = {
     }),
   attachNodePoolAnnotations: (id: string, body: DtoAttachAnnotationsRequest) =>
     withRefresh(async () => {
-      return await nodePools.attachNodePoolAnnotations({ id, body })
+      return await nodePools.attachNodePoolAnnotations({ id, dtoAttachAnnotationsRequest: body })
     }),
   detachNodePoolAnnotations: (id: string, annotationId: string) =>
     withRefresh(async () => {

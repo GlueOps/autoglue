@@ -19,7 +19,7 @@ export const meApi = {
 
   updateMe: (body: HandlersUpdateMeRequest) =>
     withRefresh(async (): Promise<ModelsUser> => {
-      return await me.updateMe({ body })
+      return await me.updateMe({ handlersUpdateMeRequest: body })
     }),
 
   listKeys: () =>
@@ -29,7 +29,7 @@ export const meApi = {
 
   createKey: (body: HandlersCreateUserKeyRequest) =>
     withRefresh(async (): Promise<HandlersUserAPIKeyOut> => {
-      return await keys.createUserAPIKey({ body })
+      return await keys.createUserAPIKey({ handlersCreateUserKeyRequest: body })
     }),
 
   deleteKey: (id: string) =>

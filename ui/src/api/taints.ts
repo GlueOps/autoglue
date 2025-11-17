@@ -10,7 +10,7 @@ export const taintsApi = {
     }),
   createTaint: (body: DtoCreateTaintRequest) =>
     withRefresh(async () => {
-      return await taints.createTaint({ body })
+      return await taints.createTaint({ dtoCreateTaintRequest: body })
     }),
   getTaint: (id: string) =>
     withRefresh(async () => {
@@ -22,6 +22,6 @@ export const taintsApi = {
     }),
   updateTaint: (id: string, body: DtoUpdateTaintRequest) =>
     withRefresh(async () => {
-      return await taints.updateTaint({ id, body })
+      return await taints.updateTaint({ id, dtoUpdateTaintRequest: body })
     }),
 }

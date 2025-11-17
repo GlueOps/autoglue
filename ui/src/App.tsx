@@ -9,6 +9,7 @@ import { DnsPage } from "@/pages/dns/dns-page.tsx"
 import { DocsPage } from "@/pages/docs/docs-page.tsx"
 import { JobsPage } from "@/pages/jobs/jobs-page.tsx"
 import { LabelsPage } from "@/pages/labels/labels-page.tsx"
+import { LoadBalancersPage } from "@/pages/loadbalancers/load-balancers-page"
 import { MePage } from "@/pages/me/me-page.tsx"
 import { NodePoolsPage } from "@/pages/nodepools/node-pools-page.tsx"
 import { OrgApiKeys } from "@/pages/org/api-keys.tsx"
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/node-pools" element={<NodePoolsPage />} />
           <Route path="/credentials" element={<CredentialPage />} />
           <Route path="/dns" element={<DnsPage />} />
+          <Route path="/load-balancers" element={<LoadBalancersPage />} />
 
           <Route path="/admin/jobs" element={<JobsPage />} />
         </Route>

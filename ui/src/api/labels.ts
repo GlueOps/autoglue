@@ -11,7 +11,7 @@ export const labelsApi = {
     }),
   createLabel: (body: DtoCreateLabelRequest) =>
     withRefresh(async () => {
-      return await labels.createLabel({ body })
+      return await labels.createLabel({ dtoCreateLabelRequest: body })
     }),
   getLabel: (id: string) =>
     withRefresh(async () => {
@@ -23,6 +23,6 @@ export const labelsApi = {
     }),
   updateLabel: (id: string, body: DtoUpdateLabelRequest) =>
     withRefresh(async () => {
-      return await labels.updateLabel({ id, body })
+      return await labels.updateLabel({ id, dtoUpdateLabelRequest: body })
     }),
 }

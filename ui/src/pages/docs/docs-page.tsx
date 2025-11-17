@@ -152,7 +152,7 @@ export const DocsPage: FC = () => {
       <rapi-doc
         ref={rdRef}
         id="autoglue-docs"
-        spec-url="/swagger/swagger.json"
+        spec-url="/swagger/openapi.json"
         render-style="read"
         show-header="false"
         persist-auth="true"

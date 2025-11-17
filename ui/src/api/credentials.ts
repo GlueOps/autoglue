@@ -11,7 +11,7 @@ export const credentialsApi = {
     }),
   createCredential: async (body: DtoCreateCredentialRequest) =>
     withRefresh(async () => {
-      return await credentials.createCredential({ body })
+      return await credentials.createCredential({ dtoCreateCredentialRequest: body })
     }),
   getCredential: async (id: string) =>
     withRefresh(async () => {
@@ -23,7 +23,7 @@ export const credentialsApi = {
     }),
   updateCredential: async (id: string, body: DtoUpdateCredentialRequest) =>
     withRefresh(async () => {
-      return await credentials.updateCredential({ id, body })
+      return await credentials.updateCredential({ id, dtoUpdateCredentialRequest: body })
     }),
   revealCredential: async (id: string) =>
     withRefresh(async () => {

@@ -203,7 +203,8 @@ components:
       properties:
         kind:
           enum:
-          - glueops|public
+          - glueops
+          - public
           example: public
           type: string
         name:
@@ -460,8 +461,6 @@ components:
         id:
           type: string
         kind:
-          enum:
-          - glueops|public
           type: string
         name:
           type: string
@@ -758,7 +757,8 @@ components:
       properties:
         kind:
           enum:
-          - glueops|public
+          - glueops
+          - public
           example: public
           type: string
         name:
@@ -1126,7 +1126,22 @@ components:
           type: string
       type: object
   securitySchemes:
-    "":
+    ApiKeyAuth:
+      description: User API key
+      in: header
+      name: X-API-KEY
+      type: apiKey
+    BearerAuth:
+      description: Bearer token authentication
+      in: header
+      name: Authorization
+      type: apiKey
+    OrgKeyAuth:
+      description: Org-level key/secret authentication
+      in: header
+      name: X-ORG-KEY
+      type: apiKey
+    OrgSecretAuth:
       description: Org-level secret
       in: header
       name: X-ORG-SECRET

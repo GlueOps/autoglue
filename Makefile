@@ -99,8 +99,8 @@ SDK_PKG_CLEAN       := $(call trim,$(SDK_PKG))
         validate-spec check-tags doctor diff-swagger
 
 # --- inputs/outputs for swagger (incremental) ---
-DOCS_JSON := docs/swagger.json
-DOCS_YAML := docs/swagger.yaml
+DOCS_JSON := docs/openapi.json
+DOCS_YAML := docs/openapi.yaml
 # Prefer git for speed; fall back to find. Exclude UI dir.
 #GO_SRCS := $(shell (git ls-files '*.go' ':!$(UI_DIR)/**' 2>/dev/null || find . -name '*.go' -not -path './$(UI_DIR)/*' -type f))
 GO_SRCS := $(shell ( \
@@ -112,12 +112,14 @@ GO_SRCS := $(shell ( \
 $(DOCS_JSON) $(DOCS_YAML): $(GO_SRCS)
 	@echo ">> Generating Swagger docs..."
 	@if ! command -v swag >/dev/null 2>&1; then \
-		echo "Installing swag/v2 CLI @v2.0.0-rc4..."; \
+		echo "Installing swag/v2 CLI @latest..."; \
 		$(GOINSTALL) github.com/swaggo/swag/v2/cmd/swag@latest; \
 	fi
-	@rm -rf docs/swagger.* docs/docs.go
-	@swag fmt -d .
+	@rm -rf docs/openapi.* docs/docs.go
+	@swag fmt --exclude main.go -d .
 	@swag init $(SWAG_FLAGS) -g $(MAIN) -o docs
+	@mv docs/swagger.json $(DOCS_JSON)
+	@mv docs/swagger.yaml $(DOCS_YAML)
 
 # --- spec validation + tag guard ---
 validate-spec: $(DOCS_JSON) ## Validate docs/swagger.json and pin the core OpenAPI Generator version

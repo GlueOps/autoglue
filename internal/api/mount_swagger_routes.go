@@ -12,8 +12,8 @@ import (
 func mountSwaggerRoutes(r chi.Router) {
 	r.Get("/swagger", RapidDocHandler("/swagger/swagger.yaml"))
 	r.Get("/swagger/index.html", RapidDocHandler("/swagger/swagger.yaml"))
-	r.Get("/swagger/swagger.json", serveSwaggerFromEmbed(docs.SwaggerJSON, "application/json"))
-	r.Get("/swagger/swagger.yaml", serveSwaggerFromEmbed(docs.SwaggerYAML, "application/x-yaml"))
+	r.Get("/swagger/openapi.json", serveSwaggerFromEmbed(docs.SwaggerJSON, "application/json"))
+	r.Get("/swagger/openapi.yaml", serveSwaggerFromEmbed(docs.SwaggerYAML, "application/x-yaml"))
 }
 
 var rapidDocTmpl = template.Must(template.New("redoc").Parse(`<!DOCTYPE html>

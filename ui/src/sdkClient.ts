@@ -4,10 +4,12 @@ import {
   AnnotationsApi,
   ArcherAdminApi,
   AuthApi,
+  ClustersApi,
   Configuration,
   CredentialsApi,
   DNSApi,
   LabelsApi,
+  LoadBalancersApi,
   MeApi,
   MeAPIKeysApi,
   MetaApi,
@@ -122,4 +124,12 @@ export function makeCredentialsApi() {
 
 export function makeDnsApi() {
   return makeApiClient(DNSApi)
+}
+
+export function makeLoadBalancerApi() {
+  return makeApiClient(LoadBalancersApi)
+}
+
+export function makeClusterApi() {
+  return makeApiClient(ClustersApi)
 }

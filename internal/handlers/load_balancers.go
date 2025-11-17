@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -128,7 +129,8 @@ func CreateLoadBalancer(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		if strings.ToLower(in.Kind) != "glueops" || strings.ToLower(in.Kind) != "public" {
+		if strings.ToLower(in.Kind) != "glueops" && strings.ToLower(in.Kind) != "public" {
+			fmt.Println(in.Kind)
 			utils.WriteError(w, http.StatusBadRequest, "bad_kind", "invalid kind only 'glueops' or 'public'")
 			return
 		}
@@ -199,7 +201,8 @@ func UpdateLoadBalancer(db *gorm.DB) http.HandlerFunc {
 			row.Name = *in.Name
 		}
 		if in.Kind != nil {
-			if strings.ToLower(*in.Kind) != "glueops" || strings.ToLower(*in.Kind) != "public" {
+			fmt.Println(*in.Kind)
+			if strings.ToLower(*in.Kind) != "glueops" && strings.ToLower(*in.Kind) != "public" {
 				utils.WriteError(w, http.StatusBadRequest, "bad_kind", "invalid kind only 'glueops' or 'public'")
 				return
 			}

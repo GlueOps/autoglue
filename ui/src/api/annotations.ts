@@ -10,7 +10,9 @@ export const annotationsApi = {
     }),
   createAnnotation: (body: DtoCreateAnnotationRequest) =>
     withRefresh(async () => {
-      return await annotations.createAnnotation({ body })
+      return await annotations.createAnnotation({
+        dtoCreateAnnotationRequest: body,
+      })
     }),
   getAnnotation: (id: string) =>
     withRefresh(async () => {
@@ -22,6 +24,9 @@ export const annotationsApi = {
     }),
   updateAnnotation: (id: string, body: DtoUpdateAnnotationRequest) =>
     withRefresh(async () => {
-      return await annotations.updateAnnotation({ id, body })
+      return await annotations.updateAnnotation({
+        id,
+        dtoUpdateAnnotationRequest: body,
+      })
     }),
 }
