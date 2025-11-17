@@ -1,8 +1,8 @@
-import { type FC, useEffect, useState } from "react"
+import { useEffect, useState, type FC } from "react"
 import { archerAdminApi } from "@/api/archer_admin"
 import {
-  type AdminListArcherJobsRequest,
   AdminListArcherJobsStatusEnum,
+  type AdminListArcherJobsRequest,
   type DtoJob,
   type DtoPageJob,
   type DtoQueueInfo,
@@ -25,8 +25,21 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 
 type JobStatus = AdminListArcherJobsStatusEnum
