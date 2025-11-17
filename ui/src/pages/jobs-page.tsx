@@ -1,7 +1,5 @@
 import { type FC, useEffect, useState } from "react"
 import { archerAdminApi } from "@/api/archer_admin"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Loader2, Plus, RefreshCw, Search, X } from "lucide-react"
 import {
   type AdminListArcherJobsRequest,
   AdminListArcherJobsStatusEnum,
@@ -9,6 +7,8 @@ import {
   type DtoPageJob,
   type DtoQueueInfo,
 } from "@/sdk"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Loader2, Plus, RefreshCw, Search, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -296,8 +296,7 @@ export const JobsPage: FC = () => {
               )}
               {items.map((j) => {
                 const jobStatus: JobStatus =
-                  (j.status as JobStatus | undefined) ??
-                  AdminListArcherJobsStatusEnum.queued
+                  (j.status as JobStatus | undefined) ?? AdminListArcherJobsStatusEnum.queued
 
                 return (
                   <TableRow key={j.id}>
@@ -309,10 +308,7 @@ export const JobsPage: FC = () => {
                     </TableCell>
                     <TableCell>
                       <span
-                        className={cn(
-                          "rounded-md px-2 py-0.5 text-xs",
-                          statusClass[jobStatus],
-                        )}
+                        className={cn("rounded-md px-2 py-0.5 text-xs", statusClass[jobStatus])}
                       >
                         {jobStatus}
                       </span>
@@ -418,9 +414,7 @@ function DetailsButton({ job }: { job: DtoJob }) {
                 <CardTitle className="text-sm">Last error</CardTitle>
               </CardHeader>
               <CardContent>
-                <pre className="overflow-auto text-xs whitespace-pre-wrap">
-                  {job.last_error}
-                </pre>
+                <pre className="overflow-auto text-xs whitespace-pre-wrap">{job.last_error}</pre>
               </CardContent>
             </Card>
           )}
@@ -446,9 +440,9 @@ function DetailsButton({ job }: { job: DtoJob }) {
 }
 
 function EnqueueDialog({
-                         onSubmit,
-                         submitting,
-                       }: {
+  onSubmit,
+  submitting,
+}: {
   onSubmit: (body: {
     queue: string
     type: string
@@ -513,11 +507,7 @@ function EnqueueDialog({
           </div>
           <div className="grid gap-2">
             <Label>Run at (optional)</Label>
-            <Input
-              type="datetime-local"
-              value={runAt}
-              onChange={(e) => setRunAt(e.target.value)}
-            />
+            <Input type="datetime-local" value={runAt} onChange={(e) => setRunAt(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
