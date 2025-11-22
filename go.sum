@@ -1215,6 +1215,8 @@ github.com/sirupsen/logrus v1.9.0 h1:trlNQbNUG3OdDrDil03MCb1H2o9nJ1x4/5LYw7byDE0
 github.com/sirupsen/logrus v1.9.0/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/sosedoff/pgweb v0.16.2 h1:1F1CWlCLSEgSctMva+nYuUibdhyiCUzlXyU5MQUJbFM=
 github.com/sosedoff/pgweb v0.16.2/go.mod h1:ER7fsBddI3h7MQKO5RsUPi7Q/PWZYSKcI61kTp369Rw=
+github.com/sosedoff/pgweb v0.17.0 h1:2WSPajNyqStS5oulvfdKIBaWQTy/qNBREBp51h4yiLU=
+github.com/sosedoff/pgweb v0.17.0/go.mod h1:fY82HStJ/n/JCvzHsJmVT6BDYiWxSQG6CvqH+biuUbM=
 github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 h1:+jumHNA0Wrelhe64i8F6HNlS8pkoyMv5sreGx2Ry5Rw=
 github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8/go.mod h1:3n1Cwaq1E1/1lhQhtRK2ts/ZwZEhjcQeJQ1RuC6Q/8U=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
