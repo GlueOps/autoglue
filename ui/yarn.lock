@@ -694,9 +694,9 @@
     "@lit-labs/ssr-dom-shim" "^1.4.0"
 
 "@modelcontextprotocol/sdk@^1.17.2":
-  version "1.24.1"
-  resolved "https://registry.yarnpkg.com/@modelcontextprotocol/sdk/-/sdk-1.24.1.tgz#4cc7366b8a9f975e653f28b6ef5bfde541a50226"
-  integrity sha512-YTg4v6bKSst8EJM8NXHC3nGm8kgHD08IbIBbognUeLAgGLVgLpYrgQswzLQd4OyTL4l614ejhqsDrV1//t02Qw==
+  version "1.24.2"
+  resolved "https://registry.yarnpkg.com/@modelcontextprotocol/sdk/-/sdk-1.24.2.tgz#30e97279ef5cbce4b4e9d7e68e4db802d1f5733f"
+  integrity sha512-hS/kzSfchqzvUeJUsdiDHi84/kNhLIZaZ6coGQVwbYIelOBbcAwUohUfaQTLa1MvFOK/jbTnGFzraHSFwB7pjQ==
   dependencies:
     ajv "^8.17.1"
     ajv-formats "^3.0.1"
