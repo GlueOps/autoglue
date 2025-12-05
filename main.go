@@ -11,8 +11,10 @@ import (
 // @description API for managing K3s clusters across cloud providers
 // @contact.name GlueOps
 
-// @servers.url https://autoglue.onglueops.rocks/api/v1
+// @servers.url https://autoglue.glueopshosted.com/api/v1
 // @servers.description Production API
+// @servers.url https://autoglue.glueopshosted.rocks/api/v1
+// @servers.description Pre-Production API
 // @servers.url https://autoglue.apps.nonprod.earth.onglueops.rocks/api/v1
 // @servers.description Staging API
 // @servers.url http://localhost:8080/api/v1

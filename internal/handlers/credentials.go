@@ -29,14 +29,14 @@ import (
 //	@Description	Returns credential metadata for the current org. Secrets are never returned.
 //	@Tags			Credentials
 //	@Produce		json
-//	@Param			X-Org-ID	header		string	false	"Organization ID (UUID)"
-//	@Param			provider	query		string	false	"Filter by provider (e.g., aws)"
-//	@Param			kind		query		string	false	"Filter by kind (e.g., aws_access_key)"
-//	@Param			scope_kind	query		string	false	"Filter by scope kind (provider/service/resource)"
-//	@Success		200			{array}		dto.CredentialOut
-//	@Failure		401			{string}	string	"Unauthorized"
-//	@Failure		403			{string}	string	"organization required"
-//	@Failure		500			{string}	string	"internal server error"
+//	@Param			X-Org-ID			header		string	false	"Organization ID (UUID)"
+//	@Param			credential_provider	query		string	false	"Filter by provider (e.g., aws)"
+//	@Param			kind				query		string	false	"Filter by kind (e.g., aws_access_key)"
+//	@Param			scope_kind			query		string	false	"Filter by scope kind (credential_provider/service/resource)"
+//	@Success		200					{array}		dto.CredentialOut
+//	@Failure		401					{string}	string	"Unauthorized"
+//	@Failure		403					{string}	string	"organization required"
+//	@Failure		500					{string}	string	"internal server error"
 //	@Router			/credentials [get]
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
@@ -49,7 +49,7 @@ func ListCredentials(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 		q := db.Where("organization_id = ?", orgID)
-		if v := r.URL.Query().Get("provider"); v != "" {
+		if v := r.URL.Query().Get("credential_provider"); v != "" {
 			q = q.Where("provider = ?", v)
 		}
 		if v := r.URL.Query().Get("kind"); v != "" {
@@ -154,7 +154,7 @@ func CreateCredential(db *gorm.DB) http.HandlerFunc {
 
 		cred, err := SaveCredentialWithScope(
 			r.Context(), db, orgID,
-			in.Provider, in.Kind, in.SchemaVersion,
+			in.CredentialProvider, in.Kind, in.SchemaVersion,
 			in.ScopeKind, in.ScopeVersion, json.RawMessage(in.Scope), json.RawMessage(in.Secret),
 			in.Name, in.AccountID, in.Region,
 		)
@@ -548,17 +548,17 @@ func SaveCredentialWithScope(
 // credOut converts model → response DTO
 func credOut(c *models.Credential) dto.CredentialOut {
 	return dto.CredentialOut{
-		ID:            c.ID.String(),
-		Provider:      c.Provider,
-		Kind:          c.Kind,
-		SchemaVersion: c.SchemaVersion,
-		Name:          c.Name,
-		ScopeKind:     c.ScopeKind,
-		ScopeVersion:  c.ScopeVersion,
-		Scope:         dto.RawJSON(c.Scope),
-		AccountID:     c.AccountID,
-		Region:        c.Region,
-		CreatedAt:     c.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:     c.UpdatedAt.UTC().Format(time.RFC3339),
+		ID:                 c.ID.String(),
+		CredentialProvider: c.Provider,
+		Kind:               c.Kind,
+		SchemaVersion:      c.SchemaVersion,
+		Name:               c.Name,
+		ScopeKind:          c.ScopeKind,
+		ScopeVersion:       c.ScopeVersion,
+		Scope:              dto.RawJSON(c.Scope),
+		AccountID:          c.AccountID,
+		Region:             c.Region,
+		CreatedAt:          c.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:          c.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }

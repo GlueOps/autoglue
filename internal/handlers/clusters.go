@@ -183,7 +183,7 @@ func CreateCluster(db *gorm.DB) http.HandlerFunc {
 		c := models.Cluster{
 			OrganizationID: orgID,
 			Name:           in.Name,
-			Provider:       in.Provider,
+			Provider:       in.ClusterProvider,
 			Region:         in.Region,
 			Status:         models.ClusterStatusPrePending,
 			LastError:      "",
@@ -255,8 +255,8 @@ func UpdateCluster(db *gorm.DB) http.HandlerFunc {
 		if in.Name != nil {
 			cluster.Name = *in.Name
 		}
-		if in.Provider != nil {
-			cluster.Provider = *in.Provider
+		if in.ClusterProvider != nil {
+			cluster.Provider = *in.ClusterProvider
 		}
 		if in.Region != nil {
 			cluster.Region = *in.Region
@@ -1508,6 +1508,12 @@ func clusterToDTO(c models.Cluster) dto.ClusterResponse {
 		controlPlane = &rr
 	}
 
+	var cfqdn *string
+	if captainDomain != nil && controlPlane != nil {
+		fq := fmt.Sprintf("%s.%s", controlPlane.Name, captainDomain.DomainName)
+		cfqdn = &fq
+	}
+
 	var appsLB *dto.LoadBalancerResponse
 	if c.AppsLoadBalancer != nil {
 		lr := loadBalancerToDTO(*c.AppsLoadBalancer)
@@ -1530,6 +1536,7 @@ func clusterToDTO(c models.Cluster) dto.ClusterResponse {
 		Name:                  c.Name,
 		CaptainDomain:         captainDomain,
 		ControlPlaneRecordSet: controlPlane,
+		ControlPlaneFQDN:      cfqdn,
 		AppsLoadBalancer:      appsLB,
 		GlueOpsLoadBalancer:   glueOpsLB,
 		BastionServer:         bastion,

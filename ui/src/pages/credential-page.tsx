@@ -1,66 +1,28 @@
-import { useMemo, useState } from "react"
-import { credentialsApi } from "@/api/credentials"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import {
-  AlertTriangle,
-  Eye,
-  Loader2,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react"
-import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
-import { z } from "zod"
+import { useMemo, useState } from "react";
+import { credentialsApi } from "@/api/credentials";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, Eye, Loader2, MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
+
+
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+
+
+
+
 
 // -------------------- Constants --------------------
 
@@ -71,7 +33,7 @@ type AwsSvc = (typeof AWS_ALLOWED_SERVICES)[number]
 
 const createCredentialSchema = z
   .object({
-    provider: z.enum(["aws", "cloudflare", "hetzner", "digitalocean", "generic"]),
+    credential_provider: z.enum(["aws", "cloudflare", "hetzner", "digitalocean", "generic"]),
     kind: z.enum(["aws_access_key", "api_token", "basic_auth", "oauth2"]),
     schema_version: z.number().default(1),
     name: z.string().min(1, "Name is required").max(100),
@@ -91,7 +53,7 @@ const createCredentialSchema = z
     secret: z.any(),
   })
   .superRefine((val, ctx) => {
-    if (val.provider === "aws") {
+    if (val.credential_provider === "aws") {
       if (val.scope_kind === "service") {
         const svc = (val.scope as any)?.service
         if (!AWS_ALLOWED_SERVICES.includes(svc)) {
@@ -198,11 +160,11 @@ function extractErr(e: any): string {
   return "Unknown error"
 }
 
-function isAwsServiceScope({ provider, scope_kind }: { provider?: string; scope_kind?: string }) {
-  return provider === "aws" && scope_kind === "service"
+function isAwsServiceScope({ credential_provider, scope_kind }: { credential_provider?: string; scope_kind?: string }) {
+  return credential_provider === "aws" && scope_kind === "service"
 }
-function isAwsResourceScope({ provider, scope_kind }: { provider?: string; scope_kind?: string }) {
-  return provider === "aws" && scope_kind === "resource"
+function isAwsResourceScope({ credential_provider, scope_kind }: { credential_provider?: string; scope_kind?: string }) {
+  return credential_provider === "aws" && scope_kind === "resource"
 }
 function isProviderScope({ scope_kind }: { scope_kind?: string }) {
   return scope_kind === "provider"
@@ -210,7 +172,7 @@ function isProviderScope({ scope_kind }: { scope_kind?: string }) {
 
 function defaultCreateValues(): CreateCredentialValues {
   return {
-    provider: "aws",
+    credential_provider: "aws",
     kind: "aws_access_key",
     schema_version: 1,
     name: "",
@@ -226,7 +188,7 @@ function defaultCreateValues(): CreateCredentialValues {
 // Build exact POST body as the SDK sends it
 function buildCreateBody(v: CreateCredentialValues) {
   return {
-    provider: v.provider,
+    credential_provider: v.credential_provider,
     kind: v.kind,
     schema_version: v.schema_version ?? 1,
     name: v.name,
@@ -250,7 +212,7 @@ function buildUpdateBody(v: z.infer<typeof updateCredentialSchema>) {
     "scope_version",
     "scope",
     "secret",
-    "provider",
+    "credential_provider",
     "kind",
     "schema_version",
   ]
@@ -413,7 +375,7 @@ export const CredentialPage = () => {
     )
 
   // Create form watchers
-  const provider = createForm.watch("provider")
+  const credential_provider = createForm.watch("credential_provider")
   const kind = createForm.watch("kind")
   const scopeKind = createForm.watch("scope_kind")
 
@@ -424,7 +386,7 @@ export const CredentialPage = () => {
 
   function ensureCreateDefaultsForSecret() {
     if (useRawSecretJSON) return
-    if (provider === "aws" && kind === "aws_access_key") {
+    if (credential_provider === "aws" && kind === "aws_access_key") {
       const s = createForm.getValues("secret") ?? {}
       setCreateSecret({
         access_key_id: s.access_key_id ?? "",
@@ -502,7 +464,7 @@ export const CredentialPage = () => {
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <FormField
                       control={createForm.control}
-                      name="provider"
+                      name="credential_provider"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Provider</FormLabel>
@@ -629,7 +591,7 @@ export const CredentialPage = () => {
                   {/* Scope UI (create) */}
                   {!isProviderScope({ scope_kind: scopeKind }) && (
                     <>
-                      {isAwsServiceScope({ provider, scope_kind: scopeKind }) ? (
+                      {isAwsServiceScope({ credential_provider, scope_kind: scopeKind }) ? (
                         <FormItem>
                           <FormLabel>Service</FormLabel>
                           <Controller
@@ -659,7 +621,7 @@ export const CredentialPage = () => {
                             Must be one of: {AWS_ALLOWED_SERVICES.join(", ")}.
                           </p>
                         </FormItem>
-                      ) : isAwsResourceScope({ provider, scope_kind: scopeKind }) ? (
+                      ) : isAwsResourceScope({ credential_provider, scope_kind: scopeKind }) ? (
                         <FormItem>
                           <FormLabel>Resource ARN</FormLabel>
                           <Controller
@@ -753,7 +715,7 @@ export const CredentialPage = () => {
                     />
                   ) : (
                     <>
-                      {provider === "aws" && kind === "aws_access_key" && (
+                      {credential_provider === "aws" && kind === "aws_access_key" && (
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                           <FormItem>
                             <FormLabel>Access Key ID</FormLabel>
@@ -1095,7 +1057,7 @@ export const CredentialPage = () => {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={editForm.control}
-                  name="provider"
+                  name="credential_provider"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Provider</FormLabel>
@@ -1383,7 +1345,6 @@ export const CredentialPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <pre>{JSON.stringify(credentialQ.data, null, 2)}</pre>
     </div>
   )
 }

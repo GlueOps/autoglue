@@ -43,10 +43,17 @@ export const sshApi = {
 
   revealSshKeyById: (id: string) =>
     withRefresh(async (): Promise<DtoSshRevealResponse> => {
-      return await ssh.getSSHKey({ id, reveal: true as any })
-      // Note: TS fetch generator often models query params as part of params bag.
-      // If your generated client uses a different shape, change to:
-      // return await ssh.getSSHKeyRaw({ id, reveal: true }).then(r => r.value())
+      // Create the URL for the reveal endpoint
+      const url = new URL(`/api/v1/ssh/${id}`, window.location.origin)
+      url.searchParams.set("reveal", "true") // Add the reveal query parameter
+
+      // Use the custom fetch utility that includes authentication headers
+      const res = await authedFetch(url.toString())
+      if (!res.ok) throw new Error(`Failed to reveal key: ${res.statusText}`)
+
+      // Parse the JSON directly, bypassing the generated SDK's DTO mapping.
+      // This preserves the 'private_key' field.
+      return (await res.json()) as DtoSshRevealResponse
     }),
 
   deleteSshKey: (id: string) =>

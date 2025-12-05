@@ -110,7 +110,7 @@ const joinCommaList = (arr?: string[] | null) => (arr && arr.length ? arr.join("
 const rrtypes = ["A", "AAAA", "CNAME", "TXT", "MX", "NS", "SRV", "CAA"]
 
 const isR53 = (c: DtoCredentialOut) =>
-  c.provider === "aws" &&
+  c.credential_provider === "aws" &&
   c.scope_kind === "service" &&
   (() => {
     const s = (c as any).scope

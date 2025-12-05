@@ -97,16 +97,16 @@ var ScopeRegistry = map[string]map[string]map[int]ScopeDef{
 
 // CreateCredentialRequest represents the POST /credentials payload
 type CreateCredentialRequest struct {
-	Provider      string  `json:"provider" validate:"required,oneof=aws cloudflare hetzner digitalocean generic"`
-	Kind          string  `json:"kind" validate:"required"`                 // aws_access_key, api_token, basic_auth, oauth2
-	SchemaVersion int     `json:"schema_version" validate:"required,gte=1"` // secret schema version
-	Name          string  `json:"name" validate:"omitempty,max=100"`        // human label
-	ScopeKind     string  `json:"scope_kind" validate:"required,oneof=provider service resource"`
-	ScopeVersion  int     `json:"scope_version" validate:"required,gte=1"`        // scope schema version
-	Scope         RawJSON `json:"scope" validate:"required" swaggertype:"object"` // {"service":"route53"} or {"arn":"..."}
-	AccountID     string  `json:"account_id,omitempty" validate:"omitempty,max=32"`
-	Region        string  `json:"region,omitempty" validate:"omitempty,max=32"`
-	Secret        RawJSON `json:"secret" validate:"required" swaggertype:"object"` // encrypted later
+	CredentialProvider string  `json:"credential_provider" validate:"required,oneof=aws cloudflare hetzner digitalocean generic"`
+	Kind               string  `json:"kind" validate:"required"`                 // aws_access_key, api_token, basic_auth, oauth2
+	SchemaVersion      int     `json:"schema_version" validate:"required,gte=1"` // secret schema version
+	Name               string  `json:"name" validate:"omitempty,max=100"`        // human label
+	ScopeKind          string  `json:"scope_kind" validate:"required,oneof=credential_provider service resource"`
+	ScopeVersion       int     `json:"scope_version" validate:"required,gte=1"`        // scope schema version
+	Scope              RawJSON `json:"scope" validate:"required" swaggertype:"object"` // {"service":"route53"} or {"arn":"..."}
+	AccountID          string  `json:"account_id,omitempty" validate:"omitempty,max=32"`
+	Region             string  `json:"region,omitempty" validate:"omitempty,max=32"`
+	Secret             RawJSON `json:"secret" validate:"required" swaggertype:"object"` // encrypted later
 }
 
 // UpdateCredentialRequest represents PATCH /credentials/{id}
@@ -123,16 +123,16 @@ type UpdateCredentialRequest struct {
 
 // CredentialOut is what we return (no secrets)
 type CredentialOut struct {
-	ID            string  `json:"id"`
-	Provider      string  `json:"provider"`
-	Kind          string  `json:"kind"`
-	SchemaVersion int     `json:"schema_version"`
-	Name          string  `json:"name"`
-	ScopeKind     string  `json:"scope_kind"`
-	ScopeVersion  int     `json:"scope_version"`
-	Scope         RawJSON `json:"scope" swaggertype:"object"`
-	AccountID     string  `json:"account_id,omitempty"`
-	Region        string  `json:"region,omitempty"`
-	CreatedAt     string  `json:"created_at"`
-	UpdatedAt     string  `json:"updated_at"`
+	ID                 string  `json:"id"`
+	CredentialProvider string  `json:"credential_provider"`
+	Kind               string  `json:"kind"`
+	SchemaVersion      int     `json:"schema_version"`
+	Name               string  `json:"name"`
+	ScopeKind          string  `json:"scope_kind"`
+	ScopeVersion       int     `json:"scope_version"`
+	Scope              RawJSON `json:"scope" swaggertype:"object"`
+	AccountID          string  `json:"account_id,omitempty"`
+	Region             string  `json:"region,omitempty"`
+	CreatedAt          string  `json:"created_at"`
+	UpdatedAt          string  `json:"updated_at"`
 }

@@ -11,10 +11,11 @@ type ClusterResponse struct {
 	Name                  string                `json:"name"`
 	CaptainDomain         *DomainResponse       `json:"captain_domain,omitempty"`
 	ControlPlaneRecordSet *RecordSetResponse    `json:"control_plane_record_set,omitempty"`
+	ControlPlaneFQDN      *string               `json:"control_plane_fqdn,omitempty"`
 	AppsLoadBalancer      *LoadBalancerResponse `json:"apps_load_balancer,omitempty"`
 	GlueOpsLoadBalancer   *LoadBalancerResponse `json:"glueops_load_balancer,omitempty"`
 	BastionServer         *ServerResponse       `json:"bastion_server,omitempty"`
-	Provider              string                `json:"provider"`
+	Provider              string                `json:"cluster_provider"`
 	Region                string                `json:"region"`
 	Status                string                `json:"status"`
 	LastError             string                `json:"last_error"`
@@ -26,15 +27,15 @@ type ClusterResponse struct {
 }
 
 type CreateClusterRequest struct {
-	Name     string `json:"name"`
-	Provider string `json:"provider"`
-	Region   string `json:"region"`
+	Name            string `json:"name"`
+	ClusterProvider string `json:"cluster_provider"`
+	Region          string `json:"region"`
 }
 
 type UpdateClusterRequest struct {
-	Name     *string `json:"name,omitempty"`
-	Provider *string `json:"provider,omitempty"`
-	Region   *string `json:"region,omitempty"`
+	Name            *string `json:"name,omitempty"`
+	ClusterProvider *string `json:"cluster_provider,omitempty"`
+	Region          *string `json:"region,omitempty"`
 }
 
 type AttachCaptainDomainRequest struct {

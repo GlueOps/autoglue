@@ -88,6 +88,10 @@ components:
           $ref: '#/components/schemas/dto.DomainResponse'
         certificate_key:
           type: string
+        cluster_provider:
+          type: string
+        control_plane_fqdn:
+          type: string
         control_plane_record_set:
           $ref: '#/components/schemas/dto.RecordSetResponse'
         created_at:
@@ -105,8 +109,6 @@ components:
             $ref: '#/components/schemas/dto.NodePoolResponse'
           type: array
           uniqueItems: false
-        provider:
-          type: string
         random_token:
           type: string
         region:
@@ -125,9 +127,9 @@ components:
       type: object
     dto.CreateClusterRequest:
       properties:
-        name:
+        cluster_provider:
           type: string
-        provider:
+        name:
           type: string
         region:
           type: string
@@ -137,20 +139,20 @@ components:
         account_id:
           maxLength: 32
           type: string
-        kind:
-          description: aws_access_key, api_token, basic_auth, oauth2
-          type: string
-        name:
-          description: human label
-          maxLength: 100
-          type: string
-        provider:
+        credential_provider:
           enum:
           - aws
           - cloudflare
           - hetzner
           - digitalocean
           - generic
+          type: string
+        kind:
+          description: aws_access_key, api_token, basic_auth, oauth2
+          type: string
+        name:
+          description: human label
+          maxLength: 100
           type: string
         region:
           maxLength: 32
@@ -164,7 +166,7 @@ components:
           type: object
         scope_kind:
           enum:
-          - provider
+          - credential_provider
           - service
           - resource
           type: string
@@ -176,8 +178,8 @@ components:
           description: encrypted later
           type: object
       required:
+      - credential_provider
       - kind
-      - provider
       - schema_version
       - scope
       - scope_kind
@@ -312,13 +314,13 @@ components:
           type: string
         created_at:
           type: string
+        credential_provider:
+          type: string
         id:
           type: string
         kind:
           type: string
         name:
-          type: string
-        provider:
           type: string
         region:
           type: string
@@ -709,9 +711,9 @@ components:
       type: object
     dto.UpdateClusterRequest:
       properties:
-        name:
+        cluster_provider:
           type: string
-        provider:
+        name:
           type: string
         region:
           type: string
@@ -1159,7 +1161,7 @@ info:
     name: GlueOps
   description: API for managing K3s clusters across cloud providers
   title: AutoGlue API
-  version: ""
+  version: dev
 openapi: 3.1.0
 paths:
   /.well-known/jwks.json:
@@ -3004,7 +3006,7 @@ paths:
           type: string
       - description: Filter by provider (e.g., aws)
         in: query
-        name: provider
+        name: credential_provider
         schema:
           type: string
       - description: Filter by kind (e.g., aws_access_key)
@@ -3012,7 +3014,7 @@ paths:
         name: kind
         schema:
           type: string
-      - description: Filter by scope kind (provider/service/resource)
+      - description: Filter by scope kind (credential_provider/service/resource)
         in: query
         name: scope_kind
         schema:
@@ -6695,7 +6697,9 @@ paths:
       - Meta
 servers:
 - description: Production API
-  url: https://autoglue.onglueops.rocks/api/v1
+  url: https://autoglue.glueopshosted.com/api/v1
+- description: Pre-Production API
+  url: https://autoglue.glueopshosted.rocks/api/v1
 - description: Staging API
   url: https://autoglue.apps.nonprod.earth.onglueops.rocks/api/v1
 - description: Local dev
