@@ -160,10 +160,22 @@ function extractErr(e: any): string {
   return "Unknown error"
 }
 
-function isAwsServiceScope({ credential_provider, scope_kind }: { credential_provider?: string; scope_kind?: string }) {
+function isAwsServiceScope({
+  credential_provider,
+  scope_kind,
+}: {
+  credential_provider?: string
+  scope_kind?: string
+}) {
   return credential_provider === "aws" && scope_kind === "service"
 }
-function isAwsResourceScope({ credential_provider, scope_kind }: { credential_provider?: string; scope_kind?: string }) {
+function isAwsResourceScope({
+  credential_provider,
+  scope_kind,
+}: {
+  credential_provider?: string
+  scope_kind?: string
+}) {
   return credential_provider === "aws" && scope_kind === "resource"
 }
 function isProviderScope({ scope_kind }: { scope_kind?: string }) {

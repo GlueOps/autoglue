@@ -1,5 +1,4 @@
 ;
-
 // src/pages/ClustersPage.tsx
 
 import { useEffect, useMemo, useState } from "react";
@@ -33,41 +32,11 @@ import { Textarea } from "@/components/ui/textarea.tsx";
 
 
 
-;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // --- Schemas ---
 
 const createClusterSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120, "Max 120 chars"),
-  provider: z.string().trim().min(1, "Provider is required").max(120, "Max 120 chars"),
+  cluster_provider: z.string().trim().min(1, "Provider is required").max(120, "Max 120 chars"),
   region: z.string().trim().min(1, "Region is required").max(120, "Max 120 chars"),
 })
 type CreateClusterInput = z.input<typeof createClusterSchema>
@@ -133,12 +102,12 @@ function StatusBadge({ status }: { status?: string | null }) {
 
 function ClusterSummary({ c }: { c: DtoClusterResponse }) {
   return (
-    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+    <div className="text-muted-foreground flex flex-col gap-1 text-xs">
       <div className="flex flex-wrap items-center gap-2">
-        {c.provider && (
+        {c.cluster_provider && (
           <span className="inline-flex items-center gap-1">
             <Globe2 className="h-3 w-3" />
-            {c.provider}
+            {c.cluster_provider}
           </span>
         )}
         {c.region && (
@@ -227,7 +196,7 @@ export const ClustersPage = () => {
     resolver: zodResolver(createClusterSchema),
     defaultValues: {
       name: "",
-      provider: "",
+      cluster_provider: "",
       region: "",
     },
   })
@@ -275,7 +244,7 @@ export const ClustersPage = () => {
     setEditingId(cluster.id)
     updateForm.reset({
       name: cluster.name ?? "",
-      provider: cluster.provider ?? "",
+      cluster_provider: cluster.cluster_provider ?? "",
       region: cluster.region ?? "",
     })
     setUpdateOpen(true)
@@ -303,13 +272,13 @@ export const ClustersPage = () => {
 
     return q
       ? data.filter((c) => {
-        return (
-          c.name?.toLowerCase().includes(q) ||
-          c.provider?.toLowerCase().includes(q) ||
-          c.region?.toLowerCase().includes(q) ||
-          c.status?.toLowerCase().includes(q)
-        )
-      })
+          return (
+            c.name?.toLowerCase().includes(q) ||
+            c.cluster_provider?.toLowerCase().includes(q) ||
+            c.region?.toLowerCase().includes(q) ||
+            c.status?.toLowerCase().includes(q)
+          )
+        })
       : data
   }, [filter, clustersQ.data])
 
@@ -647,7 +616,7 @@ export const ClustersPage = () => {
 
                   <FormField
                     control={createForm.control}
-                    name="provider"
+                    name="cluster_provider"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Provider</FormLabel>
@@ -705,7 +674,7 @@ export const ClustersPage = () => {
               {filtered.map((c: DtoClusterResponse) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-medium">{c.name}</TableCell>
-                  <TableCell>{c.provider}</TableCell>
+                  <TableCell>{c.cluster_provider}</TableCell>
                   <TableCell>{c.region}</TableCell>
                   <TableCell>
                     <StatusBadge status={c.status} />
@@ -787,7 +756,7 @@ export const ClustersPage = () => {
 
               <FormField
                 control={updateForm.control}
-                name="provider"
+                name="cluster_provider"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Provider</FormLabel>
@@ -843,7 +812,7 @@ export const ClustersPage = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <FileCode2 className="h-4 w-4" />
-                      <h3 className="font-semibold text-sm">Kubeconfig</h3>
+                      <h3 className="text-sm font-semibold">Kubeconfig</h3>
                     </div>
                     <p className="text-muted-foreground text-xs">
                       Paste the kubeconfig for this cluster. It will be stored encrypted and never
@@ -861,11 +830,7 @@ export const ClustersPage = () => {
                 />
 
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    onClick={handleSetKubeconfig}
-                    disabled={isBusy("kubeconfig")}
-                  >
+                  <Button size="sm" onClick={handleSetKubeconfig} disabled={isBusy("kubeconfig")}>
                     {isBusy("kubeconfig") ? "Saving…" : "Save kubeconfig"}
                   </Button>
                   <Button
@@ -883,7 +848,7 @@ export const ClustersPage = () => {
               <section className="space-y-2 rounded-xl border p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <h3 className="font-semibold text-sm">Captain Domain</h3>
+                    <h3 className="text-sm font-semibold">Captain Domain</h3>
                     <p className="text-muted-foreground text-xs">
                       Domain used for the AutoGlue captain endpoint.
                     </p>
@@ -909,9 +874,7 @@ export const ClustersPage = () => {
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue
-                          placeholder={
-                            domainsQ.isLoading ? "Loading domains…" : "Select domain"
-                          }
+                          placeholder={domainsQ.isLoading ? "Loading domains…" : "Select domain"}
                         />
                       </SelectTrigger>
                       <SelectContent>
@@ -952,7 +915,7 @@ export const ClustersPage = () => {
                 <section className="space-y-2 rounded-xl border p-4">
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <h3 className="font-semibold text-sm">Control Plane Record Set</h3>
+                      <h3 className="text-sm font-semibold">Control Plane Record Set</h3>
                       <p className="text-muted-foreground text-xs">
                         DNS record set used for the cluster control plane endpoint.
                       </p>
@@ -973,9 +936,7 @@ export const ClustersPage = () => {
                         <SelectTrigger className="w-full">
                           <SelectValue
                             placeholder={
-                              recordSetsQ.isLoading
-                                ? "Loading record sets…"
-                                : "Select record set"
+                              recordSetsQ.isLoading ? "Loading record sets…" : "Select record set"
                             }
                           />
                         </SelectTrigger>
@@ -1000,9 +961,7 @@ export const ClustersPage = () => {
                         size="sm"
                         variant="outline"
                         onClick={handleDetachRecordSet}
-                        disabled={
-                          isBusy("recordset") || !configCluster.control_plane_record_set
-                        }
+                        disabled={isBusy("recordset") || !configCluster.control_plane_record_set}
                       >
                         Detach
                       </Button>
@@ -1015,7 +974,7 @@ export const ClustersPage = () => {
               <section className="space-y-2 rounded-xl border p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <h3 className="font-semibold text-sm">Apps Load Balancer</h3>
+                    <h3 className="text-sm font-semibold">Apps Load Balancer</h3>
                     <p className="text-muted-foreground text-xs">
                       Frontend load balancer for application traffic.
                     </p>
@@ -1073,7 +1032,7 @@ export const ClustersPage = () => {
               <section className="space-y-2 rounded-xl border p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <h3 className="font-semibold text-sm">GlueOps / Control-plane Load Balancer</h3>
+                    <h3 className="text-sm font-semibold">GlueOps / Control-plane Load Balancer</h3>
                     <p className="text-muted-foreground text-xs">
                       Load balancer for GlueOps/control-plane traffic.
                     </p>
@@ -1133,7 +1092,7 @@ export const ClustersPage = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <Server className="h-4 w-4" />
-                      <h3 className="font-semibold text-sm">Bastion Server</h3>
+                      <h3 className="text-sm font-semibold">Bastion Server</h3>
                     </div>
                     <p className="text-muted-foreground text-xs">
                       SSH bastion used to reach the cluster nodes.
@@ -1142,8 +1101,7 @@ export const ClustersPage = () => {
                   <div className="text-right text-xs">
                     <div className="font-mono">
                       {configCluster.bastion_server
-                        ? configCluster.bastion_server.hostname ??
-                        configCluster.bastion_server.id
+                        ? (configCluster.bastion_server.hostname ?? configCluster.bastion_server.id)
                         : "Not attached"}
                     </div>
                   </div>
@@ -1155,9 +1113,7 @@ export const ClustersPage = () => {
                     <Select value={bastionId} onValueChange={(val) => setBastionId(val)}>
                       <SelectTrigger className="w-full">
                         <SelectValue
-                          placeholder={
-                            serversQ.isLoading ? "Loading servers…" : "Select server"
-                          }
+                          placeholder={serversQ.isLoading ? "Loading servers…" : "Select server"}
                         />
                       </SelectTrigger>
                       <SelectContent>
@@ -1193,7 +1149,7 @@ export const ClustersPage = () => {
               <section className="space-y-2 rounded-xl border p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <h3 className="font-semibold text-sm">Node Pools</h3>
+                    <h3 className="text-sm font-semibold">Node Pools</h3>
                     <p className="text-muted-foreground text-xs">
                       Attach node pools to this cluster. Each node pool may have its own labels,
                       taints, and backing servers.
@@ -1207,9 +1163,7 @@ export const ClustersPage = () => {
                     <Select value={nodePoolId} onValueChange={(val) => setNodePoolId(val)}>
                       <SelectTrigger className="w-full">
                         <SelectValue
-                          placeholder={
-                            npQ.isLoading ? "Loading node pools…" : "Select node pool"
-                          }
+                          placeholder={npQ.isLoading ? "Loading node pools…" : "Select node pool"}
                         />
                       </SelectTrigger>
                       <SelectContent>

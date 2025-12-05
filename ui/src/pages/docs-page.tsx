@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FC } from "react"
+import { type FC, useEffect, useRef, useState } from "react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
@@ -7,13 +7,7 @@ import { Input } from "@/components/ui/input"
 import "rapidoc"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select.tsx"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select.tsx"
 
 type RdThemeMode = "auto" | "light" | "dark"
 
