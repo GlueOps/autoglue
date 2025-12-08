@@ -12,8 +12,14 @@
  * Do not edit the class manually.
  */
 
-import type {DtoJob} from "./DtoJob";
-import {DtoJobFromJSON, DtoJobToJSON,} from "./DtoJob";
+import { mapValues } from "../runtime";
+import type { DtoJob } from "./DtoJob";
+import {
+  DtoJobFromJSON,
+  DtoJobFromJSONTyped,
+  DtoJobToJSON,
+  DtoJobToJSONTyped,
+} from "./DtoJob";
 
 /**
  *

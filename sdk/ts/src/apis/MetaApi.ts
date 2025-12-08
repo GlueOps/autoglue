@@ -13,8 +13,11 @@
  */
 
 import * as runtime from "../runtime";
-import type {HandlersVersionResponse} from "../models/index";
-import {HandlersVersionResponseFromJSON,} from "../models/index";
+import type { HandlersVersionResponse } from "../models/index";
+import {
+  HandlersVersionResponseFromJSON,
+  HandlersVersionResponseToJSON,
+} from "../models/index";
 
 /**
  *

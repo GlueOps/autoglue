@@ -5,6 +5,8 @@
 | Name               | Type   |
 | ------------------ | ------ |
 | `cluster_provider` | string |
+| `docker_image`     | string |
+| `docker_tag`       | string |
 | `name`             | string |
 | `region`           | string |
 
@@ -16,6 +18,8 @@ import type { DtoUpdateClusterRequest } from "@glueops/autoglue-sdk-go";
 // TODO: Update the object below with actual values
 const example = {
   cluster_provider: null,
+  docker_image: null,
+  docker_tag: null,
   name: null,
   region: null,
 } satisfies DtoUpdateClusterRequest;

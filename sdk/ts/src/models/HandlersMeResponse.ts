@@ -12,10 +12,21 @@
  * Do not edit the class manually.
  */
 
-import type {ModelsUserEmail} from "./ModelsUserEmail";
-import {ModelsUserEmailFromJSON, ModelsUserEmailToJSON,} from "./ModelsUserEmail";
-import type {ModelsOrganization} from "./ModelsOrganization";
-import {ModelsOrganizationFromJSON, ModelsOrganizationToJSON,} from "./ModelsOrganization";
+import { mapValues } from "../runtime";
+import type { ModelsUserEmail } from "./ModelsUserEmail";
+import {
+  ModelsUserEmailFromJSON,
+  ModelsUserEmailFromJSONTyped,
+  ModelsUserEmailToJSON,
+  ModelsUserEmailToJSONTyped,
+} from "./ModelsUserEmail";
+import type { ModelsOrganization } from "./ModelsOrganization";
+import {
+  ModelsOrganizationFromJSON,
+  ModelsOrganizationFromJSONTyped,
+  ModelsOrganizationToJSON,
+  ModelsOrganizationToJSONTyped,
+} from "./ModelsOrganization";
 
 /**
  *

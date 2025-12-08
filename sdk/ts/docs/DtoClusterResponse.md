@@ -12,6 +12,8 @@
 | `control_plane_fqdn`       | string                                                     |
 | `control_plane_record_set` | [DtoRecordSetResponse](DtoRecordSetResponse.md)            |
 | `created_at`               | string                                                     |
+| `docker_image`             | string                                                     |
+| `docker_tag`               | string                                                     |
 | `glueops_load_balancer`    | [DtoLoadBalancerResponse](DtoLoadBalancerResponse.md)      |
 | `id`                       | string                                                     |
 | `last_error`               | string                                                     |
@@ -37,6 +39,8 @@ const example = {
   control_plane_fqdn: null,
   control_plane_record_set: null,
   created_at: null,
+  docker_image: null,
+  docker_tag: null,
   glueops_load_balancer: null,
   id: null,
   last_error: null,

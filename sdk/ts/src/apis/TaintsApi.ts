@@ -13,8 +13,19 @@
  */
 
 import * as runtime from "../runtime";
-import type {DtoCreateTaintRequest, DtoTaintResponse, DtoUpdateTaintRequest,} from "../models/index";
-import {DtoCreateTaintRequestToJSON, DtoTaintResponseFromJSON, DtoUpdateTaintRequestToJSON,} from "../models/index";
+import type {
+  DtoCreateTaintRequest,
+  DtoTaintResponse,
+  DtoUpdateTaintRequest,
+} from "../models/index";
+import {
+  DtoCreateTaintRequestFromJSON,
+  DtoCreateTaintRequestToJSON,
+  DtoTaintResponseFromJSON,
+  DtoTaintResponseToJSON,
+  DtoUpdateTaintRequestFromJSON,
+  DtoUpdateTaintRequestToJSON,
+} from "../models/index";
 
 export interface CreateTaintRequest {
   dtoCreateTaintRequest: DtoCreateTaintRequest;

@@ -189,6 +189,8 @@ func CreateCluster(db *gorm.DB) http.HandlerFunc {
 			LastError:      "",
 			CertificateKey: certificateKey,
 			RandomToken:    randomToken,
+			DockerImage:    in.DockerImage,
+			DockerTag:      in.DockerTag,
 		}
 
 		if err := db.Create(&c).Error; err != nil {
@@ -260,6 +262,14 @@ func UpdateCluster(db *gorm.DB) http.HandlerFunc {
 		}
 		if in.Region != nil {
 			cluster.Region = *in.Region
+		}
+
+		if in.DockerImage != nil {
+			cluster.DockerImage = *in.DockerImage
+		}
+
+		if in.DockerTag != nil {
+			cluster.DockerTag = *in.DockerTag
 		}
 
 		if err := db.Save(&cluster).Error; err != nil {
@@ -1547,6 +1557,8 @@ func clusterToDTO(c models.Cluster) dto.ClusterResponse {
 		RandomToken:           c.RandomToken,
 		CertificateKey:        c.CertificateKey,
 		NodePools:             nps,
+		DockerImage:           c.DockerImage,
+		DockerTag:             c.DockerTag,
 		CreatedAt:             c.CreatedAt,
 		UpdatedAt:             c.UpdatedAt,
 	}

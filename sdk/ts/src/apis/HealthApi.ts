@@ -13,8 +13,11 @@
  */
 
 import * as runtime from "../runtime";
-import type {HandlersHealthStatus} from "../models/index";
-import {HandlersHealthStatusFromJSON,} from "../models/index";
+import type { HandlersHealthStatus } from "../models/index";
+import {
+  HandlersHealthStatusFromJSON,
+  HandlersHealthStatusToJSON,
+} from "../models/index";
 
 /**
  *

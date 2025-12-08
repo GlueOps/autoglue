@@ -12,8 +12,14 @@
  * Do not edit the class manually.
  */
 
-import type {ModelsUser} from "./ModelsUser";
-import {ModelsUserFromJSON, ModelsUserToJSON,} from "./ModelsUser";
+import { mapValues } from "../runtime";
+import type { ModelsUser } from "./ModelsUser";
+import {
+  ModelsUserFromJSON,
+  ModelsUserFromJSONTyped,
+  ModelsUserToJSON,
+  ModelsUserToJSONTyped,
+} from "./ModelsUser";
 
 /**
  *

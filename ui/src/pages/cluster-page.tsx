@@ -1,36 +1,76 @@
-;
 // src/pages/ClustersPage.tsx
 
-import { useEffect, useMemo, useState } from "react";
-import { clustersApi } from "@/api/clusters";
-import { dnsApi } from "@/api/dns";
-import { loadBalancersApi } from "@/api/loadbalancers";
-import { nodePoolsApi } from "@/api/node_pools";
-import { serversApi } from "@/api/servers";
-import type { DtoClusterResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse } from "@/sdk";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Loader2, MapPin, Pencil, Plus, Search, Server, Wrench } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
+import { useEffect, useMemo, useState } from "react"
+import { clustersApi } from "@/api/clusters"
+import { dnsApi } from "@/api/dns"
+import { loadBalancersApi } from "@/api/loadbalancers"
+import { nodePoolsApi } from "@/api/node_pools"
+import { serversApi } from "@/api/servers"
+import type {
+  DtoClusterResponse,
+  DtoDomainResponse,
+  DtoLoadBalancerResponse,
+  DtoNodePoolResponse,
+  DtoRecordSetResponse,
+  DtoServerResponse,
+} from "@/sdk"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  AlertCircle,
+  CheckCircle2,
+  CircleSlash2,
+  FileCode2,
+  Globe2,
+  Loader2,
+  MapPin,
+  Pencil,
+  Plus,
+  Search,
+  Server,
+  Wrench,
+} from "lucide-react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
-
-
-import { truncateMiddle } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog.tsx";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form.tsx";
-import { Input } from "@/components/ui/input.tsx";
-import { Label } from "@/components/ui/label.tsx";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table.tsx";
-import { Textarea } from "@/components/ui/textarea.tsx";
-
-
-
-
+import { truncateMiddle } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge.tsx"
+import { Button } from "@/components/ui/button.tsx"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog.tsx"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form.tsx"
+import { Input } from "@/components/ui/input.tsx"
+import { Label } from "@/components/ui/label.tsx"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select.tsx"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table.tsx"
+import { Textarea } from "@/components/ui/textarea.tsx"
 
 // --- Schemas ---
 
@@ -38,6 +78,8 @@ const createClusterSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120, "Max 120 chars"),
   cluster_provider: z.string().trim().min(1, "Provider is required").max(120, "Max 120 chars"),
   region: z.string().trim().min(1, "Region is required").max(120, "Max 120 chars"),
+  docker_image: z.string().trim().min(1, "Docker Image is required"),
+  docker_tag: z.string().trim().min(1, "Docker Tag is required"),
 })
 type CreateClusterInput = z.input<typeof createClusterSchema>
 
@@ -198,6 +240,8 @@ export const ClustersPage = () => {
       name: "",
       cluster_provider: "",
       region: "",
+      docker_image: "",
+      docker_tag: "",
     },
   })
 
@@ -246,6 +290,8 @@ export const ClustersPage = () => {
       name: cluster.name ?? "",
       cluster_provider: cluster.cluster_provider ?? "",
       region: cluster.region ?? "",
+      docker_image: cluster.docker_image ?? "",
+      docker_tag: cluster.docker_tag ?? "",
     })
     setUpdateOpen(true)
   }
@@ -642,6 +688,34 @@ export const ClustersPage = () => {
                     )}
                   />
 
+                  <FormField
+                    control={createForm.control}
+                    name="docker_image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Docker Image</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ghcr.io/glueops/gluekube" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={createForm.control}
+                    name="docker_tag"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Docker Tag</FormLabel>
+                        <FormControl>
+                          <Input placeholder="v1.33" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <DialogFooter className="gap-2">
                     <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
                       Cancel
@@ -666,6 +740,7 @@ export const ClustersPage = () => {
                 <TableHead>Provider</TableHead>
                 <TableHead>Region</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Docker</TableHead>
                 <TableHead>Summary</TableHead>
                 <TableHead className="w-[320px] text-right">Actions</TableHead>
               </TableRow>
@@ -684,6 +759,7 @@ export const ClustersPage = () => {
                       </div>
                     )}
                   </TableCell>
+                  <TableCell>{c.docker_image + ":" + c.docker_tag}</TableCell>
                   <TableCell>
                     <ClusterSummary c={c} />
                     {c.id && (
@@ -776,6 +852,34 @@ export const ClustersPage = () => {
                     <FormLabel>Region</FormLabel>
                     <FormControl>
                       <Input placeholder="eu-west-1" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={updateForm.control}
+                name="docker_image"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Region</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ghcr.io/glueops/gluekube" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={updateForm.control}
+                name="docker_tag"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Region</FormLabel>
+                    <FormControl>
+                      <Input placeholder="v1.33" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

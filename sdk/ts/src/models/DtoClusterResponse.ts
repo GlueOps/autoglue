@@ -12,16 +12,42 @@
  * Do not edit the class manually.
  */
 
-import type {DtoDomainResponse} from "./DtoDomainResponse";
-import {DtoDomainResponseFromJSON, DtoDomainResponseToJSON,} from "./DtoDomainResponse";
-import type {DtoLoadBalancerResponse} from "./DtoLoadBalancerResponse";
-import {DtoLoadBalancerResponseFromJSON, DtoLoadBalancerResponseToJSON,} from "./DtoLoadBalancerResponse";
-import type {DtoNodePoolResponse} from "./DtoNodePoolResponse";
-import {DtoNodePoolResponseFromJSON, DtoNodePoolResponseToJSON,} from "./DtoNodePoolResponse";
-import type {DtoServerResponse} from "./DtoServerResponse";
-import {DtoServerResponseFromJSON, DtoServerResponseToJSON,} from "./DtoServerResponse";
-import type {DtoRecordSetResponse} from "./DtoRecordSetResponse";
-import {DtoRecordSetResponseFromJSON, DtoRecordSetResponseToJSON,} from "./DtoRecordSetResponse";
+import { mapValues } from "../runtime";
+import type { DtoDomainResponse } from "./DtoDomainResponse";
+import {
+  DtoDomainResponseFromJSON,
+  DtoDomainResponseFromJSONTyped,
+  DtoDomainResponseToJSON,
+  DtoDomainResponseToJSONTyped,
+} from "./DtoDomainResponse";
+import type { DtoLoadBalancerResponse } from "./DtoLoadBalancerResponse";
+import {
+  DtoLoadBalancerResponseFromJSON,
+  DtoLoadBalancerResponseFromJSONTyped,
+  DtoLoadBalancerResponseToJSON,
+  DtoLoadBalancerResponseToJSONTyped,
+} from "./DtoLoadBalancerResponse";
+import type { DtoNodePoolResponse } from "./DtoNodePoolResponse";
+import {
+  DtoNodePoolResponseFromJSON,
+  DtoNodePoolResponseFromJSONTyped,
+  DtoNodePoolResponseToJSON,
+  DtoNodePoolResponseToJSONTyped,
+} from "./DtoNodePoolResponse";
+import type { DtoServerResponse } from "./DtoServerResponse";
+import {
+  DtoServerResponseFromJSON,
+  DtoServerResponseFromJSONTyped,
+  DtoServerResponseToJSON,
+  DtoServerResponseToJSONTyped,
+} from "./DtoServerResponse";
+import type { DtoRecordSetResponse } from "./DtoRecordSetResponse";
+import {
+  DtoRecordSetResponseFromJSON,
+  DtoRecordSetResponseFromJSONTyped,
+  DtoRecordSetResponseToJSON,
+  DtoRecordSetResponseToJSONTyped,
+} from "./DtoRecordSetResponse";
 
 /**
  *
@@ -77,6 +103,18 @@ export interface DtoClusterResponse {
    * @memberof DtoClusterResponse
    */
   created_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof DtoClusterResponse
+   */
+  docker_image?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof DtoClusterResponse
+   */
+  docker_tag?: string;
   /**
    *
    * @type {DtoLoadBalancerResponse}
@@ -179,6 +217,9 @@ export function DtoClusterResponseFromJSONTyped(
         ? undefined
         : DtoRecordSetResponseFromJSON(json["control_plane_record_set"]),
     created_at: json["created_at"] == null ? undefined : json["created_at"],
+    docker_image:
+      json["docker_image"] == null ? undefined : json["docker_image"],
+    docker_tag: json["docker_tag"] == null ? undefined : json["docker_tag"],
     glueops_load_balancer:
       json["glueops_load_balancer"] == null
         ? undefined
@@ -223,6 +264,8 @@ export function DtoClusterResponseToJSONTyped(
       value["control_plane_record_set"],
     ),
     created_at: value["created_at"],
+    docker_image: value["docker_image"],
+    docker_tag: value["docker_tag"],
     glueops_load_balancer: DtoLoadBalancerResponseToJSON(
       value["glueops_load_balancer"],
     ),

@@ -22,6 +22,8 @@ type ClusterResponse struct {
 	RandomToken           string                `json:"random_token"`
 	CertificateKey        string                `json:"certificate_key"`
 	NodePools             []NodePoolResponse    `json:"node_pools,omitempty"`
+	DockerImage           string                `json:"docker_image"`
+	DockerTag             string                `json:"docker_tag"`
 	CreatedAt             time.Time             `json:"created_at"`
 	UpdatedAt             time.Time             `json:"updated_at"`
 }
@@ -30,12 +32,16 @@ type CreateClusterRequest struct {
 	Name            string `json:"name"`
 	ClusterProvider string `json:"cluster_provider"`
 	Region          string `json:"region"`
+	DockerImage     string `json:"docker_image"`
+	DockerTag       string `json:"docker_tag"`
 }
 
 type UpdateClusterRequest struct {
 	Name            *string `json:"name,omitempty"`
 	ClusterProvider *string `json:"cluster_provider,omitempty"`
 	Region          *string `json:"region,omitempty"`
+	DockerImage     *string `json:"docker_image,omitempty"`
+	DockerTag       *string `json:"docker_tag,omitempty"`
 }
 
 type AttachCaptainDomainRequest struct {

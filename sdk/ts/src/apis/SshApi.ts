@@ -13,8 +13,19 @@
  */
 
 import * as runtime from "../runtime";
-import type {DtoCreateSSHRequest, DtoSshResponse, GetSSHKey200Response,} from "../models/index";
-import {DtoCreateSSHRequestToJSON, DtoSshResponseFromJSON, GetSSHKey200ResponseFromJSON,} from "../models/index";
+import type {
+  DtoCreateSSHRequest,
+  DtoSshResponse,
+  GetSSHKey200Response,
+} from "../models/index";
+import {
+  DtoCreateSSHRequestFromJSON,
+  DtoCreateSSHRequestToJSON,
+  DtoSshResponseFromJSON,
+  DtoSshResponseToJSON,
+  GetSSHKey200ResponseFromJSON,
+  GetSSHKey200ResponseToJSON,
+} from "../models/index";
 
 export interface CreateSSHKeyRequest {
   dtoCreateSSHRequest: DtoCreateSSHRequest;

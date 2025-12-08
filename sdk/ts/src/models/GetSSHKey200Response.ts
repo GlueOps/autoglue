@@ -12,13 +12,19 @@
  * Do not edit the class manually.
  */
 
-import type {DtoSshResponse} from "./DtoSshResponse";
-import {DtoSshResponseFromJSONTyped, DtoSshResponseToJSON, instanceOfDtoSshResponse,} from "./DtoSshResponse";
-import type {DtoSshRevealResponse} from "./DtoSshRevealResponse";
+import type { DtoSshResponse } from "./DtoSshResponse";
 import {
-    DtoSshRevealResponseFromJSONTyped,
-    DtoSshRevealResponseToJSON,
-    instanceOfDtoSshRevealResponse,
+  instanceOfDtoSshResponse,
+  DtoSshResponseFromJSON,
+  DtoSshResponseFromJSONTyped,
+  DtoSshResponseToJSON,
+} from "./DtoSshResponse";
+import type { DtoSshRevealResponse } from "./DtoSshRevealResponse";
+import {
+  instanceOfDtoSshRevealResponse,
+  DtoSshRevealResponseFromJSON,
+  DtoSshRevealResponseFromJSONTyped,
+  DtoSshRevealResponseToJSON,
 } from "./DtoSshRevealResponse";
 
 /**

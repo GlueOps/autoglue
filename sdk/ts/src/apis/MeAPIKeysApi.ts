@@ -13,8 +13,16 @@
  */
 
 import * as runtime from "../runtime";
-import type {HandlersCreateUserKeyRequest, HandlersUserAPIKeyOut,} from "../models/index";
-import {HandlersCreateUserKeyRequestToJSON, HandlersUserAPIKeyOutFromJSON,} from "../models/index";
+import type {
+  HandlersCreateUserKeyRequest,
+  HandlersUserAPIKeyOut,
+} from "../models/index";
+import {
+  HandlersCreateUserKeyRequestFromJSON,
+  HandlersCreateUserKeyRequestToJSON,
+  HandlersUserAPIKeyOutFromJSON,
+  HandlersUserAPIKeyOutToJSON,
+} from "../models/index";
 
 export interface CreateUserAPIKeyRequest {
   handlersCreateUserKeyRequest: HandlersCreateUserKeyRequest;

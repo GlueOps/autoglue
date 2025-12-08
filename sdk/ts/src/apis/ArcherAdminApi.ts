@@ -13,8 +13,22 @@
  */
 
 import * as runtime from "../runtime";
-import type {DtoEnqueueRequest, DtoJob, DtoPageJob, DtoQueueInfo,} from "../models/index";
-import {DtoEnqueueRequestToJSON, DtoJobFromJSON, DtoPageJobFromJSON, DtoQueueInfoFromJSON,} from "../models/index";
+import type {
+  DtoEnqueueRequest,
+  DtoJob,
+  DtoPageJob,
+  DtoQueueInfo,
+} from "../models/index";
+import {
+  DtoEnqueueRequestFromJSON,
+  DtoEnqueueRequestToJSON,
+  DtoJobFromJSON,
+  DtoJobToJSON,
+  DtoPageJobFromJSON,
+  DtoPageJobToJSON,
+  DtoQueueInfoFromJSON,
+  DtoQueueInfoToJSON,
+} from "../models/index";
 
 export interface AdminCancelArcherJobRequest {
   id: string;

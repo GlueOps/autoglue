@@ -13,13 +13,24 @@
  */
 
 import * as runtime from "../runtime";
-import type {DtoAuthStartResponse, DtoJWKS, DtoLogoutRequest, DtoRefreshRequest, DtoTokenPair,} from "../models/index";
+import type {
+  DtoAuthStartResponse,
+  DtoJWKS,
+  DtoLogoutRequest,
+  DtoRefreshRequest,
+  DtoTokenPair,
+} from "../models/index";
 import {
-    DtoAuthStartResponseFromJSON,
-    DtoJWKSFromJSON,
-    DtoLogoutRequestToJSON,
-    DtoRefreshRequestToJSON,
-    DtoTokenPairFromJSON,
+  DtoAuthStartResponseFromJSON,
+  DtoAuthStartResponseToJSON,
+  DtoJWKSFromJSON,
+  DtoJWKSToJSON,
+  DtoLogoutRequestFromJSON,
+  DtoLogoutRequestToJSON,
+  DtoRefreshRequestFromJSON,
+  DtoRefreshRequestToJSON,
+  DtoTokenPairFromJSON,
+  DtoTokenPairToJSON,
 } from "../models/index";
 
 export interface AuthCallbackRequest {

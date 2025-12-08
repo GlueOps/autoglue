@@ -14,20 +14,26 @@
 
 import * as runtime from "../runtime";
 import type {
-    DtoCreateDomainRequest,
-    DtoCreateRecordSetRequest,
-    DtoDomainResponse,
-    DtoRecordSetResponse,
-    DtoUpdateDomainRequest,
-    DtoUpdateRecordSetRequest,
+  DtoCreateDomainRequest,
+  DtoCreateRecordSetRequest,
+  DtoDomainResponse,
+  DtoRecordSetResponse,
+  DtoUpdateDomainRequest,
+  DtoUpdateRecordSetRequest,
 } from "../models/index";
 import {
-    DtoCreateDomainRequestToJSON,
-    DtoCreateRecordSetRequestToJSON,
-    DtoDomainResponseFromJSON,
-    DtoRecordSetResponseFromJSON,
-    DtoUpdateDomainRequestToJSON,
-    DtoUpdateRecordSetRequestToJSON,
+  DtoCreateDomainRequestFromJSON,
+  DtoCreateDomainRequestToJSON,
+  DtoCreateRecordSetRequestFromJSON,
+  DtoCreateRecordSetRequestToJSON,
+  DtoDomainResponseFromJSON,
+  DtoDomainResponseToJSON,
+  DtoRecordSetResponseFromJSON,
+  DtoRecordSetResponseToJSON,
+  DtoUpdateDomainRequestFromJSON,
+  DtoUpdateDomainRequestToJSON,
+  DtoUpdateRecordSetRequestFromJSON,
+  DtoUpdateRecordSetRequestToJSON,
 } from "../models/index";
 
 export interface CreateDomainRequest {

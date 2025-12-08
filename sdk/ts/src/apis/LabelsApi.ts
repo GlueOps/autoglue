@@ -13,8 +13,19 @@
  */
 
 import * as runtime from "../runtime";
-import type {DtoCreateLabelRequest, DtoLabelResponse, DtoUpdateLabelRequest,} from "../models/index";
-import {DtoCreateLabelRequestToJSON, DtoLabelResponseFromJSON, DtoUpdateLabelRequestToJSON,} from "../models/index";
+import type {
+  DtoCreateLabelRequest,
+  DtoLabelResponse,
+  DtoUpdateLabelRequest,
+} from "../models/index";
+import {
+  DtoCreateLabelRequestFromJSON,
+  DtoCreateLabelRequestToJSON,
+  DtoLabelResponseFromJSON,
+  DtoLabelResponseToJSON,
+  DtoUpdateLabelRequestFromJSON,
+  DtoUpdateLabelRequestToJSON,
+} from "../models/index";
 
 export interface CreateLabelRequest {
   dtoCreateLabelRequest: DtoCreateLabelRequest;

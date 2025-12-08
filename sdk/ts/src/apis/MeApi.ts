@@ -13,8 +13,19 @@
  */
 
 import * as runtime from "../runtime";
-import type {HandlersMeResponse, HandlersUpdateMeRequest, ModelsUser,} from "../models/index";
-import {HandlersMeResponseFromJSON, HandlersUpdateMeRequestToJSON, ModelsUserFromJSON,} from "../models/index";
+import type {
+  HandlersMeResponse,
+  HandlersUpdateMeRequest,
+  ModelsUser,
+} from "../models/index";
+import {
+  HandlersMeResponseFromJSON,
+  HandlersMeResponseToJSON,
+  HandlersUpdateMeRequestFromJSON,
+  HandlersUpdateMeRequestToJSON,
+  ModelsUserFromJSON,
+  ModelsUserToJSON,
+} from "../models/index";
 
 export interface UpdateMeRequest {
   handlersUpdateMeRequest: HandlersUpdateMeRequest;

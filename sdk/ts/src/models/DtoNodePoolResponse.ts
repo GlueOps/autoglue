@@ -12,14 +12,35 @@
  * Do not edit the class manually.
  */
 
-import type {DtoTaintResponse} from "./DtoTaintResponse";
-import {DtoTaintResponseFromJSON, DtoTaintResponseToJSON,} from "./DtoTaintResponse";
-import type {DtoLabelResponse} from "./DtoLabelResponse";
-import {DtoLabelResponseFromJSON, DtoLabelResponseToJSON,} from "./DtoLabelResponse";
-import type {DtoServerResponse} from "./DtoServerResponse";
-import {DtoServerResponseFromJSON, DtoServerResponseToJSON,} from "./DtoServerResponse";
-import type {DtoAnnotationResponse} from "./DtoAnnotationResponse";
-import {DtoAnnotationResponseFromJSON, DtoAnnotationResponseToJSON,} from "./DtoAnnotationResponse";
+import { mapValues } from "../runtime";
+import type { DtoTaintResponse } from "./DtoTaintResponse";
+import {
+  DtoTaintResponseFromJSON,
+  DtoTaintResponseFromJSONTyped,
+  DtoTaintResponseToJSON,
+  DtoTaintResponseToJSONTyped,
+} from "./DtoTaintResponse";
+import type { DtoLabelResponse } from "./DtoLabelResponse";
+import {
+  DtoLabelResponseFromJSON,
+  DtoLabelResponseFromJSONTyped,
+  DtoLabelResponseToJSON,
+  DtoLabelResponseToJSONTyped,
+} from "./DtoLabelResponse";
+import type { DtoServerResponse } from "./DtoServerResponse";
+import {
+  DtoServerResponseFromJSON,
+  DtoServerResponseFromJSONTyped,
+  DtoServerResponseToJSON,
+  DtoServerResponseToJSONTyped,
+} from "./DtoServerResponse";
+import type { DtoAnnotationResponse } from "./DtoAnnotationResponse";
+import {
+  DtoAnnotationResponseFromJSON,
+  DtoAnnotationResponseFromJSONTyped,
+  DtoAnnotationResponseToJSON,
+  DtoAnnotationResponseToJSONTyped,
+} from "./DtoAnnotationResponse";
 
 /**
  *

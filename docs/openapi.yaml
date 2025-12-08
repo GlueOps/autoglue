@@ -96,6 +96,10 @@ components:
           $ref: '#/components/schemas/dto.RecordSetResponse'
         created_at:
           type: string
+        docker_image:
+          type: string
+        docker_tag:
+          type: string
         glueops_load_balancer:
           $ref: '#/components/schemas/dto.LoadBalancerResponse'
         id:
@@ -128,6 +132,10 @@ components:
     dto.CreateClusterRequest:
       properties:
         cluster_provider:
+          type: string
+        docker_image:
+          type: string
+        docker_tag:
           type: string
         name:
           type: string
@@ -712,6 +720,10 @@ components:
     dto.UpdateClusterRequest:
       properties:
         cluster_provider:
+          type: string
+        docker_image:
+          type: string
+        docker_tag:
           type: string
         name:
           type: string

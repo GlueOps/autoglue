@@ -13,8 +13,19 @@
  */
 
 import * as runtime from "../runtime";
-import type {DtoCreateServerRequest, DtoServerResponse, DtoUpdateServerRequest,} from "../models/index";
-import {DtoCreateServerRequestToJSON, DtoServerResponseFromJSON, DtoUpdateServerRequestToJSON,} from "../models/index";
+import type {
+  DtoCreateServerRequest,
+  DtoServerResponse,
+  DtoUpdateServerRequest,
+} from "../models/index";
+import {
+  DtoCreateServerRequestFromJSON,
+  DtoCreateServerRequestToJSON,
+  DtoServerResponseFromJSON,
+  DtoServerResponseToJSON,
+  DtoUpdateServerRequestFromJSON,
+  DtoUpdateServerRequestToJSON,
+} from "../models/index";
 
 export interface CreateServerRequest {
   dtoCreateServerRequest: DtoCreateServerRequest;

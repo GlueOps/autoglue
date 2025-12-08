@@ -12,6 +12,7 @@
  * Do not edit the class manually.
  */
 
+import { mapValues } from "../runtime";
 /**
  *
  * @export
@@ -24,6 +25,18 @@ export interface DtoUpdateClusterRequest {
    * @memberof DtoUpdateClusterRequest
    */
   cluster_provider?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof DtoUpdateClusterRequest
+   */
+  docker_image?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof DtoUpdateClusterRequest
+   */
+  docker_tag?: string;
   /**
    *
    * @type {string}
@@ -63,6 +76,9 @@ export function DtoUpdateClusterRequestFromJSONTyped(
   return {
     cluster_provider:
       json["cluster_provider"] == null ? undefined : json["cluster_provider"],
+    docker_image:
+      json["docker_image"] == null ? undefined : json["docker_image"],
+    docker_tag: json["docker_tag"] == null ? undefined : json["docker_tag"],
     name: json["name"] == null ? undefined : json["name"],
     region: json["region"] == null ? undefined : json["region"],
   };
@@ -84,6 +100,8 @@ export function DtoUpdateClusterRequestToJSONTyped(
 
   return {
     cluster_provider: value["cluster_provider"],
+    docker_image: value["docker_image"],
+    docker_tag: value["docker_tag"],
     name: value["name"],
     region: value["region"],
   };

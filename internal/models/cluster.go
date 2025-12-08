@@ -40,6 +40,8 @@ type Cluster struct {
 	EncryptedKubeconfig     string        `gorm:"type:text" json:"-"`
 	KubeIV                  string        `json:"-"`
 	KubeTag                 string        `json:"-"`
+	DockerImage             string        `json:"docker_image"`
+	DockerTag               string        `json:"docker_tag"`
 	CreatedAt               time.Time     `json:"created_at,omitempty" gorm:"type:timestamptz;column:created_at;not null;default:now()"`
 	UpdatedAt               time.Time     `json:"updated_at,omitempty" gorm:"type:timestamptz;autoUpdateTime;column:updated_at;not null;default:now()"`
 }

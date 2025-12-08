@@ -13,11 +13,18 @@
  */
 
 import * as runtime from "../runtime";
-import type {DtoAnnotationResponse, DtoCreateAnnotationRequest, DtoUpdateAnnotationRequest,} from "../models/index";
+import type {
+  DtoAnnotationResponse,
+  DtoCreateAnnotationRequest,
+  DtoUpdateAnnotationRequest,
+} from "../models/index";
 import {
-    DtoAnnotationResponseFromJSON,
-    DtoCreateAnnotationRequestToJSON,
-    DtoUpdateAnnotationRequestToJSON,
+  DtoAnnotationResponseFromJSON,
+  DtoAnnotationResponseToJSON,
+  DtoCreateAnnotationRequestFromJSON,
+  DtoCreateAnnotationRequestToJSON,
+  DtoUpdateAnnotationRequestFromJSON,
+  DtoUpdateAnnotationRequestToJSON,
 } from "../models/index";
 
 export interface CreateAnnotationRequest {

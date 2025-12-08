@@ -12,8 +12,14 @@
  * Do not edit the class manually.
  */
 
-import type {DtoJWK} from "./DtoJWK";
-import {DtoJWKFromJSON, DtoJWKToJSON,} from "./DtoJWK";
+import { mapValues } from "../runtime";
+import type { DtoJWK } from "./DtoJWK";
+import {
+  DtoJWKFromJSON,
+  DtoJWKFromJSONTyped,
+  DtoJWKToJSON,
+  DtoJWKToJSONTyped,
+} from "./DtoJWK";
 
 /**
  *

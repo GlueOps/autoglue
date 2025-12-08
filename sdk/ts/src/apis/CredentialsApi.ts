@@ -13,11 +13,18 @@
  */
 
 import * as runtime from "../runtime";
-import type {DtoCreateCredentialRequest, DtoCredentialOut, DtoUpdateCredentialRequest,} from "../models/index";
+import type {
+  DtoCreateCredentialRequest,
+  DtoCredentialOut,
+  DtoUpdateCredentialRequest,
+} from "../models/index";
 import {
-    DtoCreateCredentialRequestToJSON,
-    DtoCredentialOutFromJSON,
-    DtoUpdateCredentialRequestToJSON,
+  DtoCreateCredentialRequestFromJSON,
+  DtoCreateCredentialRequestToJSON,
+  DtoCredentialOutFromJSON,
+  DtoCredentialOutToJSON,
+  DtoUpdateCredentialRequestFromJSON,
+  DtoUpdateCredentialRequestToJSON,
 } from "../models/index";
 
 export interface CreateCredentialRequest {
