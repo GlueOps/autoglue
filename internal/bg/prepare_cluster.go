@@ -443,6 +443,11 @@ func runMakeOnBastion(
 	c *models.Cluster,
 	target string,
 ) (string, error) {
+	logger := log.With().
+		Str("cluster_id", c.ID.String()).
+		Str("cluster_name", c.Name).
+		Logger()
+
 	bastion := c.BastionServer
 	if bastion == nil {
 		return "", fmt.Errorf("bastion server is nil")
@@ -500,9 +505,13 @@ func runMakeOnBastion(
 	defer sess.Close()
 
 	clusterDir := fmt.Sprintf("$HOME/autoglue/clusters/%s", c.ID.String())
-	sshDir := fmt.Sprintf("$HOME/.ssh/autoglue")
+	sshDir := fmt.Sprintf("$HOME/.ssh")
 
-	cmd := fmt.Sprintf("cd %s && docker run -it -v %s:/root/.ssh -v ./payload.json:/opt/gluekube/platform.json %s:%s make %s", clusterDir, sshDir, c.DockerImage, c.DockerTag, target)
+	cmd := fmt.Sprintf("cd %s && docker run -v %s:/root/.ssh -v ./payload.json:/opt/gluekube/platform.json %s:%s make %s", clusterDir, sshDir, c.DockerImage, c.DockerTag, target)
+
+	logger.Info().
+		Str("cmd", cmd).
+		Msg("[runMakeOnBastion] executing remote command")
 
 	out, runErr := sess.CombinedOutput(cmd)
 	if runErr != nil {
