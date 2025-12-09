@@ -500,7 +500,9 @@ func runMakeOnBastion(
 	defer sess.Close()
 
 	clusterDir := fmt.Sprintf("$HOME/autoglue/clusters/%s", c.ID.String())
-	cmd := fmt.Sprintf("cd %s && make %s", clusterDir, target)
+	sshDir := fmt.Sprintf("$HOME/.ssh/autoglue")
+
+	cmd := fmt.Sprintf("cd %s && docker run -it -v %s:/root/.ssh -v ./payload.json:/opt/gluekube/platform.json %s:%s make %s", clusterDir, sshDir, c.DockerImage, c.DockerTag, target)
 
 	out, runErr := sess.CombinedOutput(cmd)
 	if runErr != nil {
