@@ -45,31 +45,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog.tsx"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form.tsx"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form.tsx"
 import { Input } from "@/components/ui/input.tsx"
 import { Label } from "@/components/ui/label.tsx"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select.tsx"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table.tsx"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select.tsx"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table.tsx"
 import { Textarea } from "@/components/ui/textarea.tsx"
 
 // --- Schemas ---
@@ -863,7 +843,7 @@ export const ClustersPage = () => {
                 name="docker_image"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Region</FormLabel>
+                    <FormLabel>Docker Image</FormLabel>
                     <FormControl>
                       <Input placeholder="ghcr.io/glueops/gluekube" {...field} />
                     </FormControl>
@@ -877,7 +857,7 @@ export const ClustersPage = () => {
                 name="docker_tag"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Region</FormLabel>
+                    <FormLabel>Docker Tag</FormLabel>
                     <FormControl>
                       <Input placeholder="v1.33" {...field} />
                     </FormControl>
