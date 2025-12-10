@@ -31,6 +31,7 @@ require (
 	gorm.io/datatypes v1.2.7
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
+	github.com/swaggo/swag/v2 v2.0.0-rc4
 )
 
 require (
