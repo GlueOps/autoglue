@@ -12,6 +12,7 @@ import (
 
 	"github.com/dyaksa/archer"
 	"github.com/dyaksa/archer/job"
+	"github.com/glueops/autoglue/internal/mapper"
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
 	"github.com/google/uuid"
@@ -66,6 +67,12 @@ func ClusterPrepareWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 			Preload("BastionServer.SshKey").
 			Preload("CaptainDomain").
 			Preload("ControlPlaneRecordSet").
+			Preload("AppsLoadBalancer").
+			Preload("GlueOpsLoadBalancer").
+			Preload("NodePools").
+			Preload("NodePools.Labels").
+			Preload("NodePools.Annotations").
+			Preload("NodePools.Taints").
 			Preload("NodePools.Servers.SshKey").
 			Where("status = ?", clusterStatusPrePending).
 			Find(&clusters).Error; err != nil {
@@ -124,7 +131,9 @@ func ClusterPrepareWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 				continue
 			}
 
-			payloadJSON, err := json.MarshalIndent(c, "", "  ")
+			dtoCluster := mapper.ClusterToDTO(*c)
+
+			payloadJSON, err := json.MarshalIndent(dtoCluster, "", "  ")
 			if err != nil {
 				fail++
 				failedIDs = append(failedIDs, c.ID)
