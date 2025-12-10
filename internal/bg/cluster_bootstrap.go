@@ -40,7 +40,7 @@ func ClusterBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 		var clusters []models.Cluster
 		if err := db.
 			Preload("BastionServer.SshKey").
-			Where("status = ?", clusterStatusProvisioning).
+			Where("status = ?", clusterStatusPending).
 			Find(&clusters).Error; err != nil {
 			log.Error().Err(err).Msg("[cluster_bootstrap] query clusters failed")
 			return nil, err
@@ -68,14 +68,14 @@ func ClusterBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 			logger.Info().Msg("[cluster_bootstrap] running make bootstrap")
 
 			runCtx, cancel := context.WithTimeout(ctx, perClusterTimeout)
-			out, err := runMakeOnBastion(runCtx, db, c, "bootstrap")
+			out, err := runMakeOnBastion(runCtx, db, c, "setup")
 			cancel()
 
 			if err != nil {
 				failCount++
 				failedIDs = append(failedIDs, c.ID)
-				logger.Error().Err(err).Str("output", out).Msg("[cluster_bootstrap] make bootstrap failed")
-				_ = setClusterStatus(db, c.ID, clusterStatusFailed, fmt.Sprintf("make bootstrap: %v", err))
+				logger.Error().Err(err).Str("output", out).Msg("[cluster_bootstrap] make setup failed")
+				_ = setClusterStatus(db, c.ID, clusterStatusFailed, fmt.Sprintf("make setup: %v", err))
 				continue
 			}
 

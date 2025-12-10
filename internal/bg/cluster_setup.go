@@ -68,7 +68,7 @@ func ClusterSetupWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 			logger.Info().Msg("[cluster_setup] running make setup")
 
 			runCtx, cancel := context.WithTimeout(ctx, perClusterTimeout)
-			out, err := runMakeOnBastion(runCtx, db, c, "setup")
+			out, err := runMakeOnBastion(runCtx, db, c, "ping-servers")
 			cancel()
 
 			if err != nil {
