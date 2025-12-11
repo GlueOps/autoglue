@@ -69,7 +69,17 @@ func ListClusters(db *gorm.DB) http.HandlerFunc {
 
 		out := make([]dto.ClusterResponse, 0, len(rows))
 		for _, row := range rows {
-			out = append(out, clusterToDTO(row))
+			cr := clusterToDTO(row)
+
+			if row.EncryptedKubeconfig != "" && row.KubeIV != "" && row.KubeTag != "" {
+				kubeconfig, err := utils.DecryptForOrg(orgID, row.EncryptedKubeconfig, row.KubeIV, row.KubeTag, db)
+				if err != nil {
+					utils.WriteError(w, http.StatusInternalServerError, "kubeconfig_decrypt_failed", "failed to decrypt kubeconfig")
+					return
+				}
+				cr.Kubeconfig = &kubeconfig
+			}
+			out = append(out, cr)
 		}
 		utils.WriteJSON(w, http.StatusOK, out)
 	}
@@ -131,7 +141,18 @@ func GetCluster(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		resp := clusterToDTO(cluster)
+
+		if cluster.EncryptedKubeconfig != "" && cluster.KubeIV != "" && cluster.KubeTag != "" {
+			kubeconfig, err := utils.DecryptForOrg(orgID, cluster.EncryptedKubeconfig, cluster.KubeIV, cluster.KubeTag, db)
+			if err != nil {
+				utils.WriteError(w, http.StatusInternalServerError, "kubeconfig_decrypt_failed", "failed to decrypt kubeconfig")
+				return
+			}
+			resp.Kubeconfig = &kubeconfig
+		}
+
+		utils.WriteJSON(w, http.StatusOK, resp)
 	}
 }
 

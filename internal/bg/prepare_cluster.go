@@ -133,6 +133,29 @@ func ClusterPrepareWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 
 			dtoCluster := mapper.ClusterToDTO(*c)
 
+			if c.EncryptedKubeconfig != "" && c.KubeIV != "" && c.KubeTag != "" {
+				kubeconfig, err := utils.DecryptForOrg(
+					c.OrganizationID,
+					c.EncryptedKubeconfig,
+					c.KubeIV,
+					c.KubeTag,
+					db,
+				)
+				if err != nil {
+					fail++
+					failedIDs = append(failedIDs, c.ID)
+					failures = append(failures, ClusterPrepareFailure{
+						ClusterID: c.ID,
+						Step:      "decrypt_kubeconfig",
+						Reason:    err.Error(),
+					})
+					clusterLog.Error().Err(err).Msg("[cluster_prepare] decrypt kubeconfig failed")
+					_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
+					continue
+				}
+				dtoCluster.Kubeconfig = &kubeconfig
+			}
+
 			payloadJSON, err := json.MarshalIndent(dtoCluster, "", "  ")
 			if err != nil {
 				fail++

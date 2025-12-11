@@ -24,6 +24,7 @@ type ClusterResponse struct {
 	NodePools             []NodePoolResponse    `json:"node_pools,omitempty"`
 	DockerImage           string                `json:"docker_image"`
 	DockerTag             string                `json:"docker_tag"`
+	Kubeconfig            *string               `json:"kubeconfig,omitempty"`
 	CreatedAt             time.Time             `json:"created_at"`
 	UpdatedAt             time.Time             `json:"updated_at"`
 }
