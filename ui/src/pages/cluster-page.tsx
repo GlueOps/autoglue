@@ -1,36 +1,56 @@
-;
 // src/pages/ClustersPage.tsx
 
-import { useEffect, useMemo, useState } from "react";
-import { clustersApi } from "@/api/clusters";
-import { dnsApi } from "@/api/dns";
-import { loadBalancersApi } from "@/api/loadbalancers";
-import { nodePoolsApi } from "@/api/node_pools";
-import { serversApi } from "@/api/servers";
-import type { DtoClusterResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse } from "@/sdk";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Loader2, MapPin, Pencil, Plus, Search, Server, Wrench } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
+import { useEffect, useMemo, useState } from "react"
+import { clustersApi } from "@/api/clusters"
+import { dnsApi } from "@/api/dns"
+import { loadBalancersApi } from "@/api/loadbalancers"
+import { nodePoolsApi } from "@/api/node_pools"
+import { serversApi } from "@/api/servers"
+import type {
+  DtoClusterResponse,
+  DtoDomainResponse,
+  DtoLoadBalancerResponse,
+  DtoNodePoolResponse,
+  DtoRecordSetResponse,
+  DtoServerResponse,
+} from "@/sdk"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  AlertCircle,
+  CheckCircle2,
+  CircleSlash2,
+  FileCode2,
+  Globe2,
+  Loader2,
+  MapPin,
+  Pencil,
+  Plus,
+  Search,
+  Server,
+  Wrench,
+} from "lucide-react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
-
-
-import { truncateMiddle } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog.tsx";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form.tsx";
-import { Input } from "@/components/ui/input.tsx";
-import { Label } from "@/components/ui/label.tsx";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table.tsx";
-import { Textarea } from "@/components/ui/textarea.tsx";
-
-
-
-
+import { truncateMiddle } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge.tsx"
+import { Button } from "@/components/ui/button.tsx"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog.tsx"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form.tsx"
+import { Input } from "@/components/ui/input.tsx"
+import { Label } from "@/components/ui/label.tsx"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select.tsx"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table.tsx"
+import { Textarea } from "@/components/ui/textarea.tsx"
 
 // --- Schemas ---
 

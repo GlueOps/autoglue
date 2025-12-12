@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
+import { Badge } from "@/components/ui/badge.tsx"
 import { Button } from "@/components/ui/button.tsx"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx"
 import {
@@ -161,6 +162,7 @@ export const OrgApiKeys = () => {
                 <TableHead>Scope</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Expires</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="w-28" />
               </TableRow>
             </TableHeader>
@@ -172,6 +174,33 @@ export const OrgApiKeys = () => {
                   <TableCell>{new Date(k.created_at!).toLocaleString()}</TableCell>
                   <TableCell>
                     {k.expires_at ? new Date(k.expires_at).toLocaleString() : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const isExpired = k.expires_at ? new Date(k.expires_at) <= new Date() : false
+
+                      if (k.revoked) {
+                        return (
+                          <Badge variant="destructive" className="font-mono">
+                            Revoked
+                          </Badge>
+                        )
+                      }
+
+                      if (isExpired) {
+                        return (
+                          <Badge variant="outline" className="font-mono">
+                            Expired
+                          </Badge>
+                        )
+                      }
+
+                      return (
+                        <Badge variant="secondary" className="font-mono">
+                          Active
+                        </Badge>
+                      )
+                    })()}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="destructive" size="sm" onClick={() => deleteMut.mutate(k.id!)}>
