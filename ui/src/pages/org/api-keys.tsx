@@ -35,10 +35,12 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx"
 
+// 1) No coerce; we’ll do the conversion in onChange
 const createSchema = z.object({
   name: z.string(),
-  expires_in_hours: z.number().min(1).max(43800),
+  expires_in_hours: z.number().int().min(1).max(43800),
 })
+
 type CreateValues = z.infer<typeof createSchema>
 
 export const OrgApiKeys = () => {
@@ -52,6 +54,7 @@ export const OrgApiKeys = () => {
     queryFn: () => withRefresh(() => api.listOrgKeys({ id: orgId! })),
   })
 
+  // 2) Form holds numbers directly
   const form = useForm<CreateValues>({
     resolver: zodResolver(createSchema),
     defaultValues: {
@@ -71,7 +74,7 @@ export const OrgApiKeys = () => {
       void qc.invalidateQueries({ queryKey: ["org:keys", orgId] })
       setShowSecret({ key: resp.org_key, secret: resp.org_secret })
       toast.success("Key created")
-      form.reset({ name: "", expires_in_hours: undefined })
+      form.reset({ name: "", expires_in_hours: 720 })
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed to create key"),
   })
@@ -124,7 +127,17 @@ export const OrgApiKeys = () => {
                   <FormItem>
                     <FormLabel>Expires In (hours)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. 720" {...field} />
+                      <Input
+                        type="number"
+                        placeholder="e.g. 720"
+                        {...field}
+                        // 3) Convert string → number (or undefined if empty)
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const v = e.target.value
+                          field.onChange(v === "" ? undefined : Number(v))
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

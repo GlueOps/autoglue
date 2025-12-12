@@ -158,10 +158,11 @@ func ClusterPrepareWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 				dtoCluster.Kubeconfig = &kubeconfig
 			}
 
-			orgKey, orgSecret, err := createOrgScopedKeyForPayload(
+			orgKey, orgSecret, err := findOrCreateClusterAutomationKey(
 				db,
 				c.OrganizationID,
-				fmt.Sprintf("cluster-%s-%s", c.Name, c.ID.String()),
+				c.ID,
+				24*time.Hour,
 			)
 
 			if err != nil {
@@ -584,12 +585,28 @@ func randomB64URL(n int) (string, error) {
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }
 
-func createOrgScopedKeyForPayload(db *gorm.DB, orgID uuid.UUID, name string) (orgKey string, orgSecret string, err error) {
+func findOrCreateClusterAutomationKey(
+	db *gorm.DB,
+	orgID uuid.UUID,
+	clusterID uuid.UUID,
+	ttl time.Duration,
+) (orgKey string, orgSecret string, err error) {
+	now := time.Now()
+	name := fmt.Sprintf("cluster-%s-bastion", clusterID.String())
+
+	// 1) Delete any existing ephemeral cluster-bastion key for this org+cluster
+	if err := db.Where(
+		"org_id = ? AND scope = ? AND purpose = ? AND cluster_id = ? AND is_ephemeral = ?",
+		orgID, "org", "cluster_bastion", clusterID, true,
+	).Delete(&models.APIKey{}).Error; err != nil {
+		return "", "", fmt.Errorf("delete existing cluster key: %w", err)
+	}
+
+	// 2) Mint a fresh keypair
 	keySuffix, err := randomB64URL(16)
 	if err != nil {
 		return "", "", fmt.Errorf("entropy_error: %w", err)
 	}
-
 	sec, err := randomB64URL(32)
 	if err != nil {
 		return "", "", fmt.Errorf("entropy_error: %w", err)
@@ -604,13 +621,25 @@ func createOrgScopedKeyForPayload(db *gorm.DB, orgID uuid.UUID, name string) (or
 		return "", "", fmt.Errorf("hash_error: %w", err)
 	}
 
+	exp := now.Add(ttl)
+
+	prefix := orgKey
+	if len(prefix) > 12 {
+		prefix = prefix[:12]
+	}
+
 	rec := models.APIKey{
-		OrgID:      &orgID,
-		Scope:      "org",
-		Name:       name,
-		KeyHash:    keyHash,
-		SecretHash: &secretHash,
-		ExpiresAt:  nil,
+		OrgID:       &orgID,
+		Scope:       "org",
+		Purpose:     "cluster_bastion",
+		ClusterID:   &clusterID,
+		IsEphemeral: true,
+		Name:        name,
+		KeyHash:     keyHash,
+		SecretHash:  &secretHash,
+		ExpiresAt:   &exp,
+		Revoked:     false,
+		Prefix:      &prefix,
 	}
 
 	if err := db.Create(&rec).Error; err != nil {

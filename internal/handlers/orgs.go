@@ -585,13 +585,22 @@ func CreateOrgKey(db *gorm.DB) http.HandlerFunc {
 			exp = &e
 		}
 
+		prefix := orgKey
+		if len(prefix) > 12 {
+			prefix = prefix[:12]
+		}
+
 		rec := models.APIKey{
-			OrgID:      &oid,
-			Scope:      "org",
-			Name:       req.Name,
-			KeyHash:    keyHash,
-			SecretHash: &secretHash,
-			ExpiresAt:  exp,
+			OrgID:       &oid,
+			Scope:       "org",
+			Purpose:     "user",
+			IsEphemeral: false,
+			Name:        req.Name,
+			KeyHash:     keyHash,
+			SecretHash:  &secretHash,
+			ExpiresAt:   exp,
+			Revoked:     false,
+			Prefix:      &prefix,
 		}
 		if err := db.Create(&rec).Error; err != nil {
 			utils.WriteError(w, 500, "db_error", err.Error())

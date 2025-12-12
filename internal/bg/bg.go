@@ -129,6 +129,12 @@ func NewJobs(gdb *gorm.DB, dbUrl string) (*Jobs, error) {
 		archer.WithTimeout(60*time.Minute),
 	)
 
+	c.Register(
+		"org_key_sweeper",
+		OrgKeySweeperWorker(gdb, jobs),
+		archer.WithInstances(1),
+		archer.WithTimeout(5*time.Minute),
+	)
 	return jobs, nil
 }
 

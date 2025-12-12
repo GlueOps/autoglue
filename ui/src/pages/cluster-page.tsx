@@ -1,5 +1,4 @@
 ;
-
 // src/pages/ClustersPage.tsx
 
 import { useEffect, useMemo, useState } from "react";
@@ -28,36 +27,6 @@ import { Label } from "@/components/ui/label.tsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
-
-
-
-
-
-;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

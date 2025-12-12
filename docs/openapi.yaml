@@ -104,6 +104,8 @@ components:
           $ref: '#/components/schemas/dto.LoadBalancerResponse'
         id:
           type: string
+        kubeconfig:
+          type: string
         last_error:
           type: string
         name:
@@ -113,6 +115,10 @@ components:
             $ref: '#/components/schemas/dto.NodePoolResponse'
           type: array
           uniqueItems: false
+        org_key:
+          type: string
+        org_secret:
+          type: string
         random_token:
           type: string
         region:
@@ -1037,6 +1043,8 @@ components:
       type: object
     models.APIKey:
       properties:
+        cluster_id:
+          type: string
         created_at:
           format: date-time
           type: string
@@ -1046,6 +1054,8 @@ components:
         id:
           format: uuid
           type: string
+        is_ephemeral:
+          type: boolean
         last_used_at:
           format: date-time
           type: string
@@ -1055,6 +1065,8 @@ components:
           format: uuid
           type: string
         prefix:
+          type: string
+        purpose:
           type: string
         revoked:
           type: boolean

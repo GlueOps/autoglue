@@ -156,6 +156,21 @@ var serveCmd = &cobra.Command{
 			if err != nil {
 				log.Printf("failed to enqueue cluster bootstrap: %v", err)
 			}
+
+			_, err = jobs.Enqueue(
+				context.Background(),
+				uuid.NewString(),
+				"org_key_sweeper",
+				bg.OrgKeySweeperArgs{
+					IntervalS:     3600,
+					RetentionDays: 10,
+				},
+				archer.WithMaxRetries(1),
+				archer.WithScheduleTime(time.Now()),
+			)
+			if err != nil {
+				log.Printf("failed to enqueue org_key_sweeper: %v", err)
+			}
 		}
 
 		_ = auth.Refresh(rt.DB, rt.Cfg.JWTPrivateEncKey)
