@@ -3,6 +3,7 @@ package bg
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/dyaksa/archer"
 	"github.com/dyaksa/archer/job"
+	"github.com/glueops/autoglue/internal/auth"
 	"github.com/glueops/autoglue/internal/mapper"
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
@@ -155,6 +157,28 @@ func ClusterPrepareWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 				}
 				dtoCluster.Kubeconfig = &kubeconfig
 			}
+
+			orgKey, orgSecret, err := createOrgScopedKeyForPayload(
+				db,
+				c.OrganizationID,
+				fmt.Sprintf("cluster-%s-%s", c.Name, c.ID.String()),
+			)
+
+			if err != nil {
+				fail++
+				failedIDs = append(failedIDs, c.ID)
+				failures = append(failures, ClusterPrepareFailure{
+					ClusterID: c.ID,
+					Step:      "create_org_key",
+					Reason:    err.Error(),
+				})
+				clusterLog.Error().Err(err).Msg("[cluster_prepare] create org key for payload failed")
+				_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
+				continue
+			}
+
+			dtoCluster.OrgKey = &orgKey
+			dtoCluster.OrgSecret = &orgSecret
 
 			payloadJSON, err := json.MarshalIndent(dtoCluster, "", "  ")
 			if err != nil {
@@ -550,4 +574,48 @@ func runMakeOnBastion(
 		return string(out), wrapSSHError(runErr, string(out))
 	}
 	return string(out), nil
+}
+
+func randomB64URL(n int) (string, error) {
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+func createOrgScopedKeyForPayload(db *gorm.DB, orgID uuid.UUID, name string) (orgKey string, orgSecret string, err error) {
+	keySuffix, err := randomB64URL(16)
+	if err != nil {
+		return "", "", fmt.Errorf("entropy_error: %w", err)
+	}
+
+	sec, err := randomB64URL(32)
+	if err != nil {
+		return "", "", fmt.Errorf("entropy_error: %w", err)
+	}
+
+	orgKey = "org_" + keySuffix
+	orgSecret = sec
+
+	keyHash := auth.SHA256Hex(orgKey)
+	secretHash, err := auth.HashSecretArgon2id(orgSecret)
+	if err != nil {
+		return "", "", fmt.Errorf("hash_error: %w", err)
+	}
+
+	rec := models.APIKey{
+		OrgID:      &orgID,
+		Scope:      "org",
+		Name:       name,
+		KeyHash:    keyHash,
+		SecretHash: &secretHash,
+		ExpiresAt:  nil,
+	}
+
+	if err := db.Create(&rec).Error; err != nil {
+		return "", "", fmt.Errorf("db_error: %w", err)
+	}
+
+	return orgKey, orgSecret, nil
 }

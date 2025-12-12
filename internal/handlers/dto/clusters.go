@@ -25,6 +25,8 @@ type ClusterResponse struct {
 	DockerImage           string                `json:"docker_image"`
 	DockerTag             string                `json:"docker_tag"`
 	Kubeconfig            *string               `json:"kubeconfig,omitempty"`
+	OrgKey                *string               `json:"org_key,omitempty"`
+	OrgSecret             *string               `json:"org_secret,omitempty"`
 	CreatedAt             time.Time             `json:"created_at"`
 	UpdatedAt             time.Time             `json:"updated_at"`
 }
