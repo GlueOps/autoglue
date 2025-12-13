@@ -3292,9 +3292,9 @@ fast-deep-equal@^3.1.1, fast-deep-equal@^3.1.3:
   integrity sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==
 
 fast-equals@^5.0.1:
-  version "5.3.4"
-  resolved "https://registry.yarnpkg.com/fast-equals/-/fast-equals-5.3.4.tgz#41f99f413c2d3a39a1ca9a2e1652abd9c4ee9feb"
-  integrity sha512-d+yU9iNQbbC098NOuMlAIth/g+owbpX/uuOkH/DQcC2fMMyjOlX292Op29DrUKq388m4UUyOdWakUH/msGypOg==
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/fast-equals/-/fast-equals-5.4.0.tgz#b60073b8764f27029598447f05773c7534ba7f1e"
+  integrity sha512-jt2DW/aNFNwke7AUd+Z+e6pz39KO5rzdbbFCg2sGafS4mk13MI7Z8O5z9cADNn5lhGODIgLwug6TZO2ctf7kcw==
 
 fast-glob@^3.3.3:
   version "3.3.3"
