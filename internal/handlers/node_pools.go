@@ -828,16 +828,16 @@ func ListNodePoolLabels(db *gorm.DB) http.HandlerFunc {
 		}
 
 		out := make([]dto.LabelResponse, 0, len(np.Taints))
-		for _, taint := range np.Taints {
+		for _, label := range np.Labels {
 			out = append(out, dto.LabelResponse{
 				AuditFields: common.AuditFields{
-					ID:             taint.ID,
-					OrganizationID: taint.OrganizationID,
-					CreatedAt:      taint.CreatedAt,
-					UpdatedAt:      taint.UpdatedAt,
+					ID:             label.ID,
+					OrganizationID: label.OrganizationID,
+					CreatedAt:      label.CreatedAt,
+					UpdatedAt:      label.UpdatedAt,
 				},
-				Key:   taint.Key,
-				Value: taint.Value,
+				Key:   label.Key,
+				Value: label.Value,
 			})
 		}
 		utils.WriteJSON(w, http.StatusOK, out)
