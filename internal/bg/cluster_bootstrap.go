@@ -40,7 +40,7 @@ func ClusterBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 		var clusters []models.Cluster
 		if err := db.
 			Preload("BastionServer.SshKey").
-			Where("status = ?", clusterStatusPending).
+			Where("status = ?", clusterStatusProvisioning).
 			Find(&clusters).Error; err != nil {
 			log.Error().Err(err).Msg("[cluster_bootstrap] query clusters failed")
 			return nil, err

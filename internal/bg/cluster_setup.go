@@ -74,8 +74,8 @@ func ClusterSetupWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 			if err != nil {
 				failCount++
 				failedIDs = append(failedIDs, c.ID)
-				logger.Error().Err(err).Str("output", out).Msg("[cluster_setup] make setup failed")
-				_ = setClusterStatus(db, c.ID, clusterStatusFailed, fmt.Sprintf("make setup: %v", err))
+				logger.Error().Err(err).Str("output", out).Msg("[cluster_setup] make ping-servers failed")
+				_ = setClusterStatus(db, c.ID, clusterStatusFailed, fmt.Sprintf("make ping-servers: %v", err))
 				continue
 			}
 
