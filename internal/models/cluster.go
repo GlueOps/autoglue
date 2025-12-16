@@ -7,12 +7,13 @@ import (
 )
 
 const (
-	ClusterStatusPrePending   = "pre_pending" // needs validation
-	ClusterStatusIncomplete   = "incomplete"  // invalid/missing shape
-	ClusterStatusPending      = "pending"     // valid shape, waiting for provisioning
-	ClusterStatusProvisioning = "provisioning"
-	ClusterStatusReady        = "ready"
-	ClusterStatusFailed       = "failed" // provisioning/runtime failure
+	ClusterStatusPrePending    = "pre_pending" // needs validation
+	ClusterStatusIncomplete    = "incomplete"  // invalid/missing shape
+	ClusterStatusPending       = "pending"     // valid shape, waiting for provisioning
+	ClusterStatusProvisioning  = "provisioning"
+	ClusterStatusReady         = "ready"
+	ClusterStatusFailed        = "failed" // provisioning/runtime failure
+	ClusterStatusBootstrapping = "bootstrapping"
 )
 
 type Cluster struct {

@@ -45,11 +45,12 @@ type ClusterPrepareResult struct {
 
 // Alias the status constants from models to avoid string drift.
 const (
-	clusterStatusPrePending   = models.ClusterStatusPrePending
-	clusterStatusPending      = models.ClusterStatusPending
-	clusterStatusProvisioning = models.ClusterStatusProvisioning
-	clusterStatusReady        = models.ClusterStatusReady
-	clusterStatusFailed       = models.ClusterStatusFailed
+	clusterStatusPrePending    = models.ClusterStatusPrePending
+	clusterStatusPending       = models.ClusterStatusPending
+	clusterStatusProvisioning  = models.ClusterStatusProvisioning
+	clusterStatusReady         = models.ClusterStatusReady
+	clusterStatusFailed        = models.ClusterStatusFailed
+	clusterStatusBootstrapping = models.ClusterStatusBootstrapping
 )
 
 func ClusterPrepareWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
@@ -96,6 +97,13 @@ func ClusterPrepareWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 			if c.BastionServer == nil || c.BastionServerID == nil || *c.BastionServerID == uuid.Nil || c.BastionServer.Status != "ready" {
 				continue
 			}
+
+			if err := setClusterStatus(db, c.ID, clusterStatusBootstrapping, ""); err != nil {
+				log.Error().Err(err).Msg("[cluster_prepare] failed to mark cluster bootstrapping")
+				continue
+			}
+
+			c.Status = clusterStatusBootstrapping
 
 			clusterLog := log.With().
 				Str("job", jobID).
