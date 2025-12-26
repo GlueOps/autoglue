@@ -44,7 +44,7 @@ func ClusterActionWorker(db *gorm.DB) archer.WorkerFn {
 				"error":  errMsg,
 			}
 			if status == "succeeded" || status == "failed" {
-				updates["finised_at"] = time.Now().UTC()
+				updates["finished_at"] = time.Now().UTC().Format(time.RFC3339)
 			}
 			db.Model(&models.ClusterRun{}).Where("id = ?", runID).Updates(updates)
 		}
