@@ -211,12 +211,18 @@ func RunClusterAction(db *gorm.DB, jobs *bg.Jobs) http.HandlerFunc {
 			return
 		}
 
+		args := bg.ClusterActionArgs{
+			OrgID:      orgID,
+			ClusterID:  clusterID,
+			Action:     action.MakeTarget,
+			MakeTarget: action.MakeTarget,
+		}
 		// Enqueue with run.ID as the job ID so the worker can look it up.
 		_, enqueueErr := jobs.Enqueue(
 			r.Context(),
 			run.ID.String(),
 			"cluster_action",
-			bg.ClusterActionWorker,
+			args,
 			archer.WithMaxRetries(3),
 		)
 
@@ -225,7 +231,7 @@ func RunClusterAction(db *gorm.DB, jobs *bg.Jobs) http.HandlerFunc {
 				Where("id = ?", run.ID).
 				Updates(map[string]any{
 					"status":      models.ClusterRunStatusFailed,
-					"error":       "failed to enqueue job",
+					"error":       "failed to enqueue job: " + enqueueErr.Error(),
 					"finished_at": time.Now().UTC(),
 				}).Error
 
