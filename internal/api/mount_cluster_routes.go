@@ -3,12 +3,13 @@ package api
 import (
 	"net/http"
 
+	"github.com/glueops/autoglue/internal/bg"
 	"github.com/glueops/autoglue/internal/handlers"
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
-func mountClusterRoutes(r chi.Router, db *gorm.DB, authOrg func(http.Handler) http.Handler) {
+func mountClusterRoutes(r chi.Router, db *gorm.DB, jobs *bg.Jobs, authOrg func(http.Handler) http.Handler) {
 	r.Route("/clusters", func(c chi.Router) {
 		c.Use(authOrg)
 		c.Get("/", handlers.ListClusters(db))
@@ -36,6 +37,10 @@ func mountClusterRoutes(r chi.Router, db *gorm.DB, authOrg func(http.Handler) ht
 		c.Delete("/{clusterID}/kubeconfig", handlers.ClearClusterKubeconfig(db))
 
 		c.Post("/{clusterID}/node-pools", handlers.AttachNodePool(db))
-		c.Delete("/{clusterID}/node-pools/{nodePoolID}", handlers.DeleteNodePool(db))
+		c.Delete("/{clusterID}/node-pools/{nodePoolID}", handlers.DetachNodePool(db))
+
+		c.Get("/{clusterID}/runs", handlers.ListClusterRuns(db))
+		c.Get("/{clusterID}/runs/{runID}", handlers.GetClusterRun(db))
+		c.Post("/{clusterID}/actions/{actionID}/runs", handlers.RunClusterAction(db, jobs))
 	})
 }

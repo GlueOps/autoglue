@@ -1,9 +1,11 @@
 import { orgStore } from "@/auth/org.ts"
 import { authStore } from "@/auth/store.ts"
 import {
+  ActionsApi,
   AnnotationsApi,
   ArcherAdminApi,
   AuthApi,
+  ClusterRunsApi,
   ClustersApi,
   Configuration,
   CredentialsApi,
@@ -132,4 +134,12 @@ export function makeLoadBalancerApi() {
 
 export function makeClusterApi() {
   return makeApiClient(ClustersApi)
+}
+
+export function makeActionsApi() {
+  return makeApiClient(ActionsApi)
+}
+
+export function makeClusterRunsApi() {
+  return makeApiClient(ClusterRunsApi)
 }

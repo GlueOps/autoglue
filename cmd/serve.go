@@ -116,46 +116,48 @@ var serveCmd = &cobra.Command{
 				log.Printf("failed to enqueue bootstrap_bastion: %v", err)
 			}
 
-			_, err = jobs.Enqueue(
-				context.Background(),
-				uuid.NewString(),
-				"prepare_cluster",
-				bg.ClusterPrepareArgs{IntervalS: 120},
-				archer.WithMaxRetries(3),
-				archer.WithScheduleTime(time.Now().Add(60*time.Second)),
-			)
-			if err != nil {
-				log.Printf("failed to enqueue prepare_cluster: %v", err)
-			}
+			/*
+				_, err = jobs.Enqueue(
+					context.Background(),
+					uuid.NewString(),
+					"prepare_cluster",
+					bg.ClusterPrepareArgs{IntervalS: 120},
+					archer.WithMaxRetries(3),
+					archer.WithScheduleTime(time.Now().Add(60*time.Second)),
+				)
+				if err != nil {
+					log.Printf("failed to enqueue prepare_cluster: %v", err)
+				}
 
-			_, err = jobs.Enqueue(
-				context.Background(),
-				uuid.NewString(),
-				"cluster_setup",
-				bg.ClusterSetupArgs{
-					IntervalS: 120,
-				},
-				archer.WithMaxRetries(3),
-				archer.WithScheduleTime(time.Now().Add(60*time.Second)),
-			)
+				_, err = jobs.Enqueue(
+					context.Background(),
+					uuid.NewString(),
+					"cluster_setup",
+					bg.ClusterSetupArgs{
+						IntervalS: 120,
+					},
+					archer.WithMaxRetries(3),
+					archer.WithScheduleTime(time.Now().Add(60*time.Second)),
+				)
 
-			if err != nil {
-				log.Printf("failed to enqueue cluster setup: %v", err)
-			}
+				if err != nil {
+					log.Printf("failed to enqueue cluster setup: %v", err)
+				}
 
-			_, err = jobs.Enqueue(
-				context.Background(),
-				uuid.NewString(),
-				"cluster_bootstrap",
-				bg.ClusterBootstrapArgs{
-					IntervalS: 120,
-				},
-				archer.WithMaxRetries(3),
-				archer.WithScheduleTime(time.Now().Add(60*time.Second)),
-			)
-			if err != nil {
-				log.Printf("failed to enqueue cluster bootstrap: %v", err)
-			}
+				_, err = jobs.Enqueue(
+					context.Background(),
+					uuid.NewString(),
+					"cluster_bootstrap",
+					bg.ClusterBootstrapArgs{
+						IntervalS: 120,
+					},
+					archer.WithMaxRetries(3),
+					archer.WithScheduleTime(time.Now().Add(60*time.Second)),
+				)
+				if err != nil {
+					log.Printf("failed to enqueue cluster bootstrap: %v", err)
+				}
+			*/
 
 			_, err = jobs.Enqueue(
 				context.Background(),

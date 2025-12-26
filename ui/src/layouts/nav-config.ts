@@ -6,6 +6,7 @@ import {
   FileKey2Icon,
   KeyRound,
   LockKeyholeIcon,
+  PickaxeIcon,
   ServerIcon,
   SprayCanIcon,
   TagsIcon,
@@ -49,5 +50,6 @@ export const userNav: NavItem[] = [{ to: "/me", label: "Profile", icon: User2 }]
 export const adminNav: NavItem[] = [
   { to: "/admin/users", label: "Users Admin", icon: Users },
   { to: "/admin/jobs", label: "Jobs Admin", icon: GrUserWorker },
+  { to: "/admin/actions", label: "Actions Admin", icon: PickaxeIcon},
   { to: "/docs", label: "API Docs ", icon: SiSwagger, target: "_blank" },
 ]

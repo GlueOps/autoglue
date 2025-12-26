@@ -8,9 +8,10 @@ import type {
   DtoSetKubeconfigRequest,
   DtoUpdateClusterRequest,
 } from "@/sdk"
-import { makeClusterApi } from "@/sdkClient"
+import { makeClusterApi, makeClusterRunsApi } from "@/sdkClient"
 
 const clusters = makeClusterApi()
+const clusterRuns = makeClusterRunsApi()
 
 export const clustersApi = {
   // --- basic CRUD ---
@@ -146,5 +147,21 @@ export const clustersApi = {
   detachNodePool: (clusterID: string, nodePoolID: string) =>
     withRefresh(async () => {
       return await clusters.detachNodePool({ clusterID, nodePoolID })
+    }),
+
+  // --- cluster runs / actions ---
+  listClusterRuns: (clusterID: string) =>
+    withRefresh(async () => {
+      return await clusterRuns.listClusterRuns({ clusterID })
+    }),
+
+  getClusterRun: (clusterID: string, runID: string) =>
+    withRefresh(async () => {
+      return await clusterRuns.getClusterRun({ clusterID, runID })
+    }),
+
+  runClusterAction: (clusterID: string, actionID: string) =>
+    withRefresh(async () => {
+      return await clusterRuns.runClusterAction({ clusterID, actionID })
     }),
 }

@@ -2,6 +2,7 @@ import { AppShell } from "@/layouts/app-shell.tsx"
 import { Route, Routes } from "react-router-dom"
 
 import { ProtectedRoute } from "@/components/protected-route.tsx"
+import { ActionsPage } from "@/pages/actions-page.tsx"
 import { AnnotationPage } from "@/pages/annotation-page.tsx"
 import { ClustersPage } from "@/pages/cluster-page"
 import { CredentialPage } from "@/pages/credential-page.tsx"
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/clusters" element={<ClustersPage />} />
 
           <Route path="/admin/jobs" element={<JobsPage />} />
+          <Route path="/admin/actions" element={<ActionsPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Login />} />

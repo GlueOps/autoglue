@@ -1,5 +1,23 @@
 components:
   schemas:
+    dto.ActionResponse:
+      properties:
+        created_at:
+          format: date-time
+          type: string
+        description:
+          type: string
+        id:
+          format: uuid
+          type: string
+        label:
+          type: string
+        make_target:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      type: object
     dto.AnnotationResponse:
       properties:
         created_at:
@@ -126,6 +144,42 @@ components:
         status:
           type: string
         updated_at:
+          type: string
+      type: object
+    dto.ClusterRunResponse:
+      properties:
+        action:
+          type: string
+        cluster_id:
+          format: uuid
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        error:
+          type: string
+        finished_at:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        organization_id:
+          format: uuid
+          type: string
+        status:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      type: object
+    dto.CreateActionRequest:
+      properties:
+        description:
+          type: string
+        label:
+          type: string
+        make_target:
           type: string
       type: object
     dto.CreateAnnotationRequest:
@@ -716,6 +770,15 @@ components:
           example: Bearer
           type: string
       type: object
+    dto.UpdateActionRequest:
+      properties:
+        description:
+          type: string
+        label:
+          type: string
+        make_target:
+          type: string
+      type: object
     dto.UpdateAnnotationRequest:
       properties:
         key:
@@ -1202,6 +1265,222 @@ paths:
       summary: Get JWKS
       tags:
       - Auth
+  /admin/actions:
+    get:
+      description: Returns all admin-configured actions.
+      operationId: ListActions
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/dto.ActionResponse'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: db error
+      security:
+      - BearerAuth: []
+      summary: List available actions
+      tags:
+      - Actions
+    post:
+      description: Creates a new admin-configured action.
+      operationId: CreateAction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/dto.CreateActionRequest'
+        description: payload
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dto.ActionResponse'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: db error
+      security:
+      - BearerAuth: []
+      summary: Create an action
+      tags:
+      - Actions
+  /admin/actions/{actionID}:
+    delete:
+      description: Deletes an action.
+      operationId: DeleteAction
+      parameters:
+      - description: Action ID
+        in: path
+        name: actionID
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: deleted
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: db error
+      security:
+      - BearerAuth: []
+      summary: Delete an action
+      tags:
+      - Actions
+    get:
+      description: Returns a single action.
+      operationId: GetAction
+      parameters:
+      - description: Action ID
+        in: path
+        name: actionID
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dto.ActionResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: db error
+      security:
+      - BearerAuth: []
+      summary: Get a single action by ID
+      tags:
+      - Actions
+    patch:
+      description: Updates an action. Only provided fields are modified.
+      operationId: UpdateAction
+      parameters:
+      - description: Action ID
+        in: path
+        name: actionID
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/dto.UpdateActionRequest'
+        description: payload
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dto.ActionResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: db error
+      security:
+      - BearerAuth: []
+      summary: Update an action
+      tags:
+      - Actions
   /admin/archer/jobs:
     get:
       description: Paginated background jobs with optional filters. Search `q` may
@@ -2124,6 +2403,73 @@ paths:
       summary: Update basic cluster details (org scoped)
       tags:
       - Clusters
+  /clusters/{clusterID}/actions/{actionID}/runs:
+    post:
+      description: Creates a ClusterRun record for the cluster/action. Execution is
+        handled asynchronously by workers.
+      operationId: RunClusterAction
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Cluster ID
+        in: path
+        name: clusterID
+        required: true
+        schema:
+          type: string
+      - description: Action ID
+        in: path
+        name: actionID
+        required: true
+        schema:
+          type: string
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dto.ClusterRunResponse'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: cluster or action not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: db error
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Run an admin-configured action on a cluster (org scoped)
+      tags:
+      - ClusterRuns
   /clusters/{clusterID}/apps-load-balancer:
     delete:
       description: Clears apps_load_balancer_id on the cluster.
@@ -3017,6 +3363,128 @@ paths:
       summary: Detach a node pool from a cluster
       tags:
       - Clusters
+  /clusters/{clusterID}/runs:
+    get:
+      description: Returns runs for a cluster within the organization in X-Org-ID.
+      operationId: ListClusterRuns
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Cluster ID
+        in: path
+        name: clusterID
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/dto.ClusterRunResponse'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: cluster not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: db error
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: List cluster runs (org scoped)
+      tags:
+      - ClusterRuns
+  /clusters/{clusterID}/runs/{runID}:
+    get:
+      description: Returns a single run for a cluster within the organization in X-Org-ID.
+      operationId: GetClusterRun
+      parameters:
+      - description: Organization UUID
+        in: header
+        name: X-Org-ID
+        schema:
+          type: string
+      - description: Cluster ID
+        in: path
+        name: clusterID
+        required: true
+        schema:
+          type: string
+      - description: Run ID
+        in: path
+        name: runID
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dto.ClusterRunResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: organization required
+        "404":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: db error
+      security:
+      - BearerAuth: []
+      - OrgKeyAuth: []
+      - OrgSecretAuth: []
+      summary: Get a cluster run (org scoped)
+      tags:
+      - ClusterRuns
   /credentials:
     get:
       description: Returns credential metadata for the current org. Secrets are never

@@ -33,7 +33,7 @@ func mountAPIRoutes(r chi.Router, db *gorm.DB, jobs *bg.Jobs) {
 			mountNodePoolRoutes(v1, db, authOrg)
 			mountDNSRoutes(v1, db, authOrg)
 			mountLoadBalancerRoutes(v1, db, authOrg)
-			mountClusterRoutes(v1, db, authOrg)
+			mountClusterRoutes(v1, db, jobs, authOrg)
 		})
 	})
 }

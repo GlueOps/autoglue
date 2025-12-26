@@ -22,5 +22,16 @@ func mountAdminRoutes(r chi.Router, db *gorm.DB, jobs *bg.Jobs, authUser func(ht
 			archer.Post("/jobs/{id}/cancel", handlers.AdminCancelArcherJob(db))
 			archer.Get("/queues", handlers.AdminListArcherQueues(db))
 		})
+		admin.Route("/actions", func(action chi.Router) {
+			action.Use(authUser)
+			action.Use(httpmiddleware.RequirePlatformAdmin())
+
+			action.Get("/", handlers.ListActions(db))
+			action.Post("/", handlers.CreateAction(db))
+
+			action.Get("/{actionID}", handlers.GetAction(db))
+			action.Patch("/{actionID}", handlers.UpdateAction(db))
+			action.Delete("/{actionID}", handlers.DeleteAction(db))
+		})
 	})
 }

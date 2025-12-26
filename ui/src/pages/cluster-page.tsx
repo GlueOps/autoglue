@@ -1,14 +1,11 @@
-;
-
-// src/pages/ClustersPage.tsx
-
 import { useEffect, useMemo, useState } from "react";
+import { actionsApi } from "@/api/actions";
 import { clustersApi } from "@/api/clusters";
 import { dnsApi } from "@/api/dns";
 import { loadBalancersApi } from "@/api/loadbalancers";
 import { nodePoolsApi } from "@/api/node_pools";
 import { serversApi } from "@/api/servers";
-import type { DtoClusterResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse } from "@/sdk";
+import type { DtoActionResponse, DtoClusterResponse, DtoClusterRunResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse } from "@/sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Loader2, MapPin, Pencil, Plus, Search, Server, Wrench } from "lucide-react";
@@ -19,45 +16,15 @@ import { z } from "zod";
 
 
 import { truncateMiddle } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog.tsx";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form.tsx";
-import { Input } from "@/components/ui/input.tsx";
-import { Label } from "@/components/ui/label.tsx";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table.tsx";
-import { Textarea } from "@/components/ui/textarea.tsx";
-
-
-
-
-
-;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 
 
 
@@ -76,6 +43,22 @@ type CreateClusterInput = z.input<typeof createClusterSchema>
 
 const updateClusterSchema = createClusterSchema.partial()
 type UpdateClusterValues = z.infer<typeof updateClusterSchema>
+
+// --- Data normalization helpers (fixes rows.some is not a function) ---
+
+function asArray<T>(res: any): T[] {
+  if (Array.isArray(res)) return res as T[]
+  if (Array.isArray(res?.data)) return res.data as T[]
+  if (Array.isArray(res?.body)) return res.body as T[]
+  if (Array.isArray(res?.result)) return res.result as T[]
+  return []
+}
+
+function asObject<T>(res: any): T {
+  // for get endpoints that might return {data: {...}}
+  if (res?.data && typeof res.data === "object") return res.data as T
+  return res as T
+}
 
 // --- UI helpers ---
 
@@ -133,6 +116,61 @@ function StatusBadge({ status }: { status?: string | null }) {
   )
 }
 
+function RunStatusBadge({ status }: { status?: string | null }) {
+  const s = (status ?? "").toLowerCase()
+
+  if (!s)
+    return (
+      <Badge variant="outline" className="text-xs">
+        unknown
+      </Badge>
+    )
+
+  if (s === "succeeded" || s === "success") {
+    return (
+      <Badge variant="default" className="flex items-center gap-1 text-xs">
+        <CheckCircle2 className="h-3 w-3" />
+        succeeded
+      </Badge>
+    )
+  }
+
+  if (s === "failed" || s === "error") {
+    return (
+      <Badge variant="destructive" className="flex items-center gap-1 text-xs">
+        <AlertCircle className="h-3 w-3" />
+        failed
+      </Badge>
+    )
+  }
+
+  if (s === "queued" || s === "running") {
+    return (
+      <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        {s}
+      </Badge>
+    )
+  }
+
+  return (
+    <Badge variant="outline" className="text-xs">
+      {s}
+    </Badge>
+  )
+}
+
+function fmtTime(v: any): string {
+  if (!v) return "-"
+  try {
+    const d = v instanceof Date ? v : new Date(v)
+    if (Number.isNaN(d.getTime())) return "-"
+    return d.toLocaleString()
+  } catch {
+    return "-"
+  }
+}
+
 function ClusterSummary({ c }: { c: DtoClusterResponse }) {
   return (
     <div className="text-muted-foreground flex flex-col gap-1 text-xs">
@@ -173,7 +211,7 @@ export const ClustersPage = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
 
-  // Config dialog state
+  // Configure dialog state
   const [configCluster, setConfigCluster] = useState<DtoClusterResponse | null>(null)
 
   const [captainDomainId, setCaptainDomainId] = useState("")
@@ -193,35 +231,68 @@ export const ClustersPage = () => {
 
   const clustersQ = useQuery({
     queryKey: ["clusters"],
-    queryFn: () => clustersApi.listClusters(),
+    queryFn: async () => asArray<DtoClusterResponse>(await clustersApi.listClusters()),
   })
 
   const lbsQ = useQuery({
     queryKey: ["load-balancers"],
-    queryFn: () => loadBalancersApi.listLoadBalancers(),
+    queryFn: async () =>
+      asArray<DtoLoadBalancerResponse>(await loadBalancersApi.listLoadBalancers()),
   })
 
   const domainsQ = useQuery({
     queryKey: ["domains"],
-    queryFn: () => dnsApi.listDomains(),
+    queryFn: async () => asArray<DtoDomainResponse>(await dnsApi.listDomains()),
   })
 
-  // record sets fetched per captain domain
   const recordSetsQ = useQuery({
     queryKey: ["record-sets", captainDomainId],
     enabled: !!captainDomainId,
-    queryFn: () => dnsApi.listRecordSetsByDomain(captainDomainId),
+    queryFn: async () =>
+      asArray<DtoRecordSetResponse>(await dnsApi.listRecordSetsByDomain(captainDomainId)),
   })
 
   const serversQ = useQuery({
     queryKey: ["servers"],
-    queryFn: () => serversApi.listServers(),
+    queryFn: async () => asArray<DtoServerResponse>(await serversApi.listServers()),
   })
 
   const npQ = useQuery({
     queryKey: ["node-pools"],
-    queryFn: () => nodePoolsApi.listNodePools(),
+    queryFn: async () => asArray<DtoNodePoolResponse>(await nodePoolsApi.listNodePools()),
   })
+
+  const actionsQ = useQuery({
+    queryKey: ["actions"],
+    queryFn: async () => asArray<DtoActionResponse>(await actionsApi.listActions()),
+  })
+
+  const runsQ = useQuery({
+    queryKey: ["cluster-runs", configCluster?.id],
+    enabled: !!configCluster?.id,
+    queryFn: async () =>
+      asArray<DtoClusterRunResponse>(await clustersApi.listClusterRuns(configCluster!.id!)),
+    refetchInterval: (data) => {
+      // IMPORTANT: data might not be array if queryFn isn't normalizing. But it is here anyway.
+      const rows = Array.isArray(data) ? data : []
+      const active = rows.some((r: any) => {
+        const s = String(r?.status ?? "").toLowerCase()
+        return s === "queued" || s === "running"
+      })
+      return active ? 2000 : false
+    },
+  })
+
+  const actionLabelByTarget = useMemo(() => {
+    const m = new Map<string, string>()
+    ;(actionsQ.data ?? []).forEach((a) => {
+      if (a.make_target) m.set(a.make_target, a.label ?? a.make_target)
+    })
+    return m
+  }, [actionsQ.data])
+
+  const runDisplayName = (r: DtoClusterRunResponse) =>
+    actionLabelByTarget.get(r.action ?? "") ?? r.action ?? "unknown"
 
   // --- Create ---
 
@@ -244,14 +315,9 @@ export const ClustersPage = () => {
       setCreateOpen(false)
       toast.success("Cluster created successfully.")
     },
-    onError: (err: any) => {
-      toast.error(err?.message ?? "There was an error while creating the cluster")
-    },
+    onError: (err: any) =>
+      toast.error(err?.message ?? "There was an error while creating the cluster"),
   })
-
-  const onCreateSubmit = (values: CreateClusterInput) => {
-    createMut.mutate(values)
-  }
 
   // --- Update basic details ---
 
@@ -269,9 +335,8 @@ export const ClustersPage = () => {
       setUpdateOpen(false)
       toast.success("Cluster updated successfully.")
     },
-    onError: (err: any) => {
-      toast.error(err?.message ?? "There was an error while updating the cluster")
-    },
+    onError: (err: any) =>
+      toast.error(err?.message ?? "There was an error while updating the cluster"),
   })
 
   const openEdit = (cluster: DtoClusterResponse) => {
@@ -296,10 +361,31 @@ export const ClustersPage = () => {
       setDeleteId(null)
       toast.success("Cluster deleted successfully.")
     },
-    onError: (err: any) => {
-      toast.error(err?.message ?? "There was an error while deleting the cluster")
-    },
+    onError: (err: any) =>
+      toast.error(err?.message ?? "There was an error while deleting the cluster"),
   })
+
+  // --- Run Action ---
+
+  const runActionMut = useMutation({
+    mutationFn: ({ clusterID, actionID }: { clusterID: string; actionID: string }) =>
+      clustersApi.runClusterAction(clusterID, actionID),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["cluster-runs", configCluster?.id] })
+      toast.success("Action enqueued.")
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Failed to enqueue action."),
+  })
+
+  async function handleRunAction(actionID: string) {
+    if (!configCluster?.id) return
+    setBusyKey(`run:${actionID}`)
+    try {
+      await runActionMut.mutateAsync({ clusterID: configCluster.id, actionID })
+    } finally {
+      setBusyKey(null)
+    }
+  }
 
   // --- Filter ---
 
@@ -333,30 +419,23 @@ export const ClustersPage = () => {
       return
     }
 
-    // Prefill IDs from current attachments
-    if (configCluster.captain_domain?.id) {
-      setCaptainDomainId(configCluster.captain_domain.id)
-    }
-    if (configCluster.control_plane_record_set?.id) {
+    if (configCluster.captain_domain?.id) setCaptainDomainId(configCluster.captain_domain.id)
+    if (configCluster.control_plane_record_set?.id)
       setRecordSetId(configCluster.control_plane_record_set.id)
-    }
-    if (configCluster.apps_load_balancer?.id) {
-      setAppsLbId(configCluster.apps_load_balancer.id)
-    }
-    if (configCluster.glueops_load_balancer?.id) {
+    if (configCluster.apps_load_balancer?.id) setAppsLbId(configCluster.apps_load_balancer.id)
+    if (configCluster.glueops_load_balancer?.id)
       setGlueopsLbId(configCluster.glueops_load_balancer.id)
-    }
-    if (configCluster.bastion_server?.id) {
-      setBastionId(configCluster.bastion_server.id)
-    }
+    if (configCluster.bastion_server?.id) setBastionId(configCluster.bastion_server.id)
   }, [configCluster])
 
   async function refreshConfigCluster() {
     if (!configCluster?.id) return
     try {
-      const updated = await clustersApi.getCluster(configCluster.id)
+      const updatedRaw = await clustersApi.getCluster(configCluster.id)
+      const updated = asObject<DtoClusterResponse>(updatedRaw)
       setConfigCluster(updated)
       await qc.invalidateQueries({ queryKey: ["clusters"] })
+      await qc.invalidateQueries({ queryKey: ["cluster-runs", configCluster.id] })
     } catch {
       // ignore
     }
@@ -364,15 +443,10 @@ export const ClustersPage = () => {
 
   async function handleAttachCaptain() {
     if (!configCluster?.id) return
-    if (!captainDomainId) {
-      toast.error("Domain is required")
-      return
-    }
+    if (!captainDomainId) return toast.error("Domain is required")
     setBusyKey("captain")
     try {
-      await clustersApi.attachCaptainDomain(configCluster.id, {
-        domain_id: captainDomainId,
-      })
+      await clustersApi.attachCaptainDomain(configCluster.id, { domain_id: captainDomainId })
       toast.success("Captain domain attached.")
       await refreshConfigCluster()
     } catch (err: any) {
@@ -398,10 +472,7 @@ export const ClustersPage = () => {
 
   async function handleAttachRecordSet() {
     if (!configCluster?.id) return
-    if (!recordSetId) {
-      toast.error("Record set is required")
-      return
-    }
+    if (!recordSetId) return toast.error("Record set is required")
     setBusyKey("recordset")
     try {
       await clustersApi.attachControlPlaneRecordSet(configCluster.id, {
@@ -432,15 +503,10 @@ export const ClustersPage = () => {
 
   async function handleAttachAppsLb() {
     if (!configCluster?.id) return
-    if (!appsLbId) {
-      toast.error("Load balancer is required")
-      return
-    }
+    if (!appsLbId) return toast.error("Load balancer is required")
     setBusyKey("apps-lb")
     try {
-      await clustersApi.attachAppsLoadBalancer(configCluster.id, {
-        load_balancer_id: appsLbId,
-      })
+      await clustersApi.attachAppsLoadBalancer(configCluster.id, { load_balancer_id: appsLbId })
       toast.success("Apps load balancer attached.")
       await refreshConfigCluster()
     } catch (err: any) {
@@ -466,10 +532,7 @@ export const ClustersPage = () => {
 
   async function handleAttachGlueopsLb() {
     if (!configCluster?.id) return
-    if (!glueopsLbId) {
-      toast.error("Load balancer is required")
-      return
-    }
+    if (!glueopsLbId) return toast.error("Load balancer is required")
     setBusyKey("glueops-lb")
     try {
       await clustersApi.attachGlueOpsLoadBalancer(configCluster.id, {
@@ -500,15 +563,10 @@ export const ClustersPage = () => {
 
   async function handleAttachBastion() {
     if (!configCluster?.id) return
-    if (!bastionId) {
-      toast.error("Server is required")
-      return
-    }
+    if (!bastionId) return toast.error("Server is required")
     setBusyKey("bastion")
     try {
-      await clustersApi.attachBastion(configCluster.id, {
-        server_id: bastionId,
-      })
+      await clustersApi.attachBastion(configCluster.id, { server_id: bastionId })
       toast.success("Bastion server attached.")
       await refreshConfigCluster()
     } catch (err: any) {
@@ -534,10 +592,7 @@ export const ClustersPage = () => {
 
   async function handleAttachNodePool() {
     if (!configCluster?.id) return
-    if (!nodePoolId) {
-      toast.error("Node pool is required")
-      return
-    }
+    if (!nodePoolId) return toast.error("Node pool is required")
     setBusyKey("nodepool")
     try {
       await clustersApi.attachNodePool(configCluster.id, nodePoolId)
@@ -567,15 +622,10 @@ export const ClustersPage = () => {
 
   async function handleSetKubeconfig() {
     if (!configCluster?.id) return
-    if (!kubeconfigText.trim()) {
-      toast.error("Kubeconfig is required")
-      return
-    }
+    if (!kubeconfigText.trim()) return toast.error("Kubeconfig is required")
     setBusyKey("kubeconfig")
     try {
-      await clustersApi.setKubeconfig(configCluster.id, {
-        kubeconfig: kubeconfigText,
-      })
+      await clustersApi.setKubeconfig(configCluster.id, { kubeconfig: kubeconfigText })
       toast.success("Kubeconfig updated.")
       setKubeconfigText("")
       await refreshConfigCluster()
@@ -636,7 +686,10 @@ export const ClustersPage = () => {
               </DialogHeader>
 
               <Form {...createForm}>
-                <form className="space-y-4" onSubmit={createForm.handleSubmit(onCreateSubmit)}>
+                <form
+                  className="space-y-4"
+                  onSubmit={createForm.handleSubmit((v) => createMut.mutate(v))}
+                >
                   <FormField
                     control={createForm.control}
                     name="name"
@@ -750,7 +803,7 @@ export const ClustersPage = () => {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell>{c.docker_image + ":" + c.docker_tag}</TableCell>
+                  <TableCell>{(c.docker_image ?? "") + ":" + (c.docker_tag ?? "")}</TableCell>
                   <TableCell>
                     <ClusterSummary c={c} />
                     {c.id && (
@@ -782,7 +835,7 @@ export const ClustersPage = () => {
 
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-muted-foreground py-10 text-center">
+                  <TableCell colSpan={7} className="text-muted-foreground py-10 text-center">
                     <CircleSlash2 className="mx-auto mb-2 h-6 w-6 opacity-60" />
                     No clusters match your search.
                   </TableCell>
@@ -799,6 +852,7 @@ export const ClustersPage = () => {
           <DialogHeader>
             <DialogTitle>Edit Cluster</DialogTitle>
           </DialogHeader>
+
           <Form {...updateForm}>
             <form
               className="space-y-4"
@@ -890,7 +944,7 @@ export const ClustersPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Configure dialog (attachments + kubeconfig + node pools) */}
+      {/* Configure dialog (attachments + kubeconfig + node pools + actions/runs) */}
       <Dialog open={!!configCluster} onOpenChange={(open) => !open && setConfigCluster(null)}>
         <DialogContent className="max-h-[90vh] w-full max-w-3xl overflow-y-auto">
           <DialogHeader>
@@ -901,26 +955,144 @@ export const ClustersPage = () => {
 
           {configCluster && (
             <div className="space-y-6 py-2">
-              {/* Kubeconfig */}
+              {/* Cluster Actions */}
               <section className="space-y-2 rounded-xl border p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
-                      <FileCode2 className="h-4 w-4" />
-                      <h3 className="text-sm font-semibold">Kubeconfig</h3>
+                      <Wrench className="h-4 w-4" />
+                      <h3 className="text-sm font-semibold">Cluster Actions</h3>
                     </div>
                     <p className="text-muted-foreground text-xs">
-                      Paste the kubeconfig for this cluster. It will be stored encrypted and never
-                      returned by the API.
+                      Run admin-configured actions on this cluster. Actions are executed
+                      asynchronously.
                     </p>
                   </div>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => runsQ.refetch()}
+                    disabled={runsQ.isFetching || !configCluster?.id}
+                  >
+                    {runsQ.isFetching ? "Refreshing…" : "Refresh runs"}
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  {actionsQ.isLoading ? (
+                    <p className="text-muted-foreground text-xs">Loading actions…</p>
+                  ) : (actionsQ.data ?? []).length === 0 ? (
+                    <p className="text-muted-foreground text-xs">
+                      No actions configured yet. Create actions in Admin → Actions.
+                    </p>
+                  ) : (
+                    <div className="divide-border rounded-md border">
+                      {(actionsQ.data ?? []).map((a: DtoActionResponse) => (
+                        <div
+                          key={a.id}
+                          className="flex items-center justify-between gap-3 px-3 py-2"
+                        >
+                          <div className="flex min-w-0 flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">{a.label}</span>
+                              {a.make_target && (
+                                <code className="text-muted-foreground text-xs">
+                                  {a.make_target}
+                                </code>
+                              )}
+                            </div>
+                            {a.description && (
+                              <p className="text-muted-foreground line-clamp-2 text-xs">
+                                {a.description}
+                              </p>
+                            )}
+                          </div>
+
+                          <Button
+                            size="sm"
+                            onClick={() => a.id && handleRunAction(a.id)}
+                            disabled={!a.id || isBusy(`run:${a.id}`)}
+                          >
+                            {a.id && isBusy(`run:${a.id}`) ? "Enqueueing…" : "Run"}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-3 space-y-1">
+                  <Label className="text-xs">Recent Runs</Label>
+
+                  {runsQ.isLoading ? (
+                    <p className="text-muted-foreground text-xs">Loading runs…</p>
+                  ) : (runsQ.data ?? []).length === 0 ? (
+                    <p className="text-muted-foreground text-xs">No runs yet for this cluster.</p>
+                  ) : (
+                    <div className="overflow-x-auto rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Action</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Created</TableHead>
+                            <TableHead>Finished</TableHead>
+                            <TableHead>Error</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(runsQ.data ?? []).slice(0, 20).map((r) => (
+                            <TableRow key={r.id}>
+                              <TableCell className="min-w-[220px]">
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium">{runDisplayName(r)}</span>
+                                  {r.id && (
+                                    <code className="text-muted-foreground text-xs">
+                                      {truncateMiddle(r.id, 8)}
+                                    </code>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <RunStatusBadge status={r.status} />
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                {fmtTime((r as any).created_at)}
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                {fmtTime((r as any).finished_at)}
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                {r.error ? truncateMiddle(r.error, 80) : "-"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Kubeconfig */}
+              <section className="space-y-2 rounded-xl border p-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <FileCode2 className="h-4 w-4" />
+                    <h3 className="text-sm font-semibold">Kubeconfig</h3>
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    Paste the kubeconfig for this cluster. It will be stored encrypted and never
+                    returned by the API.
+                  </p>
                 </div>
 
                 <Textarea
                   value={kubeconfigText}
                   onChange={(e) => setKubeconfigText(e.target.value)}
                   rows={6}
-                  placeholder="apiVersion: v1&#10;clusters:&#10;  - cluster: ..."
+                  placeholder={"apiVersion: v1\nclusters:\n  - cluster: ..."}
                   className="font-mono text-xs"
                 />
 
@@ -1005,7 +1177,7 @@ export const ClustersPage = () => {
                 </div>
               </section>
 
-              {/* Control Plane Record Set (shown once we have a captainDomainId) */}
+              {/* Control Plane Record Set */}
               {captainDomainId && (
                 <section className="space-y-2 rounded-xl border p-4">
                   <div className="flex items-center justify-between gap-2">
@@ -1242,14 +1414,12 @@ export const ClustersPage = () => {
 
               {/* Node Pools */}
               <section className="space-y-2 rounded-xl border p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <h3 className="text-sm font-semibold">Node Pools</h3>
-                    <p className="text-muted-foreground text-xs">
-                      Attach node pools to this cluster. Each node pool may have its own labels,
-                      taints, and backing servers.
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="text-sm font-semibold">Node Pools</h3>
+                  <p className="text-muted-foreground text-xs">
+                    Attach node pools to this cluster. Each node pool may have its own labels,
+                    taints, and backing servers.
+                  </p>
                 </div>
 
                 <div className="flex flex-col gap-2 md:flex-row md:items-end">
@@ -1348,8 +1518,6 @@ export const ClustersPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <pre>{JSON.stringify(clustersQ.data, null, 2)}</pre>
     </div>
   )
 }
