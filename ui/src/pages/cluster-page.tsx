@@ -1,33 +1,51 @@
-import { useEffect, useMemo, useState } from "react";
-import { actionsApi } from "@/api/actions";
-import { clustersApi } from "@/api/clusters";
-import { dnsApi } from "@/api/dns";
-import { loadBalancersApi } from "@/api/loadbalancers";
-import { nodePoolsApi } from "@/api/node_pools";
-import { serversApi } from "@/api/servers";
-import type { DtoActionResponse, DtoClusterResponse, DtoClusterRunResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse } from "@/sdk";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Loader2, MapPin, Pencil, Plus, Search, Server, Wrench } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
+import { useEffect, useMemo, useState } from "react"
+import { actionsApi } from "@/api/actions"
+import { clustersApi } from "@/api/clusters"
+import { dnsApi } from "@/api/dns"
+import { loadBalancersApi } from "@/api/loadbalancers"
+import { nodePoolsApi } from "@/api/node_pools"
+import { serversApi } from "@/api/servers"
+import type {
+  DtoActionResponse,
+  DtoClusterResponse,
+  DtoClusterRunResponse,
+  DtoDomainResponse,
+  DtoLoadBalancerResponse,
+  DtoNodePoolResponse,
+  DtoRecordSetResponse,
+  DtoServerResponse
+} from "@/sdk"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  AlertCircle,
+  CheckCircle2,
+  CircleSlash2,
+  FileCode2,
+  Globe2,
+  Loader2,
+  MapPin,
+  Pencil,
+  Plus,
+  Search,
+  Server,
+  Wrench
+} from "lucide-react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
 
-
-import { truncateMiddle } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-
-
-
+import { truncateMiddle } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
 
 
 // --- Schemas ---
@@ -946,13 +964,12 @@ export const ClustersPage = () => {
 
       {/* Configure dialog (attachments + kubeconfig + node pools + actions/runs) */}
       <Dialog open={!!configCluster} onOpenChange={(open) => !open && setConfigCluster(null)}>
-        <DialogContent className="max-h-[90vh] w-full max-w-3xl overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl lg:max-w-250 ">
           <DialogHeader>
             <DialogTitle>
               Configure Cluster{configCluster?.name ? `: ${configCluster.name}` : ""}
             </DialogTitle>
           </DialogHeader>
-
           {configCluster && (
             <div className="space-y-6 py-2">
               {/* Cluster Actions */}
