@@ -5324,9 +5324,9 @@ tree-sitter@=0.22.4:
     node-gyp-build "^4.8.4"
 
 ts-api-utils@^2.1.0:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/ts-api-utils/-/ts-api-utils-2.1.1.tgz#c2858fb9af3f199cd1ed4d009ca0330554550dff"
-  integrity sha512-2BNpcoLh8/tkyDc3mSdN2+VHh/kYzzAVSZGfYcVnlUvQzLl39AIAAp6ZwDuN3lnk6QQTwf1VxNe8jjH72bi1JQ==
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/ts-api-utils/-/ts-api-utils-2.2.0.tgz#5ebcda090c1656b628a53d08915c8e5c325d8452"
+  integrity sha512-L6f5oQRAoLU1RwXz0Ab9mxsE7LtxeVB6AIR1lpkZMsOyg/JXeaxBaXa/FVCBZyNr9S9I4wkHrlZTklX+im+WMw==
 
 ts-mixer@^6.0.3, ts-mixer@^6.0.4:
   version "6.0.4"
