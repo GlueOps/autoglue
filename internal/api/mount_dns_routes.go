@@ -20,6 +20,7 @@ func mountDNSRoutes(r chi.Router, db *gorm.DB, authOrg func(http.Handler) http.H
 
 		d.Get("/domains/{domain_id}/records", handlers.ListRecordSets(db))
 		d.Post("/domains/{domain_id}/records", handlers.CreateRecordSet(db))
+		d.Get("/records/{id}", handlers.GetRecordSet(db))
 		d.Patch("/records/{id}", handlers.UpdateRecordSet(db))
 		d.Delete("/records/{id}", handlers.DeleteRecordSet(db))
 	})

@@ -503,6 +503,51 @@ func ListRecordSets(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
+
+// GetRecordSet godoc
+//
+// @ID         GetRecordSet
+// @Summary    Get a record set (org scoped)
+// @Tags       DNS
+// @Produce    json
+// @Param      X-Org-ID header string false "Organization UUID"
+// @Param      id       path   string true  "Record Set ID (UUID)"
+// @Success    200 {object} dto.RecordSetResponse
+// @Failure    403 {string} string "organization required"
+// @Failure    404 {string} string "not found"
+// @Router     /dns/records/{id} [get]
+func GetRecordSet(db *gorm.DB) http.HandlerFunc {
+  return func(w http.ResponseWriter, r *http.Request) {
+    orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
+    if !ok {
+      utils.WriteError(w, http.StatusForbidden, "org_required", "specify X-Org-ID")
+      return
+    }
+
+    id, err := uuid.Parse(chi.URLParam(r, "id"))
+    if err != nil {
+      utils.WriteError(w, http.StatusBadRequest, "bad_id", "invalid UUID")
+      return
+    }
+
+	var row models.RecordSet
+    if err := db.
+      Joins("Domain").
+      Where(`record_sets.id = ? AND "Domain"."organization_id" = ?`, id, orgID).
+      First(&row).Error; err != nil {
+
+      if errors.Is(err, gorm.ErrRecordNotFound) {
+        utils.WriteError(w, http.StatusNotFound, "not_found", "record set not found")
+        return
+      }
+      utils.WriteError(w, http.StatusInternalServerError, "db_error", err.Error())
+      return
+    }
+
+    utils.WriteJSON(w, http.StatusOK, recordOut(&row))
+  }
+}
+
 // CreateRecordSet godoc
 //
 //	@ID			CreateRecordSet
