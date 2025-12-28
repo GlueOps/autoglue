@@ -15,6 +15,7 @@ import (
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
@@ -23,6 +24,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	r53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	r53types "github.com/aws/aws-sdk-go-v2/service/route53/types"
+	"github.com/aws/smithy-go"
+	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 /************* args & small DTOs *************/
@@ -46,6 +49,9 @@ const externalDNSPoisonOwner = "autoglue-lock"
 
 // ExternalDNS poison content – fake owner so real external-dns skips it.
 const externalDNSPoisonValue = "heritage=external-dns,external-dns/owner=" + externalDNSPoisonOwner + ",external-dns/resource=manual/autoglue"
+
+// Default TTL for non-alias records (alias not supported in this reconciler)
+const defaultRecordTTLSeconds int64 = 300
 
 /************* entrypoint worker *************/
 
@@ -225,7 +231,14 @@ func processPendingRecordsForDomain(ctx context.Context, db *gorm.DB, d *models.
 	applied := 0
 	for i := range records {
 		if err := applyRecord(ctx, db, r53c, d, &records[i]); err != nil {
-			log.Error().Err(err).Str("rr", records[i].Name).Msg("[dns] apply record failed")
+			log.Error().
+				Err(err).
+				Str("zone_id", d.ZoneID).
+				Str("domain", d.DomainName).
+				Str("record_id", records[i].ID.String()).
+				Str("name", records[i].Name).
+				Str("type", strings.ToUpper(records[i].Type)).
+				Msg("[dns] apply record failed")
 			_ = setRecordFailed(db, &records[i], err)
 			continue
 		}
@@ -249,12 +262,24 @@ func applyRecord(ctx context.Context, db *gorm.DB, r53c *r53.Client, d *models.D
 	mname := markerName(fq)
 	expected := buildMarkerValue(d.OrganizationID.String(), r.ID.String(), r.Fingerprint)
 
+	logCtx := log.With().
+		Str("zone_id", zoneID).
+		Str("domain", d.DomainName).
+		Str("fqdn", fq).
+		Str("rr_type", rt).
+		Str("record_id", r.ID.String()).
+		Str("org_id", d.OrganizationID.String()).
+		Logger()
+
+	start := time.Now()
+
 	// ---- ExternalDNS preflight ----
 	extOwned, err := hasExternalDNSOwnership(ctx, r53c, zoneID, fq, rt)
 	if err != nil {
 		return fmt.Errorf("external_dns_lookup: %w", err)
 	}
 	if extOwned {
+		logCtx.Warn().Msg("[dns] ownership conflict: external-dns claims this record")
 		r.Owner = "external"
 		_ = db.Save(r).Error
 		return fmt.Errorf("ownership_conflict: external-dns claims %s; refusing to modify", strings.TrimSuffix(fq, "."))
@@ -265,6 +290,7 @@ func applyRecord(ctx context.Context, db *gorm.DB, r53c *r53.Client, d *models.D
 	if err != nil {
 		return fmt.Errorf("marker lookup: %w", err)
 	}
+
 	hasForeignOwner := false
 	hasOurExact := false
 	for _, v := range markerVals {
@@ -279,25 +305,26 @@ func applyRecord(ctx context.Context, db *gorm.DB, r53c *r53.Client, d *models.D
 			hasForeignOwner = true
 		}
 	}
+
+	logCtx.Debug().
+		Bool("externaldns_owned", extOwned).
+		Int("marker_txt_count", len(markerVals)).
+		Bool("marker_has_our_exact", hasOurExact).
+		Bool("marker_has_foreign", hasForeignOwner).
+		Msg("[dns] ownership preflight")
+
 	if hasForeignOwner {
+		logCtx.Warn().Msg("[dns] ownership conflict: foreign _autoglue marker")
 		r.Owner = "external"
 		_ = db.Save(r).Error
 		return fmt.Errorf("ownership_conflict: marker for %s is owned by another controller; refusing to modify", strings.TrimSuffix(fq, "."))
 	}
 
-	// Build RR change (UPSERT)
-	rrChange := r53types.Change{
-		Action: r53types.ChangeActionUpsert,
-		ResourceRecordSet: &r53types.ResourceRecordSet{
-			Name: aws.String(fq),
-			Type: r53types.RRType(rt),
-		},
-	}
-
 	// Decode user values
 	var userVals []string
-	if len(r.Values) > 0 {
-		if err := jsonUnmarshalStrict([]byte(r.Values), &userVals); err != nil {
+	rawVals := strings.TrimSpace(string(r.Values))
+	if rawVals != "" && rawVals != "null" {
+		if err := jsonUnmarshalStrict([]byte(rawVals), &userVals); err != nil {
 			return fmt.Errorf("values decode: %w", err)
 		}
 	}
@@ -306,15 +333,38 @@ func applyRecord(ctx context.Context, db *gorm.DB, r53c *r53.Client, d *models.D
 	recs := make([]r53types.ResourceRecord, 0, len(userVals))
 	for _, v := range userVals {
 		v = strings.TrimSpace(v)
+		if v == "" {
+			continue
+		}
 		if rt == "TXT" && !(strings.HasPrefix(v, `"`) && strings.HasSuffix(v, `"`)) {
 			v = strconv.Quote(v)
 		}
 		recs = append(recs, r53types.ResourceRecord{Value: aws.String(v)})
 	}
-	rrChange.ResourceRecordSet.ResourceRecords = recs
-	if r.TTL != nil {
-		ttl := int64(*r.TTL)
-		rrChange.ResourceRecordSet.TTL = aws.Int64(ttl)
+
+	// Alias is NOT supported - enforce at least one value for all record types we manage
+	if len(recs) == 0 {
+		logCtx.Warn().
+			Str("raw_values", truncateForLog(string(r.Values), 240)).
+			Int("decoded_value_count", len(userVals)).
+			Msg("[dns] invalid record: no values (alias not supported)")
+		return fmt.Errorf("invalid_record: %s %s requires at least one value (alias not supported)", strings.TrimSuffix(fq, "."), rt)
+	}
+
+	ttl := defaultRecordTTLSeconds
+	if r.TTL != nil && *r.TTL > 0 {
+		ttl = int64(*r.TTL)
+	}
+
+	// Build RR change (UPSERT)
+	rrChange := r53types.Change{
+		Action: r53types.ChangeActionUpsert,
+		ResourceRecordSet: &r53types.ResourceRecordSet{
+			Name:            aws.String(fq),
+			Type:            r53types.RRType(rt),
+			TTL:             aws.Int64(ttl),
+			ResourceRecords: recs,
+		},
 	}
 
 	// Build marker TXT change (UPSERT)
@@ -323,7 +373,7 @@ func applyRecord(ctx context.Context, db *gorm.DB, r53c *r53.Client, d *models.D
 		ResourceRecordSet: &r53types.ResourceRecordSet{
 			Name: aws.String(mname),
 			Type: r53types.RRTypeTxt,
-			TTL:  aws.Int64(300),
+			TTL:  aws.Int64(defaultRecordTTLSeconds),
 			ResourceRecords: []r53types.ResourceRecord{
 				{Value: aws.String(strconv.Quote(expected))},
 			},
@@ -337,13 +387,25 @@ func applyRecord(ctx context.Context, db *gorm.DB, r53c *r53.Client, d *models.D
 	changes := []r53types.Change{rrChange, markerChange}
 	changes = append(changes, poisonChanges...)
 
+	// Log what we are about to send
+	logCtx.Debug().
+		Interface("route53_change_batch", toLogChangeBatch(zoneID, changes)).
+		Msg("[dns] route53 request preview")
+
 	_, err = r53c.ChangeResourceRecordSets(ctx, &r53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(zoneID),
 		ChangeBatch:  &r53types.ChangeBatch{Changes: changes},
 	})
 	if err != nil {
+		logAWSError(logCtx, err)
+		logCtx.Info().Dur("elapsed", time.Since(start)).Msg("[dns] apply failed")
 		return err
 	}
+
+	logCtx.Info().
+		Dur("elapsed", time.Since(start)).
+		Int("change_count", len(changes)).
+		Msg("[dns] apply ok")
 
 	// Success → mark ready & ownership
 	r.Status = "ready"
@@ -352,6 +414,7 @@ func applyRecord(ctx context.Context, db *gorm.DB, r53c *r53.Client, d *models.D
 	if err := db.Save(r).Error; err != nil {
 		return err
 	}
+
 	_ = hasOurExact // could be used to skip marker write in future
 	return nil
 }
@@ -568,7 +631,7 @@ func buildExternalDNSPoisonTXTChanges(fqdn, rrType string) []r53types.Change {
 			ResourceRecordSet: &r53types.ResourceRecordSet{
 				Name: aws.String(n),
 				Type: r53types.RRTypeTxt,
-				TTL:  aws.Int64(300),
+				TTL:  aws.Int64(defaultRecordTTLSeconds),
 				ResourceRecords: []r53types.ResourceRecord{
 					{Value: aws.String(val)},
 				},
@@ -594,4 +657,126 @@ func jsonUnmarshalStrict(b []byte, dst any) error {
 		return errors.New("empty json")
 	}
 	return json.Unmarshal(b, dst)
+}
+
+/************* logging DTOs & helpers *************/
+
+type logRR struct {
+	Value string `json:"value"`
+}
+
+type logRRSet struct {
+	Action         string  `json:"action"`
+	Name           string  `json:"name"`
+	Type           string  `json:"type"`
+	TTL            *int64  `json:"ttl,omitempty"`
+	Records        []logRR `json:"records,omitempty"`
+	RecordCount    int     `json:"record_count"`
+	HasAliasTarget bool    `json:"has_alias_target"`
+	SetIdentifier  *string `json:"set_identifier,omitempty"`
+}
+
+type logChangeBatch struct {
+	HostedZoneID string     `json:"hosted_zone_id"`
+	ChangeCount  int        `json:"change_count"`
+	Changes      []logRRSet `json:"changes"`
+}
+
+func truncateForLog(s string, max int) string {
+	s = strings.TrimSpace(s)
+	if max <= 0 || len(s) <= max {
+		return s
+	}
+	return s[:max] + "…"
+}
+
+func toLogChangeBatch(zoneID string, changes []r53types.Change) logChangeBatch {
+	out := logChangeBatch{
+		HostedZoneID: zoneID,
+		ChangeCount:  len(changes),
+		Changes:      make([]logRRSet, 0, len(changes)),
+	}
+
+	for _, ch := range changes {
+		if ch.ResourceRecordSet == nil {
+			continue
+		}
+		rrs := ch.ResourceRecordSet
+		lc := logRRSet{
+			Action:         string(ch.Action),
+			Name:           aws.ToString(rrs.Name),
+			Type:           string(rrs.Type),
+			TTL:            rrs.TTL,
+			HasAliasTarget: rrs.AliasTarget != nil,
+			SetIdentifier:  rrs.SetIdentifier,
+			RecordCount:    len(rrs.ResourceRecords),
+			Records:        make([]logRR, 0, min(len(rrs.ResourceRecords), 5)),
+		}
+
+		// Log up to first 5 values (truncate each) to avoid log bloat / secrets
+		for i, rr := range rrs.ResourceRecords {
+			if i >= 5 {
+				break
+			}
+			lc.Records = append(lc.Records, logRR{Value: truncateForLog(aws.ToString(rr.Value), 160)})
+		}
+
+		out.Changes = append(out.Changes, lc)
+	}
+	return out
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// logAWSError extracts useful smithy/HTTP metadata (status code + request id + api code) into logs.
+// logAWSError extracts useful smithy/HTTP metadata (status code + request id + api code) into logs.
+func logAWSError(l zerolog.Logger, err error) {
+	// Add operation context if present
+	var opErr *smithy.OperationError
+	if errors.As(err, &opErr) {
+		l = l.With().
+			Str("aws_service", opErr.ServiceID).
+			Str("aws_operation", opErr.OperationName).
+			Logger()
+		err = opErr.Unwrap()
+	}
+
+	// HTTP status + request id (smithy-go transport/http)
+	var re *smithyhttp.ResponseError
+	if errors.As(err, &re) {
+		status := re.HTTPStatusCode()
+
+		reqID := ""
+		if resp := re.HTTPResponse(); resp != nil && resp.Header != nil {
+			reqID = resp.Header.Get("x-amzn-RequestId")
+			if reqID == "" {
+				reqID = resp.Header.Get("x-amz-request-id")
+			}
+		}
+
+		ev := l.Error().Int("http_status", status).Err(err)
+		if reqID != "" {
+			ev = ev.Str("aws_request_id", reqID)
+		}
+		ev.Msg("[dns] aws route53 call failed")
+		return
+	}
+
+	// API error code/message (best-effort)
+	var apiErr smithy.APIError
+	if errors.As(err, &apiErr) {
+		l.Error().
+			Str("aws_error_code", apiErr.ErrorCode()).
+			Str("aws_error_message", apiErr.ErrorMessage()).
+			Err(err).
+			Msg("[dns] aws route53 api error")
+		return
+	}
+
+	l.Error().Err(err).Msg("[dns] aws route53 error")
 }

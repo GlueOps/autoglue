@@ -506,16 +506,16 @@ func ListRecordSets(db *gorm.DB) http.HandlerFunc {
 
 // GetRecordSet godoc
 //
-// @ID         GetRecordSet
-// @Summary    Get a record set (org scoped)
-// @Tags       DNS
-// @Produce    json
-// @Param      X-Org-ID header string false "Organization UUID"
-// @Param      id       path   string true  "Record Set ID (UUID)"
-// @Success    200 {object} dto.RecordSetResponse
-// @Failure    403 {string} string "organization required"
-// @Failure    404 {string} string "not found"
-// @Router     /dns/records/{id} [get]
+//	@ID			GetRecordSet
+//	@Summary	Get a record set (org scoped)
+//	@Tags		DNS
+//	@Produce	json
+//	@Param		X-Org-ID	header		string	false	"Organization UUID"
+//	@Param		id			path		string	true	"Record Set ID (UUID)"
+//	@Success	200			{object}	dto.RecordSetResponse
+//	@Failure	403			{string}	string	"organization required"
+//	@Failure	404			{string}	string	"not found"
+//	@Router		/dns/records/{id} [get]
 func GetRecordSet(db *gorm.DB) http.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request) {
     orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
