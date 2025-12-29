@@ -305,6 +305,7 @@ export const MePage = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Id</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Domain</TableHead>
                     </TableRow>
@@ -312,6 +313,7 @@ export const MePage = () => {
                   <TableBody>
                     {meQ.data?.organizations?.map((o) => (
                       <TableRow key={o.id}>
+                        <TableCell>{o.id}</TableCell>
                         <TableCell>{o.name}</TableCell>
                         <TableCell>{(o as any).domain ?? "—"}</TableCell>
                       </TableRow>
