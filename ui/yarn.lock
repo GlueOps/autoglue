@@ -291,9 +291,9 @@
   integrity sha512-P5LUNhtbj6YfI3iJjw5EL9eUAG6OitD0W3fWQcpQjDRc/QIsL0tRNuO1PcDvPccWL1fSTXXdE1ds+l95DV/OFA==
 
 "@dotenvx/dotenvx@^1.48.4":
-  version "1.51.3"
-  resolved "https://registry.yarnpkg.com/@dotenvx/dotenvx/-/dotenvx-1.51.3.tgz#97e17f56ec542e4ef873451a196d85d0b9eb7b66"
-  integrity sha512-tORlLVty0xNeD0dDnq1ODhF3ZNcMzCgj5i/q0VRXzW+FXT2CzAgLqwG1f4tVWC2CBBOy5daj1XD8nzkZC7jkhQ==
+  version "1.51.4"
+  resolved "https://registry.yarnpkg.com/@dotenvx/dotenvx/-/dotenvx-1.51.4.tgz#d3af0390e5d239a8415e5aceb17391288361938c"
+  integrity sha512-AoziS8lRQ3ew/lY5J4JSlzYSN9Fo0oiyMBY37L3Bwq4mOQJT5GSrdZYLFPt6pH1LApDI3ZJceNyx+rHRACZSeQ==
   dependencies:
     commander "^11.1.0"
     dotenv "^17.2.1"
