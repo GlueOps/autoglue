@@ -223,7 +223,7 @@ func RunClusterAction(db *gorm.DB, jobs *bg.Jobs) http.HandlerFunc {
 			run.ID.String(),
 			"cluster_action",
 			args,
-			archer.WithMaxRetries(3),
+			archer.WithMaxRetries(0),
 		)
 
 		if enqueueErr != nil {
