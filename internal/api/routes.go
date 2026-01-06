@@ -37,7 +37,6 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs, studio http.Handler) http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(SecurityHeaders)
 	r.Use(requestBodyLimit(10 << 20))
-	r.Use(httprate.LimitByIP(100, 1*time.Minute))
 	r.Use(middleware.StripSlashes)
 
 	allowed := getAllowedOrigins()
