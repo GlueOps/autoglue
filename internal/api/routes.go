@@ -16,6 +16,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
 
 	"gorm.io/gorm"
 
@@ -36,6 +37,7 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs, studio http.Handler) http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(SecurityHeaders)
 	r.Use(requestBodyLimit(10 << 20))
+	r.Use(httprate.LimitByIP(1000, 1*time.Minute))
 	r.Use(middleware.StripSlashes)
 
 	allowed := getAllowedOrigins()
