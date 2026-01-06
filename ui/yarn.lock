@@ -3491,10 +3491,10 @@ forwarded@0.2.0:
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.2.0.tgz#2269936428aad4c15c7ebe9779a84bf0b2a81811"
   integrity sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==
 
-framer-motion@^12.24.5:
-  version "12.24.5"
-  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-12.24.5.tgz#a1709fd0333e438151bab42f6e1ac67de72adb6c"
-  integrity sha512-AVvdvRFg9btOo1HI/cj1p4+L1QOHg4jzn9x1hrEdo/eKTxEC0EBKCkxE4sTvdL9S4psz/ipin4Li/Xm5g4U9AQ==
+framer-motion@^12.24.7:
+  version "12.24.7"
+  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-12.24.7.tgz#0425cf4f1a3d8320b05f26f963a777ed7f08829d"
+  integrity sha512-EolFLm7NdEMhWO/VTMZ0LlR4fLHGDiJItTx3i8dlyQooOOBoYAaysK4paGD4PrwqnoDdeDOS+TxnSBIAnNHs3w==
   dependencies:
     motion-dom "^12.24.3"
     motion-utils "^12.23.28"
@@ -4247,11 +4247,11 @@ motion-utils@^12.23.28:
   integrity sha512-0W6cWd5Okoyf8jmessVK3spOmbyE0yTdNKujHctHH9XdAE4QDuZ1/LjSXC68rrhsJU+TkzXURC5OdSWh9ibOwQ==
 
 motion@^12.23.26:
-  version "12.24.5"
-  resolved "https://registry.yarnpkg.com/motion/-/motion-12.24.5.tgz#e55e63a40b925c8c277a652efe0d1e3926984e97"
-  integrity sha512-aM8qFpDrBkOT4VtWjO1WijRnlHRYwxJNJ2R/cps9Zrj1c0Me0OwUAvhmmVE/clZY30LhCPm30lzYud+uF1CVWA==
+  version "12.24.7"
+  resolved "https://registry.yarnpkg.com/motion/-/motion-12.24.7.tgz#d7cda761225357dbb861c6d6de473a74191cbdf6"
+  integrity sha512-0jOoqFlQ7JBvAcRhRv28pwUgZ1xw9WS4+tCU6aqYjxgiNVZCVi34ED2cihW3EgjIIWPBoZJis5og1mx/LmQWVQ==
   dependencies:
-    framer-motion "^12.24.5"
+    framer-motion "^12.24.7"
     tslib "^2.4.0"
 
 ms@^2.1.3:
