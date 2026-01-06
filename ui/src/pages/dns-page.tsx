@@ -128,6 +128,10 @@ const credLabel = (c: DtoCredentialOut) => {
 }
 
 // ---------- zod schemas ----------
+// IMPORTANT (Zod v4):
+// - `.partial()` cannot be used on object schemas containing refinements/effects.
+// Your schemas contain effects via `.transform(...)` and refinements via `.superRefine(...)` / `.refine(...)`,
+// so we define UPDATE schemas explicitly instead of using `.partial()`.
 
 const createDomainSchema = z.object({
   domain_name: z
@@ -144,8 +148,22 @@ const createDomainSchema = z.object({
 })
 type CreateDomainValues = z.input<typeof createDomainSchema>
 
-const updateDomainSchema = createDomainSchema.partial()
-type UpdateDomainValues = z.infer<typeof updateDomainSchema>
+// Update: all optional; replicate the normalization safely
+const updateDomainSchema = z.object({
+  domain_name: z
+    .string()
+    .min(1, "Domain is required")
+    .max(253)
+    .transform((s) => s.trim().replace(/\.$/, "").toLowerCase())
+    .optional(),
+  credential_id: z.string().uuid("Pick a credential").optional(),
+  zone_id: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (v ? v.trim() : undefined)),
+})
+type UpdateDomainValues = z.input<typeof updateDomainSchema>
 
 const ttlSchema = z
   .union([
@@ -182,7 +200,42 @@ const createRecordSchema = z
   })
 type CreateRecordValues = z.input<typeof createRecordSchema>
 
-const updateRecordSchema = createRecordSchema.partial()
+// Update: all optional. Only enforce "values required"/"CNAME exactly one" if valuesCsv is present.
+// Only validate ttl if present (ttlSchema already optional).
+const updateRecordSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "Name required")
+      .max(253)
+      .transform((s) => s.trim().replace(/\.$/, "").toLowerCase())
+      .optional(),
+    type: z.enum(rrtypes as [string, ...string[]]).optional(),
+    ttl: ttlSchema,
+    valuesCsv: z.string().optional(),
+  })
+  .superRefine((vals, ctx) => {
+    const hasValues = typeof vals.valuesCsv !== "undefined"
+    if (!hasValues) return
+
+    const arr = parseCommaList(vals.valuesCsv ?? "")
+    if (arr.length === 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["valuesCsv"],
+        message: "At least one value is required",
+      })
+    }
+
+    // We can only enforce CNAME rule if `type` is provided in patch (or you can enforce always if you want).
+    if (vals.type === "CNAME" && arr.length !== 1) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["valuesCsv"],
+        message: "CNAME requires exactly one value",
+      })
+    }
+  })
 type UpdateRecordValues = z.input<typeof updateRecordSchema>
 
 // ---------- main ----------
@@ -224,12 +277,9 @@ export const DnsPage = () => {
   const r53Credentials = useMemo(() => (credentialQ.data ?? []).filter(isR53), [credentialQ.data])
 
   useEffect(() => {
-    const setSelectedDns = () => {
-      if (!selected && domainsQ.data && domainsQ.data.length) {
-        setSelected(domainsQ.data[0]!)
-      }
+    if (!selected && domainsQ.data && domainsQ.data.length) {
+      setSelected(domainsQ.data[0]!)
     }
-    setSelectedDns()
   }, [domainsQ.data, selected])
 
   const filteredDomains = useMemo(() => {
@@ -237,7 +287,7 @@ export const DnsPage = () => {
     if (!filter.trim()) return list
     const f = filter.toLowerCase()
     return list.filter((d) =>
-      [d.domain_name, d.zone_id, d.status, d.domain_name]
+      [d.domain_name, d.zone_id, d.status]
         .filter(Boolean)
         .map((x) => String(x).toLowerCase())
         .some((s) => s.includes(f))
@@ -271,6 +321,7 @@ export const DnsPage = () => {
 
   const editDomainForm = useForm<UpdateDomainValues>({
     resolver: zodResolver(updateDomainSchema),
+    defaultValues: {},
   })
 
   const openEditDomain = (d: DtoDomainResponse) => {
@@ -283,10 +334,20 @@ export const DnsPage = () => {
     setEditDomOpen(true)
   }
 
+  // Build PATCH body (don’t send empty strings)
+  const buildUpdateDomainBody = (vals: UpdateDomainValues): DtoUpdateDomainRequest => {
+    const body: any = {}
+    if (typeof vals.domain_name !== "undefined") body.domain_name = vals.domain_name
+    if (typeof vals.credential_id !== "undefined" && vals.credential_id !== "")
+      body.credential_id = vals.credential_id
+    if (typeof vals.zone_id !== "undefined" && vals.zone_id !== "") body.zone_id = vals.zone_id
+    return body as DtoUpdateDomainRequest
+  }
+
   const updateDomainMut = useMutation({
     mutationFn: (vals: UpdateDomainValues) => {
       if (!selected) throw new Error("No domain selected")
-      return dnsApi.updateDomain(selected.id!, vals as unknown as DtoUpdateDomainRequest)
+      return dnsApi.updateDomain(selected.id!, buildUpdateDomainBody(vals))
     },
     onSuccess: async () => {
       toast.success("Domain updated")
@@ -338,7 +399,6 @@ export const DnsPage = () => {
       const body: DtoCreateRecordSetRequest = {
         name: vals.name,
         type: vals.type,
-        // omit ttl when empty/undefined
         ...(vals.ttl ? { ttl: vals.ttl as unknown as number } : {}),
         values: parseCommaList(vals.valuesCsv ?? ""),
       }
@@ -356,6 +416,7 @@ export const DnsPage = () => {
 
   const editRecForm = useForm<UpdateRecordValues>({
     resolver: zodResolver(updateRecordSchema),
+    defaultValues: {},
   })
 
   const openEditRecord = (r: DtoRecordSetResponse) => {
@@ -374,15 +435,12 @@ export const DnsPage = () => {
     mutationFn: async (vals: UpdateRecordValues) => {
       if (!editingRecord) throw new Error("No record selected")
       const body: DtoUpdateRecordSetRequest = {}
-      if (vals.name !== undefined) body.name = vals.name
-      if (vals.type !== undefined) body.type = vals.type
-      if (vals.ttl !== undefined && vals.ttl !== null) {
-        // if blank string came through it would have been filtered; when undefined, omit
-        body.ttl = vals.ttl as unknown as number | undefined
-      }
-      if (vals.valuesCsv !== undefined) {
-        body.values = parseCommaList(vals.valuesCsv)
-      }
+
+      if (typeof vals.name !== "undefined") body.name = vals.name
+      if (typeof vals.type !== "undefined") body.type = vals.type
+      if (typeof vals.ttl !== "undefined") body.ttl = vals.ttl as unknown as number | undefined
+      if (typeof vals.valuesCsv !== "undefined") body.values = parseCommaList(vals.valuesCsv)
+
       return dnsApi.updateRecordSetsByDomain(editingRecord.id!, body)
     },
     onSuccess: async () => {
@@ -556,7 +614,14 @@ export const DnsPage = () => {
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center justify-end gap-2">
-                        <Button size="icon" variant="ghost" onClick={() => openEditDomain(d)}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openEditDomain(d)
+                          }}
+                        >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
@@ -650,10 +715,7 @@ export const DnsPage = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Type</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value as string}
-                              >
+                              <Select onValueChange={field.onChange} value={field.value as string}>
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue />
@@ -969,7 +1031,7 @@ export const DnsPage = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                      <Select onValueChange={field.onChange} value={field.value as string}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />

@@ -68,6 +68,10 @@ const AWS_ALLOWED_SERVICES = ["route53", "s3", "ec2", "iam", "rds", "dynamodb"] 
 type AwsSvc = (typeof AWS_ALLOWED_SERVICES)[number]
 
 // -------------------- Schemas --------------------
+// Zod v4 gotchas you hit:
+// - .partial() cannot be used if the object contains refinements/effects (often true once you have transforms/refines).
+// - .extend() cannot overwrite keys after refinements (requires .safeExtend()).
+// Easiest fix: define CREATE and UPDATE schemas separately (no .partial(), no post-refinement .extend()).
 
 const createCredentialSchema = z
   .object({
@@ -91,6 +95,16 @@ const createCredentialSchema = z
     secret: z.any(),
   })
   .superRefine((val, ctx) => {
+    // scope required unless provider scope
+    if (val.scope_kind !== "provider" && !val.scope) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["scope"],
+        message: `scope is required`,
+      })
+    }
+
+    // AWS scope checks
     if (val.credential_provider === "aws") {
       if (val.scope_kind === "service") {
         const svc = (val.scope as any)?.service
@@ -112,23 +126,25 @@ const createCredentialSchema = z
           })
         }
       }
-      if (val.kind === "aws_access_key") {
-        const sk = val.secret ?? {}
-        const id = sk.access_key_id
-        if (typeof id !== "string" || !/^[A-Z0-9]{20}$/.test(id)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["secret"],
-            message: `access_key_id must be 20 chars (A-Z0-9)`,
-          })
-        }
-        if (typeof sk.secret_access_key !== "string" || sk.secret_access_key.length < 10) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["secret"],
-            message: `secret_access_key is required`,
-          })
-        }
+    }
+
+    // secret requiredness by kind (create always validates)
+    if (val.kind === "aws_access_key") {
+      const sk = val.secret ?? {}
+      const id = sk.access_key_id
+      if (typeof id !== "string" || !/^[A-Z0-9]{20}$/.test(id)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["secret"],
+          message: `access_key_id must be 20 chars (A-Z0-9)`,
+        })
+      }
+      if (typeof sk.secret_access_key !== "string" || sk.secret_access_key.length < 10) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["secret"],
+          message: `secret_access_key is required`,
+        })
       }
     }
 
@@ -142,6 +158,7 @@ const createCredentialSchema = z
         })
       }
     }
+
     if (val.kind === "basic_auth") {
       const s = val.secret ?? {}
       if (!s.username || !s.password) {
@@ -152,6 +169,7 @@ const createCredentialSchema = z
         })
       }
     }
+
     if (val.kind === "oauth2") {
       const s = val.secret ?? {}
       if (!s.client_id || !s.client_secret || !s.refresh_token) {
@@ -162,30 +180,144 @@ const createCredentialSchema = z
         })
       }
     }
-
-    if (val.scope_kind !== "provider" && !val.scope) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["scope"],
-        message: `scope is required`,
-      })
-    }
   })
 
 type CreateCredentialValues = z.input<typeof createCredentialSchema>
-const updateCredentialSchema = createCredentialSchema.partial().extend({
-  name: z.string().min(1, "Name is required").max(100).optional(),
-})
+
+// UPDATE schema: all fields optional, and validations are "patch-friendly".
+const updateCredentialSchema = z
+  .object({
+    credential_provider: z
+      .enum(["aws", "cloudflare", "hetzner", "digitalocean", "generic"])
+      .optional(),
+    kind: z.enum(["aws_access_key", "api_token", "basic_auth", "oauth2"]).optional(),
+    schema_version: z.number().optional(),
+    name: z.string().min(1, "Name is required").max(100).optional(),
+    scope_kind: z.enum(["provider", "service", "resource"]).optional(),
+    scope_version: z.number().optional(),
+    scope: z.any().optional(),
+    // allow "" so your form can keep empty strings; buildUpdateBody will drop them
+    account_id: z.string().optional().or(z.literal("")),
+    region: z.string().optional().or(z.literal("")),
+    secret: z.any().optional(),
+  })
+  .superRefine((val, ctx) => {
+    // If scope_kind is being changed to non-provider, require scope in the patch
+    if (typeof val.scope_kind !== "undefined") {
+      if (val.scope_kind !== "provider" && !val.scope) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["scope"],
+          message: `scope is required`,
+        })
+      }
+    }
+
+    // AWS scope checks only if we have enough info
+    if (val.credential_provider === "aws") {
+      if (val.scope_kind === "service" && typeof val.scope !== "undefined") {
+        const svc = (val.scope as any)?.service
+        if (!AWS_ALLOWED_SERVICES.includes(svc)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["scope"],
+            message: `For AWS service scope, "service" must be one of: ${AWS_ALLOWED_SERVICES.join(", ")}`,
+          })
+        }
+      }
+      if (val.scope_kind === "resource" && typeof val.scope !== "undefined") {
+        const arn = (val.scope as any)?.arn
+        if (typeof arn !== "string" || !arn.startsWith("arn:")) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["scope"],
+            message: `For AWS resource scope, "arn" must start with "arn:"`,
+          })
+        }
+      }
+    }
+
+    // Secret validation on update:
+    // - only validate if rotating secret OR changing kind
+    // - if rotating secret but kind is NOT provided, skip kind-specific checks (backend can validate)
+    const rotatingSecret = typeof val.secret !== "undefined"
+    const changingKind = typeof val.kind !== "undefined"
+    if (!rotatingSecret && !changingKind) return
+    if (!val.kind) return
+
+    if (val.kind === "aws_access_key") {
+      const sk = val.secret ?? {}
+      const id = sk.access_key_id
+      if (typeof id !== "string" || !/^[A-Z0-9]{20}$/.test(id)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["secret"],
+          message: `access_key_id must be 20 chars (A-Z0-9)`,
+        })
+      }
+      if (typeof sk.secret_access_key !== "string" || sk.secret_access_key.length < 10) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["secret"],
+          message: `secret_access_key is required`,
+        })
+      }
+    }
+
+    if (val.kind === "api_token") {
+      const token = (val.secret ?? {}).token
+      if (!token) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["secret"],
+          message: `token is required`,
+        })
+      }
+    }
+
+    if (val.kind === "basic_auth") {
+      const s = val.secret ?? {}
+      if (!s.username || !s.password) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["secret"],
+          message: `username and password are required`,
+        })
+      }
+    }
+
+    if (val.kind === "oauth2") {
+      const s = val.secret ?? {}
+      if (!s.client_id || !s.client_secret || !s.refresh_token) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["secret"],
+          message: `client_id, client_secret, and refresh_token are required`,
+        })
+      }
+    }
+  })
+
+type UpdateCredentialValues = z.input<typeof updateCredentialSchema>
 
 // -------------------- Helpers --------------------
 
 function pretty(obj: unknown) {
   try {
-    return JSON.stringify(JSON.parse(obj as string), null, 2)
+    if (obj == null) return ""
+    if (typeof obj === "string") {
+      try {
+        return JSON.stringify(JSON.parse(obj), null, 2)
+      } catch {
+        return obj
+      }
+    }
+    return JSON.stringify(obj, null, 2)
   } catch {
     return ""
   }
 }
+
 function extractErr(e: any): string {
   const raw = (e as any)?.body ?? (e as any)?.response ?? (e as any)?.message
   if (typeof raw === "string") return raw
@@ -252,9 +384,9 @@ function buildCreateBody(v: CreateCredentialValues) {
 }
 
 // Build exact PATCH body (only provided fields)
-function buildUpdateBody(v: z.infer<typeof updateCredentialSchema>) {
+function buildUpdateBody(v: UpdateCredentialValues) {
   const body: any = {}
-  const keys: (keyof typeof v)[] = [
+  const keys: (keyof UpdateCredentialValues)[] = [
     "name",
     "account_id",
     "region",
@@ -316,7 +448,7 @@ export const CredentialPage = () => {
 
   // Update
   const updateMutation = useMutation({
-    mutationFn: (payload: { id: string; body: z.infer<typeof updateCredentialSchema> }) =>
+    mutationFn: (payload: { id: string; body: UpdateCredentialValues }) =>
       credentialsApi.updateCredential(payload.id, buildUpdateBody(payload.body)),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["credentials"] })
@@ -362,7 +494,7 @@ export const CredentialPage = () => {
     mode: "onBlur",
   })
 
-  const editForm = useForm<z.input<typeof updateCredentialSchema>>({
+  const editForm = useForm<UpdateCredentialValues>({
     resolver: zodResolver(updateCredentialSchema),
     defaultValues: {},
     mode: "onBlur",
@@ -371,7 +503,8 @@ export const CredentialPage = () => {
   function openEdit(row: any) {
     setEditingId(row.id)
     editForm.reset({
-      provider: row.provider,
+      // FIX: correct key (was "provider" in your original)
+      credential_provider: row.credential_provider,
       kind: row.kind,
       schema_version: row.schema_version ?? 1,
       name: row.name,
@@ -380,7 +513,7 @@ export const CredentialPage = () => {
       account_id: row.account_id ?? "",
       region: row.region ?? "",
       scope: row.scope ?? (row.scope_kind === "provider" ? {} : undefined),
-      secret: undefined,
+      secret: undefined, // keep existing unless user rotates
     } as any)
     setUseRawEditSecretJSON(false)
     setEditOpen(true)
@@ -394,7 +527,7 @@ export const CredentialPage = () => {
     return items.filter((c: any) =>
       [
         c.name,
-        c.provider,
+        c.credential_provider,
         c.kind,
         c.scope_kind,
         c.account_id,
@@ -436,6 +569,7 @@ export const CredentialPage = () => {
 
   function ensureCreateDefaultsForSecret() {
     if (useRawSecretJSON) return
+
     if (credential_provider === "aws" && kind === "aws_access_key") {
       const s = createForm.getValues("secret") ?? {}
       setCreateSecret({
@@ -459,7 +593,7 @@ export const CredentialPage = () => {
   }
 
   function onChangeCreateScopeKind(next: "provider" | "service" | "resource") {
-    createForm.setValue("scope_kind", next)
+    createForm.setValue("scope_kind", next, { shouldDirty: true, shouldValidate: true })
     if (next === "provider") setCreateScope({})
     if (next === "service") setCreateScope({ service: "route53" as AwsSvc })
     if (next === "resource") setCreateScope({ arn: "" })
@@ -905,6 +1039,7 @@ export const CredentialPage = () => {
                                       client_secret: e.target.value,
                                     })
                                   }
+                                  placeholder="••••••••••"
                                 />
                               )}
                             />
@@ -933,7 +1068,6 @@ export const CredentialPage = () => {
                   )}
 
                   <DialogFooter className="gap-2">
-                    {/* Preview Create button */}
                     <Button
                       type="button"
                       variant="secondary"
@@ -1260,9 +1394,7 @@ export const CredentialPage = () => {
                     <FormItem>
                       <FormLabel>Rotate Secret (JSON)</FormLabel>
                       <Textarea
-                        value={
-                          typeof field.value === "string" ? field.value : pretty(field.value ?? {})
-                        }
+                        value={typeof field.value === "string" ? field.value : pretty(field.value)}
                         onChange={(e) => {
                           try {
                             field.onChange(JSON.parse(e.target.value))
@@ -1281,7 +1413,6 @@ export const CredentialPage = () => {
               )}
 
               <DialogFooter className="gap-2">
-                {/* Preview Update button */}
                 <Button
                   type="button"
                   variant="secondary"

@@ -53,13 +53,17 @@ type Role = (typeof ROLE_OPTIONS)[number]
 const STATUS = ["pending", "provisioning", "ready", "failed"] as const
 type Status = (typeof STATUS)[number]
 
+// ---------- Zod schemas ----------
+// Zod v4: `.partial()` cannot be used on schemas with refinements/effects.
+// createServerSchema has a refinement, so define updateServerSchema explicitly.
+
 const createServerSchema = z
   .object({
     hostname: z.string().trim().max(60, "Max 60 chars"),
     public_ip_address: z.string().trim().optional().or(z.literal("")),
     private_ip_address: z.string().trim().min(1, "Private IP address required"),
     role: z.enum(ROLE_OPTIONS),
-    ssh_key_id: z.uuid("Pick a valid SSH key"),
+    ssh_key_id: z.string().uuid("Pick a valid SSH key"),
     ssh_user: z.string().trim().min(1, "SSH user is required"),
     status: z.enum(STATUS).default("pending"),
   })
@@ -69,8 +73,33 @@ const createServerSchema = z
   )
 type CreateServerInput = z.input<typeof createServerSchema>
 
-const updateServerSchema = createServerSchema.partial()
-type UpdateServerValues = z.infer<typeof updateServerSchema>
+// Patch-friendly update schema:
+// - all fields optional
+// - only enforce "public ip required" if role is being set to bastion in the patch
+const updateServerSchema = z
+  .object({
+    hostname: z.string().trim().max(60, "Max 60 chars").optional(),
+    public_ip_address: z.string().trim().optional().or(z.literal("")),
+    private_ip_address: z.string().trim().min(1, "Private IP address required").optional(),
+    role: z.enum(ROLE_OPTIONS).optional(),
+    ssh_key_id: z.string().uuid("Pick a valid SSH key").optional(),
+    ssh_user: z.string().trim().min(1, "SSH user is required").optional(),
+    status: z.enum(STATUS).optional(),
+  })
+  .superRefine((v, ctx) => {
+    // If updating role to bastion, require public_ip_address in the patch
+    if (v.role === "bastion") {
+      const pub = typeof v.public_ip_address === "string" ? v.public_ip_address.trim() : ""
+      if (!pub) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["public_ip_address"],
+          message: "Public IP required for bastion",
+        })
+      }
+    }
+  })
+type UpdateServerValues = z.input<typeof updateServerSchema>
 
 function StatusBadge({ status }: { status: Status }) {
   const v =
@@ -86,6 +115,27 @@ function StatusBadge({ status }: { status: Status }) {
       {status}
     </Badge>
   )
+}
+
+// Build PATCH body: omit undefined and empty strings (so optional inputs can be cleared in UI without sending "")
+function buildUpdateBody(values: UpdateServerValues) {
+  const body: any = {}
+  const keys: (keyof UpdateServerValues)[] = [
+    "hostname",
+    "public_ip_address",
+    "private_ip_address",
+    "role",
+    "ssh_key_id",
+    "ssh_user",
+    "status",
+  ]
+  for (const k of keys) {
+    const v = values[k]
+    if (typeof v === "undefined") continue
+    if (v === "") continue
+    body[k] = v
+  }
+  return body
 }
 
 export const ServerPage = () => {
@@ -180,13 +230,12 @@ export const ServerPage = () => {
   })
 
   const roleIsBastionU = watchedRoleUpdate === "bastion"
-
   const pubUpdate = watchedPublicIpAddressUpdate?.trim() ?? ""
   const needPubUpdate = roleIsBastionU && pubUpdate === ""
 
   const updateMut = useMutation({
     mutationFn: ({ id, values }: { id: string; values: UpdateServerValues }) =>
-      serversApi.updateServer(id, values as any),
+      serversApi.updateServer(id, buildUpdateBody(values) as any),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["servers"] })
       setUpdateOpen(false)
@@ -279,7 +328,7 @@ export const ServerPage = () => {
             </div>
 
             <Select
-              value={roleFilter || "all"} // map "" -> "all" for the UI
+              value={roleFilter || "all"}
               onValueChange={(v) => setRoleFilter(v === "all" ? "" : (v as Role))}
             >
               <SelectTrigger className="w-36">
@@ -296,14 +345,14 @@ export const ServerPage = () => {
             </Select>
 
             <Select
-              value={statusFilter || "all"} // map "" -> "all" for the UI
+              value={statusFilter || "all"}
               onValueChange={(v) => setStatusFilter(v === "all" ? "" : (v as Status))}
             >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Status (all)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem> {/* sentinel */}
+                <SelectItem value="all">All statuses</SelectItem>
                 {STATUS.map((s) => (
                   <SelectItem key={s} value={s}>
                     {s}
