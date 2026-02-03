@@ -5021,10 +5021,10 @@ setprototypeof@~1.2.0:
   resolved "https://registry.yarnpkg.com/setprototypeof/-/setprototypeof-1.2.0.tgz#66c9a24a73f9fc28cbe66b09fed3d33dcaf1b424"
   integrity sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==
 
-shadcn@3.7.0:
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/shadcn/-/shadcn-3.7.0.tgz#02cd306af0bdf153a9548432fd6e9b3d100e9eec"
-  integrity sha512-zOXNAIFclguSYmmoibyXyKiYA6qjEJtXDSvloAMziSREW9Q0R/dLqBUYdb81lOejmZkDYuZApGabbMLH7G8qvQ==
+shadcn@3.8.0:
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/shadcn/-/shadcn-3.8.0.tgz#fc781ea3186a1bc63f96f1ca3a71ea7e0d70f697"
+  integrity sha512-PoMRpAYXD0jwppcZgoMwKx/8OKaHluWrmd9qEvWSiuRWJjPM/T9h0TveTASSVrghFR0/7ElftrfJPNh1WMuG6A==
   dependencies:
     "@antfu/ni" "^25.0.0"
     "@babel/core" "^7.28.0"
