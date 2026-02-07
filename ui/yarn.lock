@@ -4724,9 +4724,9 @@ raw-body@^3.0.0, raw-body@^3.0.1:
     unpipe "~1.0.0"
 
 react-day-picker@^9.13.0:
-  version "9.13.0"
-  resolved "https://registry.yarnpkg.com/react-day-picker/-/react-day-picker-9.13.0.tgz#889a0ee413881abdc295109e775235c8a046c4dc"
-  integrity sha512-euzj5Hlq+lOHqI53NiuNhCP8HWgsPf/bBAVijR50hNaY1XwjKjShAnIe8jm8RD2W9IJUvihDIZ+KrmqfFzNhFQ==
+  version "9.13.1"
+  resolved "https://registry.yarnpkg.com/react-day-picker/-/react-day-picker-9.13.1.tgz#17bbb1dacc17afa198aa5fbc01b7c1ae0b2b8613"
+  integrity sha512-9nx2lBBJ0VZw5jJekId3DishwnJLiqY1Me1JvCrIyqbWwcflBTVaEkiK+w1bre5oMNWYo722eu+8UAMXWMqktw==
   dependencies:
     "@date-fns/tz" "^1.4.1"
     date-fns "^4.1.0"
