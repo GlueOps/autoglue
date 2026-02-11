@@ -698,7 +698,7 @@
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.5.0"
 
-"@modelcontextprotocol/sdk@^1.17.2":
+"@modelcontextprotocol/sdk@^1.26.0":
   version "1.26.0"
   resolved "https://registry.yarnpkg.com/@modelcontextprotocol/sdk/-/sdk-1.26.0.tgz#5b35d73062125f126cc70b0be83cbab53bcdde74"
   integrity sha512-Y5RmPncpiDtTXDbLKswIJzTqu2hyBKxTNsgKqKclDbhIgg1wgtf1fRuvxgTnRfcnxtvvgbIEcqUOzZrJ6iSReg==
@@ -5024,10 +5024,10 @@ setprototypeof@~1.2.0:
   resolved "https://registry.yarnpkg.com/setprototypeof/-/setprototypeof-1.2.0.tgz#66c9a24a73f9fc28cbe66b09fed3d33dcaf1b424"
   integrity sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==
 
-shadcn@3.8.3:
-  version "3.8.3"
-  resolved "https://registry.yarnpkg.com/shadcn/-/shadcn-3.8.3.tgz#f364accd76c8fe97f3db3082fefc171b3f234d30"
-  integrity sha512-4cq123nBeWJWWhMT2wG7ddoix5jIfPBvybjbS+xwc9gtQbhmi5X6RY8FjR1OhUSN4TYqV2O5dmJ9cl0/eBHIfg==
+shadcn@3.8.4:
+  version "3.8.4"
+  resolved "https://registry.yarnpkg.com/shadcn/-/shadcn-3.8.4.tgz#d66532b3b2183ed393a1645bafbccc9ddd7daa83"
+  integrity sha512-pSad/m1+PGzB0aLsRBV0EkyGg9al1nJqYUuucg6d8v8xZspPZ5/ehGNEp5M4b1KQYqdO5/gGPbkhVbgmXqG9Pw==
   dependencies:
     "@antfu/ni" "^25.0.0"
     "@babel/core" "^7.28.0"
@@ -5035,7 +5035,7 @@ shadcn@3.8.3:
     "@babel/plugin-transform-typescript" "^7.28.0"
     "@babel/preset-typescript" "^7.27.1"
     "@dotenvx/dotenvx" "^1.48.4"
-    "@modelcontextprotocol/sdk" "^1.17.2"
+    "@modelcontextprotocol/sdk" "^1.26.0"
     "@types/validate-npm-package-name" "^4.0.2"
     browserslist "^4.26.2"
     commander "^14.0.0"
