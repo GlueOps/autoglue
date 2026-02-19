@@ -24,8 +24,9 @@ autoglue/
 │   ├── utils/            # Utility functions
 │   ├── version/          # Version information
 │   └── web/              # Web UI integration
-├── sdk/                   # Generated SDKs (TypeScript, Go)
-├── ui/                    # Frontend application
+├── sdk/                   # Generated SDKs
+│   └── ts/               # TypeScript SDK
+├── ui/                    # Frontend application (React)
 ├── docs/                  # OpenAPI/Swagger documentation
 ├── postgres/              # PostgreSQL configuration
 ├── main.go                # Application entry point
@@ -62,7 +63,7 @@ The API layer provides RESTful endpoints for managing cloud resources:
 
 Autoglue uses the [Archer](https://github.com/dyaksa/archer) job queue system with PostgreSQL-backed job persistence.
 
-**Job Workers:**
+**Active Job Workers:**
 
 | Worker | Purpose | Timeout |
 |--------|---------|---------|
@@ -73,9 +74,13 @@ Autoglue uses the [Archer](https://github.com/dyaksa/archer) job queue system wi
 | `dns_reconcile` | Synchronize DNS records with Route53 | 2 minutes |
 | `org_key_sweeper` | Remove expired organization API keys | 5 minutes |
 | `cluster_action` | Execute cluster lifecycle actions | Configurable |
-| `prepare_cluster` | Prepare infrastructure for cluster (commented out) | 2 minutes |
-| `cluster_setup` | Initial cluster setup (commented out) | 2 minutes |
-| `cluster_bootstrap` | Bootstrap Kubernetes cluster (commented out) | 60 minutes |
+
+**Planned Job Workers (Currently Disabled):**
+
+The following workers exist in the codebase but are currently commented out:
+- `prepare_cluster` - Prepare infrastructure for cluster deployment
+- `cluster_setup` - Initial cluster configuration
+- `cluster_bootstrap` - Full Kubernetes cluster bootstrapping process
 
 **Configuration:**
 - `archer.instances`: Number of worker instances (default: 1)
@@ -158,9 +163,11 @@ Request handlers implement business logic for API endpoints:
 - OAuth providers (Google)
 
 **SDKs:**
-- TypeScript SDK (`sdk/ts/`)
-- Go SDK (`sdk/go/`)
-- Terraform Provider (`terraform-provider-autoglue/`)
+- TypeScript SDK (`sdk/ts/`) - Generated from OpenAPI spec
+- Go SDK (consumed via module alias) - Used by external integrations
+
+**External Integrations:**
+- Terraform Provider - Separate repository providing IaC support for Autoglue resources
 
 ## Development Workflow
 
@@ -202,11 +209,9 @@ go test ./...
 
 # Build UI
 make ui
-
-# Build Terraform provider
-cd terraform-provider-autoglue
-make dev
 ```
+
+**Note:** The Terraform provider is maintained in a separate repository.
 
 ## API Architecture
 
