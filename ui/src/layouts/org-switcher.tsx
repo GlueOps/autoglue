@@ -54,6 +54,8 @@ export const OrgSwitcher = ({ orgs }: { orgs: Org[] }) => {
                   onSelect={(v) => {
                     orgStore.set(v)
                     setOpen(false)
+                    // Reload page to refresh data for the new org
+                    window.location.reload()
                   }}
                 >
                   <Check
