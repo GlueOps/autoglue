@@ -256,9 +256,43 @@ set -euxo pipefail
 : "${TIME_SYNC:=1}"
 : "${FAIL2BAN:=1}"
 : "${BANNER:=1}"
+: "${APT_LOCK_WAIT_SECS:=300}"
 
 # ----------- helpers -----------
 have() { command -v "$1" >/dev/null 2>&1; }
+
+# Wait for dpkg/apt locks to be released (handles cloud-init, unattended-upgrades, etc.)
+apt_wait_lock() {
+  local max_wait="$APT_LOCK_WAIT_SECS" waited=0
+  local lock_files="/var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock"
+
+  # Determine which tool to check lock holders
+  local check_cmd=""
+  if have fuser; then
+    check_cmd="fuser"
+  elif have lsof; then
+    check_cmd="lsof"
+  else
+    echo "WARNING: neither fuser nor lsof available, skipping apt lock wait" >&2
+    return 0
+  fi
+
+  while [ $waited -lt $max_wait ]; do
+    local locked=false
+    if [ "$check_cmd" = "fuser" ]; then
+      sudo fuser $lock_files >/dev/null 2>&1 && locked=true
+    else
+      sudo lsof $lock_files >/dev/null 2>&1 && locked=true
+    fi
+    if ! $locked; then
+      return 0
+    fi
+    echo "Waiting for apt/dpkg lock to be released... (${waited}s/${max_wait}s)"
+    sleep 5
+    waited=$((waited + 5))
+  done
+  echo "WARNING: apt/dpkg lock still held after ${max_wait}s, proceeding anyway" >&2
+}
 
 pm=""
 if have apt-get; then pm="apt"
@@ -271,6 +305,7 @@ fi
 pm_update_install() {
   case "$pm" in
     apt)
+      apt_wait_lock
       sudo apt-get update -y
       sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$@"
       ;;
@@ -314,6 +349,7 @@ fi
 # ----------- docker & compose v2 -----------
 if [ "$INSTALL_DOCKER" = "1" ]; then
   if ! have docker; then
+    if [ "$pm" = "apt" ]; then apt_wait_lock; fi
     curl -fsSL https://get.docker.com | sh
   fi
 
@@ -331,6 +367,7 @@ if [ "$INSTALL_DOCKER" = "1" ]; then
   if ! docker compose version >/dev/null 2>&1; then
     # Try package first (Debian/Ubuntu name)
     if [ "$pm" = "apt" ]; then
+      apt_wait_lock
       sudo apt-get update -y
       sudo apt-get install -y docker-compose-plugin || true
     fi
