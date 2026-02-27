@@ -2014,6 +2014,11 @@
   dependencies:
     apg-lite "^1.0.4"
 
+"@tabby_ai/hijri-converter@1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@tabby_ai/hijri-converter/-/hijri-converter-1.0.5.tgz#b664994892348a402ae7529e648c819eee39208b"
+  integrity sha512-r5bClKrcIusDoo049dSL8CawnHR6mRdDwhlQuIgZRNty68q0x8k3Lf1BtPAMxRf/GgnHBnIO4ujd3+GQdLWzxQ==
+
 "@tailwindcss/node@4.2.1":
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/@tailwindcss/node/-/node-4.2.1.tgz#e963ac242a885353a4660e7e3e9c695cde7d3fc9"
@@ -2884,7 +2889,7 @@ data-uri-to-buffer@^4.0.0:
   resolved "https://registry.yarnpkg.com/data-uri-to-buffer/-/data-uri-to-buffer-4.0.1.tgz#d8feb2b2881e6a4f58c2e08acfd0e2834e26222e"
   integrity sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==
 
-date-fns-jalali@^4.1.0-0:
+date-fns-jalali@4.1.0-0:
   version "4.1.0-0"
   resolved "https://registry.yarnpkg.com/date-fns-jalali/-/date-fns-jalali-4.1.0-0.tgz#9c7fb286004fab267a300d3e9f1ada9f10b4b6b0"
   integrity sha512-hTIP/z+t+qKwBDcmmsnmjWTduxCg+5KfdqWQvb2X/8C9+knYY6epN/pfxdDuyVlSVeFz0sM5eEfwIUQ70U4ckg==
@@ -4729,13 +4734,14 @@ raw-body@^3.0.0, raw-body@^3.0.1:
     unpipe "~1.0.0"
 
 react-day-picker@^9.13.0:
-  version "9.13.2"
-  resolved "https://registry.yarnpkg.com/react-day-picker/-/react-day-picker-9.13.2.tgz#64dd06ca149adb1488e331f6888befb4b0833fe0"
-  integrity sha512-IMPiXfXVIAuR5Yk58DDPBC8QKClrhdXV+Tr/alBrwrHUw0qDDYB1m5zPNuTnnPIr/gmJ4ChMxmtqPdxm8+R4Eg==
+  version "9.14.0"
+  resolved "https://registry.yarnpkg.com/react-day-picker/-/react-day-picker-9.14.0.tgz#b2975b48366d0c3a180520e1a4063b5a7d6c5a57"
+  integrity sha512-tBaoDWjPwe0M5pGrum4H0SR6Lyk+BO9oHnp9JbKpGKW2mlraNPgP9BMfsg5pWpwrssARmeqk7YBl2oXutZTaHA==
   dependencies:
     "@date-fns/tz" "^1.4.1"
+    "@tabby_ai/hijri-converter" "1.0.5"
     date-fns "^4.1.0"
-    date-fns-jalali "^4.1.0-0"
+    date-fns-jalali "4.1.0-0"
 
 react-dom@^19.2.3:
   version "19.2.4"
