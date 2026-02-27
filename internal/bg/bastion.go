@@ -256,15 +256,35 @@ set -euxo pipefail
 : "${TIME_SYNC:=1}"
 : "${FAIL2BAN:=1}"
 : "${BANNER:=1}"
+: "${APT_LOCK_WAIT_SECS:=300}"
 
 # ----------- helpers -----------
 have() { command -v "$1" >/dev/null 2>&1; }
 
 # Wait for dpkg/apt locks to be released (handles cloud-init, unattended-upgrades, etc.)
 apt_wait_lock() {
-  local max_wait=300 waited=0
+  local max_wait="$APT_LOCK_WAIT_SECS" waited=0
+  local lock_files="/var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock"
+
+  # Determine which tool to check lock holders
+  local check_cmd=""
+  if have fuser; then
+    check_cmd="fuser"
+  elif have lsof; then
+    check_cmd="lsof"
+  else
+    echo "WARNING: neither fuser nor lsof available, skipping apt lock wait" >&2
+    return 0
+  fi
+
   while [ $waited -lt $max_wait ]; do
-    if ! sudo fuser /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1; then
+    local locked=false
+    if [ "$check_cmd" = "fuser" ]; then
+      sudo fuser $lock_files >/dev/null 2>&1 && locked=true
+    else
+      sudo lsof $lock_files >/dev/null 2>&1 && locked=true
+    fi
+    if ! $locked; then
       return 0
     fi
     echo "Waiting for apt/dpkg lock to be released... (${waited}s/${max_wait}s)"
