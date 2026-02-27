@@ -1,4 +1,4 @@
-FROM postgres:17.8@sha256:1eada89ec2521ae0f61125f6bdaf83bbbf88a43fecda48d112a83bb92df75c36
+FROM postgres:17.9@sha256:4d3b957c9337f15fb7f762be430ba0b3ae78f08c5f5571f5c62ef676c40d39b9
 
 RUN cd /var/lib/postgresql/ && \
     openssl req -new -text -passout pass:abcd -subj /CN=localhost -out server.req -keyout privkey.pem && \

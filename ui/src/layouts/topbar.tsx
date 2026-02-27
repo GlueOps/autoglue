@@ -1,7 +1,8 @@
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ThemePillSwitcher } from "@/layouts/theme-switcher"
 import { Link, useLocation } from "react-router-dom"
 
+import { orgStore } from "@/auth/org.ts"
 import { useMe } from "@/hooks/use-me.ts"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar.tsx"
 import {
@@ -18,6 +19,11 @@ import { SidebarTrigger } from "@/components/ui/sidebar.tsx"
 export const Topbar = () => {
   const loc = useLocation()
   const { data: me, isLoading } = useMe()
+  const [orgId, setOrgId] = useState<string | null>(orgStore.get())
+
+  useEffect(() => {
+    return orgStore.subscribe((id) => setOrgId(id))
+  }, [])
 
   const crumbs = useMemo(() => {
     const parts = loc.pathname.split("/").filter(Boolean)
@@ -39,9 +45,20 @@ export const Topbar = () => {
     return "U"
   }, [me])
 
+  const activeOrg = useMemo(() => {
+    if (!orgId || !me?.organizations) return null
+    return me.organizations.find((o) => o.id === orgId)
+  }, [orgId, me])
+
   return (
     <div className="flex h-12 items-center gap-2 border-b px-3">
       <SidebarTrigger />
+      {activeOrg && (
+        <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
+          <span className="font-medium">{activeOrg.name}</span>
+          <span className="text-border">|</span>
+        </div>
+      )}
       <div className="flex-1">
         <Breadcrumb>
           <BreadcrumbList>
