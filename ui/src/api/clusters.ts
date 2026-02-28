@@ -1,14 +1,10 @@
-import { withRefresh } from "@/api/with-refresh"
-import type {
-  DtoAttachBastionRequest,
-  DtoAttachCaptainDomainRequest,
-  DtoAttachLoadBalancerRequest,
-  DtoAttachRecordSetRequest,
-  DtoCreateClusterRequest,
-  DtoSetKubeconfigRequest,
-  DtoUpdateClusterRequest,
-} from "@/sdk"
-import { makeClusterApi, makeClusterRunsApi } from "@/sdkClient"
+import { withRefresh } from "@/api/with-refresh";
+import type { DtoAttachBastionRequest, DtoAttachCaptainDomainRequest, DtoAttachLoadBalancerRequest, DtoAttachRecordSetRequest, DtoCreateClusterRequest, DtoSetKubeconfigRequest, DtoUpdateClusterRequest } from "@/sdk";
+import { makeClusterApi, makeClusterRunsApi } from "@/sdkClient";
+
+
+
+
 
 const clusters = makeClusterApi()
 const clusterRuns = makeClusterRunsApi()
@@ -29,7 +25,7 @@ export const clustersApi = {
   createCluster: (body: DtoCreateClusterRequest) =>
     withRefresh(async () => {
       return await clusters.createCluster({
-        dtoCreateClusterRequest: body,
+        createClusterRequest: body,
       })
     }),
 
@@ -37,7 +33,7 @@ export const clustersApi = {
     withRefresh(async () => {
       return await clusters.updateCluster({
         clusterID: id,
-        dtoUpdateClusterRequest: body,
+        updateClusterRequest: body,
       })
     }),
 
@@ -52,7 +48,7 @@ export const clustersApi = {
     withRefresh(async () => {
       return await clusters.setClusterKubeconfig({
         clusterID,
-        dtoSetKubeconfigRequest: body,
+        setClusterKubeconfigRequest: body,
       })
     }),
 
@@ -67,7 +63,7 @@ export const clustersApi = {
     withRefresh(async () => {
       return await clusters.attachCaptainDomain({
         clusterID,
-        dtoAttachCaptainDomainRequest: body,
+        attachCaptainDomainRequest: body,
       })
     }),
 
@@ -82,7 +78,7 @@ export const clustersApi = {
     withRefresh(async () => {
       return await clusters.attachControlPlaneRecordSet({
         clusterID,
-        dtoAttachRecordSetRequest: body,
+        attachControlPlaneRecordSetRequest: body,
       })
     }),
 
@@ -97,7 +93,7 @@ export const clustersApi = {
     withRefresh(async () => {
       return await clusters.attachAppsLoadBalancer({
         clusterID,
-        dtoAttachLoadBalancerRequest: body,
+        attachAppsLoadBalancerRequest: body,
       })
     }),
 
@@ -110,7 +106,7 @@ export const clustersApi = {
     withRefresh(async () => {
       return await clusters.attachGlueOpsLoadBalancer({
         clusterID,
-        dtoAttachLoadBalancerRequest: body,
+        attachAppsLoadBalancerRequest: body,
       })
     }),
 
@@ -125,7 +121,7 @@ export const clustersApi = {
     withRefresh(async () => {
       return await clusters.attachBastionServer({
         clusterID,
-        dtoAttachBastionRequest: body,
+        attachBastionServerRequest: body,
       })
     }),
 
@@ -140,7 +136,7 @@ export const clustersApi = {
     withRefresh(async () => {
       return await clusters.attachNodePool({
         clusterID,
-        dtoAttachNodePoolRequest: { node_pool_id: nodePoolID },
+        attachNodePoolRequest: { node_pool_id: nodePoolID },
       })
     }),
 

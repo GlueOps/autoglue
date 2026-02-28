@@ -70,7 +70,7 @@ export const OrgApiKeys = () => {
   } | null>(null)
 
   const createMut = useMutation({
-    mutationFn: (v: CreateValues) => api.createOrgKey({ id: orgId!, handlersOrgKeyCreateReq: v }),
+    mutationFn: (v: CreateValues) => api.createOrgKey({ id: orgId!, createOrgKeyRequest: v }),
     onSuccess: (resp) => {
       void qc.invalidateQueries({ queryKey: ["org:keys", orgId] })
       setShowSecret({ key: resp.org_key, secret: resp.org_secret })

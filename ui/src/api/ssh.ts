@@ -33,7 +33,7 @@ export const sshApi = {
   createSshKey: (body: DtoCreateSSHRequest) =>
     withRefresh(async (): Promise<DtoSshResponse> => {
       // SDK expects { body }
-      return await ssh.createSSHKey({ dtoCreateSSHRequest: body })
+      return await ssh.createSSHKey({ createSSHKeyRequest: body })
     }),
 
   getSshKeyById: (id: string) =>

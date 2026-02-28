@@ -140,3 +140,8 @@ notes.txt
 terraform.tfstate*
 
 ui/src/sdk
+sdk/ts/**/*
+internal/web/dist
+docs/docs.go
+docs/openapi.json
+docs/openapi.yaml

@@ -17,7 +17,7 @@ export const archerAdminApi = {
     run_at?: string
   }) => {
     return withRefresh(async () => {
-      return await archerAdmin.adminEnqueueArcherJob({ dtoEnqueueRequest: body })
+      return await archerAdmin.adminEnqueueArcherJob({ adminEnqueueArcherJobRequest: body })
     })
   },
   retryJob: (id: string) => {

@@ -11,14 +11,14 @@ export const actionsApi = {
   createAction: (body: DtoCreateActionRequest) =>
     withRefresh(async () => {
       return await actions.createAction({
-        dtoCreateActionRequest: body,
+        createActionRequest: body,
       })
     }),
   updateAction: (id: string, body: DtoUpdateActionRequest) =>
     withRefresh(async () => {
       return await actions.updateAction({
         actionID: id,
-        dtoUpdateActionRequest: body,
+        updateActionRequest: body,
       })
     }),
   deleteAction: (id: string) =>

@@ -204,7 +204,7 @@ swagger: $(DOCS_JSON) ## Generate Swagger docs if stale
 # --- build ---
 build: prepare ui swagger sdk-all ## Build everything: Go hygiene, UI, Swagger, SDKs, then Go binary
 	@echo ">> Building Go binary: $(BIN)"
-	@$(GOCMD) get github.com/swaggo/swag/v2@v2.0.0-rc4
+	@$(GOCMD) get github.com/swaggo/swag/v2@v2.0.0-rc5
 	@$(GOCMD) build -trimpath -ldflags "$(LDFLAGS)" -o $(BIN) $(MAIN)
 
 # Handy: print resolved version metadata

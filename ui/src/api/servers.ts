@@ -11,7 +11,7 @@ export const serversApi = {
     }),
   createServer: (body: DtoCreateServerRequest) =>
     withRefresh(async () => {
-      return await servers.createServer({ dtoCreateServerRequest: body })
+      return await servers.createServer({ createServerRequest: body })
     }),
   getServer: (id: string) =>
     withRefresh(async () => {
@@ -19,7 +19,7 @@ export const serversApi = {
     }),
   updateServer: (id: string, body: DtoUpdateServerRequest) =>
     withRefresh(async () => {
-      return await servers.updateServer({ id, dtoUpdateServerRequest: body })
+      return await servers.updateServer({ id, updateServerRequest: body })
     }),
   deleteServer: (id: string) =>
     withRefresh(async () => {

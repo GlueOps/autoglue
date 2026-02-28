@@ -15,14 +15,14 @@ export const loadBalancersApi = {
   createLoadBalancer: (body: DtoCreateLoadBalancerRequest) =>
     withRefresh(async () => {
       return await loadBalancers.createLoadBalancer({
-        dtoCreateLoadBalancerRequest: body,
+        createLoadBalancerRequest: body,
       })
     }),
   updateLoadBalancer: (id: string, body: DtoUpdateLoadBalancerRequest) =>
     withRefresh(async () => {
       return await loadBalancers.updateLoadBalancer({
         id,
-        dtoUpdateLoadBalancerRequest: body,
+        updateLoadBalancerRequest: body,
       })
     }),
   deleteLoadBalancer: (id: string) =>

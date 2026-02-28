@@ -80,7 +80,7 @@ export const OrgSettings = () => {
   }, [q.data, form])
 
   const updateMut = useMutation({
-    mutationFn: (v: Partial<Values>) => api.updateOrg({ id: orgId!, handlersOrgUpdateReq: v }),
+    mutationFn: (v: Partial<Values>) => api.updateOrg({ id: orgId!, updateOrgRequest: v }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["org", orgId] })
       toast.success("Organization updated")

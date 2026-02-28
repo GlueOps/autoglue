@@ -56,7 +56,7 @@ const orgsApi = makeOrgsApi()
 
 const orgApi = {
   create: (body: { name: string; domain?: string }) =>
-    withRefresh(async () => orgsApi.createOrg({ handlersOrgCreateReq: body })), // POST /orgs
+    withRefresh(async () => orgsApi.createOrg({ createOrgRequest: body })), // POST /orgs
 }
 
 const profileSchema = z.object({

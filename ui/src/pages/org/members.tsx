@@ -1,40 +1,26 @@
-import { useMemo, useState } from "react"
-import { withRefresh } from "@/api/with-refresh.ts"
-import { orgStore } from "@/auth/org.ts"
-import { makeOrgsApi } from "@/sdkClient.ts"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
-import { useForm } from "react-hook-form"
-import { toast } from "sonner"
-import { z } from "zod"
+import { useMemo, useState } from "react";
+import { withRefresh } from "@/api/with-refresh.ts";
+import { orgStore } from "@/auth/org.ts";
+import { makeOrgsApi } from "@/sdkClient.ts";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/button.tsx"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form.tsx"
-import { Input } from "@/components/ui/input.tsx"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select.tsx"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table.tsx"
+
+
+import { Button } from "@/components/ui/button.tsx";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table.tsx";
+
+
+
+
 
 const addSchema = z.object({
   user_id: z.uuid("Invalid UUID"),
@@ -68,7 +54,7 @@ export const OrgMembers = () => {
   })
 
   const addMut = useMutation({
-    mutationFn: (v: AddValues) => api.addOrUpdateMember({ id: orgId!, handlersMemberUpsertReq: v }),
+    mutationFn: (v: AddValues) => api.addOrUpdateMember({ id: orgId!, addOrUpdateMemberRequest: v }),
     onSuccess: () => {
       toast.success("Member added/updated")
       void qc.invalidateQueries({ queryKey: ["org:members", orgId] })
@@ -88,7 +74,7 @@ export const OrgMembers = () => {
 
   const roleMut = useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: "owner" | "admin" | "member" }) =>
-      api.addOrUpdateMember({ id: orgId!, handlersMemberUpsertReq: { user_id: userId, role } }),
+      api.addOrUpdateMember({ id: orgId!, addOrUpdateMemberRequest: { user_id: userId, role } }),
     onMutate: async ({ userId, role }) => {
       setUpdatingId(userId)
       // cancel queries and snapshot previous

@@ -11,7 +11,7 @@ export const annotationsApi = {
   createAnnotation: (body: DtoCreateAnnotationRequest) =>
     withRefresh(async () => {
       return await annotations.createAnnotation({
-        dtoCreateAnnotationRequest: body,
+        createAnnotationRequest: body,
       })
     }),
   getAnnotation: (id: string) =>
@@ -26,7 +26,7 @@ export const annotationsApi = {
     withRefresh(async () => {
       return await annotations.updateAnnotation({
         id,
-        dtoUpdateAnnotationRequest: body,
+        updateAnnotationRequest: body,
       })
     }),
 }
