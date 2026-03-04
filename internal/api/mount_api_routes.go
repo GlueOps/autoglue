@@ -3,11 +3,12 @@ package api
 import (
 	"github.com/glueops/autoglue/internal/api/httpmiddleware"
 	"github.com/glueops/autoglue/internal/bg"
+	"github.com/glueops/autoglue/internal/config"
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
-func mountAPIRoutes(r chi.Router, db *gorm.DB, jobs *bg.Jobs) {
+func mountAPIRoutes(r chi.Router, db *gorm.DB, cfg config.Config, jobs *bg.Jobs) {
 	r.Route("/api", func(api chi.Router) {
 		api.Route("/v1", func(v1 chi.Router) {
 			authUser := httpmiddleware.AuthMiddleware(db, false)
@@ -33,7 +34,7 @@ func mountAPIRoutes(r chi.Router, db *gorm.DB, jobs *bg.Jobs) {
 			mountNodePoolRoutes(v1, db, authOrg)
 			mountDNSRoutes(v1, db, authOrg)
 			mountLoadBalancerRoutes(v1, db, authOrg)
-			mountClusterRoutes(v1, db, jobs, authOrg)
+			mountClusterRoutes(v1, db, cfg, jobs, authOrg)
 		})
 	})
 }

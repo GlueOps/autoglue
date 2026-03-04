@@ -30,7 +30,7 @@ type ClusterActionResult struct {
 	ElapsedMs int    `json:"elapsed_ms"`
 }
 
-func ClusterActionWorker(db *gorm.DB) archer.WorkerFn {
+func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 	return func(ctx context.Context, j job.Job) (any, error) {
 		start := time.Now()
 		var args ClusterActionArgs
@@ -121,6 +121,7 @@ func ClusterActionWorker(db *gorm.DB) archer.WorkerFn {
 		}
 		dtoCluster.OrgKey = &orgKey
 		dtoCluster.OrgSecret = &orgSecret
+		dtoCluster.BaseURL = baseURL
 
 		payloadJSON, err := json.MarshalIndent(dtoCluster, "", "  ")
 		if err != nil {

@@ -1517,6 +1517,9 @@ export const ClustersPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <pre>
+        {JSON.stringify(clustersQ.data, null, 2)}
+      </pre>
     </div>
   )
 }

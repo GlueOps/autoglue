@@ -12,6 +12,7 @@ import (
 
 	"github.com/glueops/autoglue/internal/api/httpmiddleware"
 	"github.com/glueops/autoglue/internal/common"
+	"github.com/glueops/autoglue/internal/config"
 	"github.com/glueops/autoglue/internal/handlers/dto"
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
@@ -37,7 +38,7 @@ import (
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func ListClusters(db *gorm.DB) http.HandlerFunc {
+func ListClusters(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -69,7 +70,7 @@ func ListClusters(db *gorm.DB) http.HandlerFunc {
 
 		out := make([]dto.ClusterResponse, 0, len(rows))
 		for _, row := range rows {
-			cr := clusterToDTO(row)
+			cr := clusterToDTO(row, cfg)
 
 			if row.EncryptedKubeconfig != "" && row.KubeIV != "" && row.KubeTag != "" {
 				kubeconfig, err := utils.DecryptForOrg(orgID, row.EncryptedKubeconfig, row.KubeIV, row.KubeTag, db)
@@ -104,7 +105,7 @@ func ListClusters(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func GetCluster(db *gorm.DB) http.HandlerFunc {
+func GetCluster(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -141,7 +142,7 @@ func GetCluster(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		resp := clusterToDTO(cluster)
+		resp := clusterToDTO(cluster, cfg)
 
 		if cluster.EncryptedKubeconfig != "" && cluster.KubeIV != "" && cluster.KubeTag != "" {
 			kubeconfig, err := utils.DecryptForOrg(orgID, cluster.EncryptedKubeconfig, cluster.KubeIV, cluster.KubeTag, db)
@@ -175,7 +176,7 @@ func GetCluster(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func CreateCluster(db *gorm.DB) http.HandlerFunc {
+func CreateCluster(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -219,7 +220,7 @@ func CreateCluster(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusCreated, clusterToDTO(c))
+		utils.WriteJSON(w, http.StatusCreated, clusterToDTO(c, cfg))
 	}
 }
 
@@ -244,7 +245,7 @@ func CreateCluster(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func UpdateCluster(db *gorm.DB) http.HandlerFunc {
+func UpdateCluster(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -317,7 +318,7 @@ func UpdateCluster(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -389,7 +390,7 @@ func DeleteCluster(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func AttachCaptainDomain(db *gorm.DB) http.HandlerFunc {
+func AttachCaptainDomain(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -455,7 +456,7 @@ func AttachCaptainDomain(db *gorm.DB) http.HandlerFunc {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -478,7 +479,7 @@ func AttachCaptainDomain(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func DetachCaptainDomain(db *gorm.DB) http.HandlerFunc {
+func DetachCaptainDomain(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -525,7 +526,7 @@ func DetachCaptainDomain(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -550,7 +551,7 @@ func DetachCaptainDomain(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func AttachControlPlaneRecordSet(db *gorm.DB) http.HandlerFunc {
+func AttachControlPlaneRecordSet(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -617,7 +618,7 @@ func AttachControlPlaneRecordSet(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -640,7 +641,7 @@ func AttachControlPlaneRecordSet(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func DetachControlPlaneRecordSet(db *gorm.DB) http.HandlerFunc {
+func DetachControlPlaneRecordSet(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -687,7 +688,7 @@ func DetachControlPlaneRecordSet(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -712,7 +713,7 @@ func DetachControlPlaneRecordSet(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func AttachAppsLoadBalancer(db *gorm.DB) http.HandlerFunc {
+func AttachAppsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -775,7 +776,7 @@ func AttachAppsLoadBalancer(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -798,7 +799,7 @@ func AttachAppsLoadBalancer(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func DetachAppsLoadBalancer(db *gorm.DB) http.HandlerFunc {
+func DetachAppsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -845,7 +846,7 @@ func DetachAppsLoadBalancer(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -870,7 +871,7 @@ func DetachAppsLoadBalancer(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func AttachGlueOpsLoadBalancer(db *gorm.DB) http.HandlerFunc {
+func AttachGlueOpsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -933,7 +934,7 @@ func AttachGlueOpsLoadBalancer(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -956,7 +957,7 @@ func AttachGlueOpsLoadBalancer(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func DetachGlueOpsLoadBalancer(db *gorm.DB) http.HandlerFunc {
+func DetachGlueOpsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -1003,7 +1004,7 @@ func DetachGlueOpsLoadBalancer(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -1028,7 +1029,7 @@ func DetachGlueOpsLoadBalancer(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func AttachBastionServer(db *gorm.DB) http.HandlerFunc {
+func AttachBastionServer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -1091,7 +1092,7 @@ func AttachBastionServer(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -1114,7 +1115,7 @@ func AttachBastionServer(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func DetachBastionServer(db *gorm.DB) http.HandlerFunc {
+func DetachBastionServer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -1161,7 +1162,7 @@ func DetachBastionServer(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -1186,7 +1187,7 @@ func DetachBastionServer(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func SetClusterKubeconfig(db *gorm.DB) http.HandlerFunc {
+func SetClusterKubeconfig(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -1248,7 +1249,7 @@ func SetClusterKubeconfig(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -1271,7 +1272,7 @@ func SetClusterKubeconfig(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func ClearClusterKubeconfig(db *gorm.DB) http.HandlerFunc {
+func ClearClusterKubeconfig(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -1321,7 +1322,7 @@ func ClearClusterKubeconfig(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -1346,7 +1347,7 @@ func ClearClusterKubeconfig(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func AttachNodePool(db *gorm.DB) http.HandlerFunc {
+func AttachNodePool(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -1420,7 +1421,7 @@ func AttachNodePool(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
@@ -1444,7 +1445,7 @@ func AttachNodePool(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func DetachNodePool(db *gorm.DB) http.HandlerFunc {
+func DetachNodePool(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -1514,13 +1515,13 @@ func DetachNodePool(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
 	}
 }
 
 // -- Helpers
 
-func clusterToDTO(c models.Cluster) dto.ClusterResponse {
+func clusterToDTO(c models.Cluster, cfg config.Config) dto.ClusterResponse {
 	var bastion *dto.ServerResponse
 	if c.BastionServer != nil {
 		b := serverToDTO(*c.BastionServer)
@@ -1561,10 +1562,11 @@ func clusterToDTO(c models.Cluster) dto.ClusterResponse {
 	for _, np := range c.NodePools {
 		nps = append(nps, nodePoolToDTO(np))
 	}
-
+	fmt.Println(cfg.BaseURL)
 	return dto.ClusterResponse{
 		ID:                    c.ID,
 		Name:                  c.Name,
+		BaseURL:               cfg.BaseURL,
 		CaptainDomain:         captainDomain,
 		ControlPlaneRecordSet: controlPlane,
 		ControlPlaneFQDN:      cfqdn,

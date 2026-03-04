@@ -24,7 +24,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func NewRouter(db *gorm.DB, jobs *bg.Jobs, studio http.Handler) http.Handler {
+func NewRouter(db *gorm.DB, jobs *bg.Jobs, cfg config.Config, studio http.Handler) http.Handler {
 	zerolog.TimeFieldFormat = time.RFC3339
 
 	l := log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "15:04:05"})
@@ -70,7 +70,7 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs, studio http.Handler) http.Handler {
 	r.Get("/.well-known/jwks.json", handlers.JWKSHandler)
 
 	// Versioned API
-	mountAPIRoutes(r, db, jobs)
+	mountAPIRoutes(r, db, cfg, jobs)
 
 	// Optional DB studio
 	if studio != nil {

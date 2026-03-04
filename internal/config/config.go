@@ -16,6 +16,7 @@ type Config struct {
 	DbURLRO            string
 	Port               string
 	Host               string
+	BaseURL            string
 	JWTIssuer          string
 	JWTAudience        string
 	JWTPrivateEncKey   string
@@ -61,6 +62,7 @@ func Load() (Config, error) {
 		v.SetDefault("db_studio.port", "0") // 0 = random
 		v.SetDefault("db_studio.user", "")
 		v.SetDefault("db_studio.pass", "")
+		v.SetDefault("base.url", "")
 
 		v.SetDefault("ui.dev", false)
 		v.SetDefault("env", "development")
@@ -75,6 +77,7 @@ func Load() (Config, error) {
 		keys := []string{
 			"bind.address",
 			"bind.port",
+			"base.url",
 			"database.url",
 			"database.url_ro",
 			"jwt.issuer",
@@ -106,6 +109,7 @@ func Load() (Config, error) {
 			DbURLRO:            v.GetString("database.url_ro"),
 			Port:               v.GetString("bind.port"),
 			Host:               v.GetString("bind.address"),
+			BaseURL:            v.GetString("base.url"),
 			JWTIssuer:          v.GetString("jwt.issuer"),
 			JWTAudience:        v.GetString("jwt.audience"),
 			JWTPrivateEncKey:   v.GetString("jwt.private.enc.key"),

@@ -41,7 +41,7 @@ func archerOptionsFromDSN(dsn string) (*archer.Options, error) {
 	}, nil
 }
 
-func NewJobs(gdb *gorm.DB, dbUrl string) (*Jobs, error) {
+func NewJobs(gdb *gorm.DB, dbUrl, baseURL string) (*Jobs, error) {
 	opts, err := archerOptionsFromDSN(dbUrl)
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func NewJobs(gdb *gorm.DB, dbUrl string) (*Jobs, error) {
 
 	c.Register(
 		"cluster_action",
-		ClusterActionWorker(gdb),
+		ClusterActionWorker(gdb, baseURL),
 		archer.WithInstances(1),
 	)
 	return jobs, nil

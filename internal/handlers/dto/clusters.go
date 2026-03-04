@@ -9,6 +9,7 @@ import (
 type ClusterResponse struct {
 	ID                    uuid.UUID             `json:"id"`
 	Name                  string                `json:"name"`
+	BaseURL               string                `json:"base_url"`
 	CaptainDomain         *DomainResponse       `json:"captain_domain,omitempty"`
 	ControlPlaneRecordSet *RecordSetResponse    `json:"control_plane_record_set,omitempty"`
 	ControlPlaneFQDN      *string               `json:"control_plane_fqdn,omitempty"`
