@@ -34,7 +34,7 @@ var serveCmd = &cobra.Command{
 			return err
 		}
 
-		jobs, err := bg.NewJobs(rt.DB, cfg.DbURL)
+		jobs, err := bg.NewJobs(rt.DB, cfg.DbURL, cfg.BaseURL)
 		if err != nil {
 			log.Fatalf("failed to init background jobs: %v", err)
 		}
@@ -184,7 +184,7 @@ var serveCmd = &cobra.Command{
 			}
 		}()
 
-		r := api.NewRouter(rt.DB, jobs, nil)
+		r := api.NewRouter(rt.DB, jobs, cfg, nil)
 
 		if cfg.DBStudioEnabled {
 			dbURL := cfg.DbURLRO
@@ -200,7 +200,7 @@ var serveCmd = &cobra.Command{
 			if err != nil {
 				log.Fatalf("failed to init db studio: %v", err)
 			} else {
-				r = api.NewRouter(rt.DB, jobs, studio)
+				r = api.NewRouter(rt.DB, jobs, cfg, studio)
 				log.Printf("pgweb mounted at /db-studio/")
 			}
 		}
