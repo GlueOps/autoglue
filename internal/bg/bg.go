@@ -107,30 +107,6 @@ func NewJobs(gdb *gorm.DB, dbUrl, baseURL string) (*Jobs, error) {
 		archer.WithInstances(1),
 		archer.WithTimeout(2*time.Minute),
 	)
-	/*
-		c.Register(
-			"prepare_cluster",
-			ClusterPrepareWorker(gdb, jobs),
-			archer.WithInstances(1),
-			archer.WithTimeout(2*time.Minute),
-		)
-
-		c.Register(
-			"cluster_setup",
-			ClusterSetupWorker(gdb, jobs),
-			archer.WithInstances(1),
-			archer.WithTimeout(2*time.Minute),
-		)
-
-		c.Register(
-			"cluster_bootstrap",
-			ClusterBootstrapWorker(gdb, jobs),
-			archer.WithInstances(1),
-			archer.WithTimeout(60*time.Minute),
-		)
-
-	*/
-
 	c.Register(
 		"org_key_sweeper",
 		OrgKeySweeperWorker(gdb, jobs),
@@ -141,7 +117,7 @@ func NewJobs(gdb *gorm.DB, dbUrl, baseURL string) (*Jobs, error) {
 	c.Register(
 		"cluster_action",
 		ClusterActionWorker(gdb, baseURL),
-		archer.WithInstances(1),
+		archer.WithInstances(30),
 	)
 	return jobs, nil
 }
