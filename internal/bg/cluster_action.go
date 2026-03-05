@@ -3,7 +3,6 @@ package bg
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -90,8 +89,8 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 		if len(claimedIDs) == 0 {
 			msg := fmt.Sprintf("cluster %s is already being processed by another worker", args.ClusterID)
 			logger.Warn().Msg(msg)
-			updateRun("failed", msg)
-			return nil, errors.New(msg)
+			//updateRun("failed", msg)
+			//return nil, errors.New(msg)
 		}
 
 		var c models.Cluster
