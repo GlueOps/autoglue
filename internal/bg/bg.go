@@ -118,6 +118,7 @@ func NewJobs(gdb *gorm.DB, dbUrl, baseURL string) (*Jobs, error) {
 		"cluster_action",
 		ClusterActionWorker(gdb, baseURL),
 		archer.WithInstances(10),
+		archer.WithTimeout(168*time.Hour),
 	)
 	return jobs, nil
 }
