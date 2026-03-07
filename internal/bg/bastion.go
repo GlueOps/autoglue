@@ -16,6 +16,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // ----- Public types -----
@@ -53,16 +54,42 @@ func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 			args.IntervalS = 120
 		}
 
-		var servers []models.Server
-		if err := db.
-			Preload("SshKey").
-			Where("role = ? AND status = ?", "bastion", "pending").
-			Find(&servers).Error; err != nil {
-			log.Printf("[bastion] level=ERROR job=%s step=query msg=%q", jobID, err)
+		// Atomically claim pending bastion servers using SELECT FOR UPDATE SKIP LOCKED
+		// so that concurrent worker instances never process the same server simultaneously
+		// (which would cause apt lock conflicts on the remote host).
+		var claimedIDs []uuid.UUID
+		if err := db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.
+				Model(&models.Server{}).
+				Where("role = ? AND status = ?", "bastion", "pending").
+				Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+				Pluck("id", &claimedIDs).Error; err != nil {
+				return err
+			}
+			if len(claimedIDs) == 0 {
+				return nil
+			}
+			return tx.Model(&models.Server{}).
+				Where("id IN ?", claimedIDs).
+				Updates(map[string]any{
+					"status":     "provisioning",
+					"updated_at": time.Now(),
+				}).Error
+		}); err != nil {
+			log.Printf("[bastion] level=ERROR job=%s step=claim_servers msg=%q", jobID, err)
 			return nil, err
 		}
 
-		// log.Printf("[bastion] level=INFO job=%s step=start count=%d", jobID, len(servers))
+		var servers []models.Server
+		if len(claimedIDs) > 0 {
+			if err := db.
+				Preload("SshKey").
+				Where("id IN ?", claimedIDs).
+				Find(&servers).Error; err != nil {
+				log.Printf("[bastion] level=ERROR job=%s step=fetch_servers msg=%q", jobID, err)
+				return nil, err
+			}
+		}
 
 		proc, ok, fail := 0, 0, 0
 		var failedIDs []uuid.UUID
@@ -72,7 +99,6 @@ func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 
 		for i := range servers {
 			s := &servers[i]
-			// hostStart := time.Now()
 			proc++
 
 			// 1) Defensive IP check
@@ -85,16 +111,7 @@ func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 				continue
 			}
 
-			// 2) Move to provisioning
-			if err := setServerStatus(db, s.ID, "provisioning"); err != nil {
-				fail++
-				failedIDs = append(failedIDs, s.ID)
-				failures = append(failures, BastionBootstrapFailure{ID: s.ID, Step: "set_provisioning", Reason: err.Error()})
-				logHostErr(jobID, s, "set_provisioning", err)
-				continue
-			}
-
-			// 3) Decrypt private key for org
+			// 2) Decrypt private key for org
 			privKey, err := utils.DecryptForOrg(
 				s.OrganizationID,
 				s.SshKey.EncryptedPrivateKey,
@@ -111,7 +128,7 @@ func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 				continue
 			}
 
-			// 4) SSH + install docker
+			// 3) SSH + install docker
 			host := net.JoinHostPort(*s.PublicIPAddress, "22")
 			runCtx, cancel := context.WithTimeout(ctx, perHostTimeout)
 			out, err := sshInstallDockerWithOutput(runCtx, db, s, host, s.SSHUser, []byte(privKey))
@@ -131,7 +148,7 @@ func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 				continue
 			}
 
-			// 5) Mark ready
+			// 4) Mark ready
 			if err := setServerStatus(db, s.ID, "ready"); err != nil {
 				fail++
 				failedIDs = append(failedIDs, s.ID)

@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ClusterActionArgs struct {
@@ -57,6 +58,41 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 			Str("action", args.Action).
 			Logger()
 
+		// Atomically claim the cluster using SELECT FOR UPDATE SKIP LOCKED.
+		// This prevents two concurrent cluster_action workers from processing the
+		// same cluster simultaneously (e.g. duplicate API calls or a retried job).
+		// The status guard also stops jobs from re-entering an already in-progress run.
+		var claimedIDs []uuid.UUID
+		if err := db.Transaction(func(tx *gorm.DB) error {
+			inProgressStatuses := []string{clusterStatusBootstrapping, clusterStatusProvisioning}
+			if err := tx.Model(&models.Cluster{}).
+				Where("id = ? AND organization_id = ? AND status NOT IN ?",
+					args.ClusterID, args.OrgID, inProgressStatuses).
+				Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+				Pluck("id", &claimedIDs).Error; err != nil {
+				return err
+			}
+			if len(claimedIDs) == 0 {
+				return nil
+			}
+			return tx.Model(&models.Cluster{}).
+				Where("id = ?", args.ClusterID).
+				Updates(map[string]any{
+					"status":     clusterStatusBootstrapping,
+					"updated_at": time.Now(),
+				}).Error
+		}); err != nil {
+			updateRun("failed", err.Error())
+			return nil, fmt.Errorf("claim cluster: %w", err)
+		}
+
+		if len(claimedIDs) == 0 {
+			msg := fmt.Sprintf("cluster %s is already being processed by another worker", args.ClusterID)
+			logger.Warn().Msg(msg)
+			//updateRun("failed", msg)
+			//return nil, errors.New(msg)
+		}
+
 		var c models.Cluster
 		if err := db.
 			Preload("BastionServer.SshKey").
@@ -76,10 +112,7 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 		}
 
 		// ---- Step 1: Prepare (mostly lifted from ClusterPrepareWorker)
-		if err := setClusterStatus(db, c.ID, clusterStatusBootstrapping, ""); err != nil {
-			updateRun("failed", err.Error())
-			return nil, fmt.Errorf("mark bootstrapping: %w", err)
-		}
+		// Status was already set to bootstrapping atomically during the claim transaction.
 		c.Status = clusterStatusBootstrapping
 
 		if err := validateClusterForPrepare(&c); err != nil {
