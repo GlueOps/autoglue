@@ -47,16 +47,6 @@ func NewJobs(gdb *gorm.DB, dbUrl, baseURL string) (*Jobs, error) {
 		return nil, err
 	}
 
-	instances := viper.GetInt("archer.instances")
-	if instances <= 0 {
-		instances = 1
-	}
-
-	timeoutSec := viper.GetInt("archer.timeoutSec")
-	if timeoutSec <= 0 {
-		timeoutSec = 60
-	}
-
 	retainDays := viper.GetInt("archer.cleanup_retain_days")
 	if retainDays <= 0 {
 		retainDays = 7
@@ -76,8 +66,8 @@ func NewJobs(gdb *gorm.DB, dbUrl, baseURL string) (*Jobs, error) {
 	c.Register(
 		"bootstrap_bastion",
 		BastionBootstrapWorker(gdb, jobs),
-		archer.WithInstances(instances),
-		archer.WithTimeout(time.Duration(timeoutSec)*time.Second),
+		archer.WithInstances(30),
+		archer.WithTimeout(168*time.Hour),
 	)
 
 	c.Register(
@@ -117,7 +107,7 @@ func NewJobs(gdb *gorm.DB, dbUrl, baseURL string) (*Jobs, error) {
 	c.Register(
 		"cluster_action",
 		ClusterActionWorker(gdb, baseURL),
-		archer.WithInstances(10),
+		archer.WithInstances(30),
 		archer.WithTimeout(168*time.Hour),
 	)
 	return jobs, nil
