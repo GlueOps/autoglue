@@ -1,8 +1,8 @@
 name: Prune Old GHCR Images
 
 on:
-  #schedule:
-  #  - cron: '0 0 * * 0' # Runs at 00:00 every Sunday
+  schedule:
+   - cron: '0 0 * * 0' # Runs at 00:00 every Sunday
   workflow_dispatch:   # Allows you to run it manually from the Actions tab
 
 jobs:
