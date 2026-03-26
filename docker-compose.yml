@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   mailpit:
-    image: axllent/mailpit@sha256:030f06031ce5c60913ac9363da1ab0d4be6fd2a78147dd0e1ca0fcac665d6b34
+    image: axllent/mailpit@sha256:0530ab1c658a0f225f148e617522db84053bd1e4879e664c23de5fee44ad6819
     restart: always
     ports:
       - "1025:1025"
