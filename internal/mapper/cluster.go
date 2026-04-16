@@ -52,19 +52,9 @@ func ClusterToDTO(c models.Cluster) dto.ClusterResponse {
 		nps = append(nps, NodePoolToDTO(np))
 	}
 
-	metadata := make([]dto.ClusterMetadataResponse, 0, len(c.Metadata))
+	metadata := make(map[string]string, len(c.Metadata))
 	for _, m := range c.Metadata {
-		metadata = append(metadata, dto.ClusterMetadataResponse{
-			AuditFields: common.AuditFields{
-				ID:             m.ID,
-				OrganizationID: m.OrganizationID,
-				CreatedAt:      m.CreatedAt,
-				UpdatedAt:      m.UpdatedAt,
-			},
-			ClusterID: m.ClusterID.String(),
-			Key:       m.Key,
-			Value:     m.Value,
-		})
+		metadata[m.Key] = m.Value
 	}
 
 	return dto.ClusterResponse{

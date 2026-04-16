@@ -1579,9 +1579,9 @@ func clusterToDTO(c models.Cluster, cfg config.Config) dto.ClusterResponse {
 	for _, np := range c.NodePools {
 		nps = append(nps, nodePoolToDTO(np))
 	}
-	metadata := make([]dto.ClusterMetadataResponse, 0, len(c.Metadata))
+	metadata := make(map[string]string, len(c.Metadata))
 	for _, m := range c.Metadata {
-		metadata = append(metadata, clusterMetadataToDTO(m))
+		metadata[m.Key] = m.Value
 	}
 	fmt.Println(cfg.BaseURL)
 	return dto.ClusterResponse{

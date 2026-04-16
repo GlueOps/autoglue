@@ -5,10 +5,10 @@ import { dnsApi } from "@/api/dns";
 import { loadBalancersApi } from "@/api/loadbalancers";
 import { nodePoolsApi } from "@/api/node_pools";
 import { serversApi } from "@/api/servers";
-import type { DtoActionResponse, DtoClusterResponse, DtoClusterRunResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse, DtoClusterMetadataResponse } from "@/sdk";
+import type { DtoActionResponse, DtoClusterResponse, DtoClusterRunResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse } from "@/sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Key, Loader2, MapPin, Pencil, Plus, Search, Server, Trash2, Wrench } from "lucide-react";
+import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Key, Loader2, MapPin, Pencil, Plus, Search, Server, Wrench } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -670,33 +670,7 @@ export const ClustersPage = () => {
     }
   }
 
-  async function handleUpdateMetadata(metadataID: string, newValue: string) {
-    if (!configCluster?.id) return
-    setBusyKey(`metadata:${metadataID}`)
-    try {
-      await clustersApi.updateClusterMetadata(configCluster.id, metadataID, newValue)
-      toast.success("Metadata updated.")
-      await refreshConfigCluster()
-    } catch (err: any) {
-      toast.error(err?.message ?? "Failed to update metadata.")
-    } finally {
-      setBusyKey(null)
-    }
-  }
 
-  async function handleDeleteMetadata(metadataID: string) {
-    if (!configCluster?.id) return
-    setBusyKey(`metadata:${metadataID}`)
-    try {
-      await clustersApi.deleteClusterMetadata(configCluster.id, metadataID)
-      toast.success("Metadata deleted.")
-      await refreshConfigCluster()
-    } catch (err: any) {
-      toast.error(err?.message ?? "Failed to delete metadata.")
-    } finally {
-      setBusyKey(null)
-    }
-  }
 
   if (clustersQ.isLoading) return <div className="p-6">Loading clusters…</div>
   if (clustersQ.error) return <div className="p-6 text-red-500">Error loading clusters.</div>
@@ -1575,29 +1549,19 @@ export const ClustersPage = () => {
 
                 <div className="mt-3 space-y-1">
                   <Label className="text-xs">Stored Metadata</Label>
-                  {configCluster.metadata && configCluster.metadata.length > 0 ? (
+                  {configCluster.metadata && Object.keys(configCluster.metadata).length > 0 ? (
                     <div className="divide-border mt-1 rounded-md border">
-                      {configCluster.metadata.map((m: DtoClusterMetadataResponse) => (
+                      {Object.entries(configCluster.metadata).map(([key, value]) => (
                         <div
-                          key={m.id}
+                          key={key}
                           className="flex items-center justify-between gap-3 px-3 py-2 text-xs"
                         >
                           <div className="flex flex-col min-w-0">
-                            <div className="flex items-center gap-2">
-                              <code className="font-mono font-medium">{m.key}</code>
-                            </div>
+                            <code className="font-mono font-medium">{key}</code>
                             <code className="text-muted-foreground font-mono text-xs truncate">
-                              {m.value}
+                              {value}
                             </code>
                           </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => m.id && handleDeleteMetadata(m.id)}
-                            disabled={isBusy(`metadata:${m.id}`)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
                         </div>
                       ))}
                     </div>
