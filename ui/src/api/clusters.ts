@@ -1,5 +1,5 @@
 import { withRefresh } from "@/api/with-refresh";
-import type { DtoAttachBastionRequest, DtoAttachCaptainDomainRequest, DtoAttachLoadBalancerRequest, DtoAttachRecordSetRequest, DtoCreateClusterRequest, DtoSetKubeconfigRequest, DtoUpdateClusterRequest } from "@/sdk";
+import type { DtoAttachBastionRequest, DtoAttachCaptainDomainRequest, DtoAttachLoadBalancerRequest, DtoAttachRecordSetRequest, DtoCreateClusterRequest, DtoSetKubeconfigRequest, DtoUpdateClusterRequest, DtoCreateClusterMetadataRequest, DtoUpdateClusterMetadataRequest } from "@/sdk";
 import { makeClusterApi, makeClusterRunsApi } from "@/sdkClient";
 
 
@@ -143,6 +143,30 @@ export const clustersApi = {
   detachNodePool: (clusterID: string, nodePoolID: string) =>
     withRefresh(async () => {
       return await clusters.detachNodePool({ clusterID, nodePoolID })
+    }),
+
+  // --- metadata ---
+
+  createClusterMetadata: (clusterID: string, key: string, value: string) =>
+    withRefresh(async () => {
+      return await clusters.createClusterMetadata({
+        clusterID,
+        createClusterMetadataRequest: { key, value },
+      })
+    }),
+
+  updateClusterMetadata: (clusterID: string, metadataID: string, value: string) =>
+    withRefresh(async () => {
+      return await clusters.updateClusterMetadata({
+        clusterID,
+        metadataID,
+        updateClusterMetadataRequest: { value },
+      })
+    }),
+
+  deleteClusterMetadata: (clusterID: string, metadataID: string) =>
+    withRefresh(async () => {
+      return await clusters.deleteClusterMetadata({ clusterID, metadataID })
     }),
 
   // --- cluster runs / actions ---

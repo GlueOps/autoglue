@@ -5,10 +5,10 @@ import { dnsApi } from "@/api/dns";
 import { loadBalancersApi } from "@/api/loadbalancers";
 import { nodePoolsApi } from "@/api/node_pools";
 import { serversApi } from "@/api/servers";
-import type { DtoActionResponse, DtoClusterResponse, DtoClusterRunResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse } from "@/sdk";
+import type { DtoActionResponse, DtoClusterResponse, DtoClusterRunResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse, DtoClusterMetadataResponse } from "@/sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Loader2, MapPin, Pencil, Plus, Search, Server, Wrench } from "lucide-react";
+import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Key, Loader2, MapPin, Pencil, Plus, Search, Server, Trash2, Wrench } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -220,6 +220,8 @@ export const ClustersPage = () => {
   const [glueopsLbId, setGlueopsLbId] = useState("")
   const [bastionId, setBastionId] = useState("")
   const [nodePoolId, setNodePoolId] = useState("")
+  const [metadataKey, setMetadataKey] = useState("")
+  const [metadataValue, setMetadataValue] = useState("")
   const [kubeconfigText, setKubeconfigText] = useState("")
   const [busyKey, setBusyKey] = useState<string | null>(null)
 
@@ -645,6 +647,52 @@ export const ClustersPage = () => {
       await refreshConfigCluster()
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to clear kubeconfig.")
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function handleCreateMetadata() {
+    if (!configCluster?.id) return
+    if (!metadataKey.trim()) return toast.error("Key is required")
+    if (!metadataValue.trim()) return toast.error("Value is required")
+    setBusyKey("metadata")
+    try {
+      await clustersApi.createClusterMetadata(configCluster.id, metadataKey.trim(), metadataValue.trim())
+      toast.success("Metadata created.")
+      setMetadataKey("")
+      setMetadataValue("")
+      await refreshConfigCluster()
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to create metadata.")
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function handleUpdateMetadata(metadataID: string, newValue: string) {
+    if (!configCluster?.id) return
+    setBusyKey(`metadata:${metadataID}`)
+    try {
+      await clustersApi.updateClusterMetadata(configCluster.id, metadataID, newValue)
+      toast.success("Metadata updated.")
+      await refreshConfigCluster()
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to update metadata.")
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function handleDeleteMetadata(metadataID: string) {
+    if (!configCluster?.id) return
+    setBusyKey(`metadata:${metadataID}`)
+    try {
+      await clustersApi.deleteClusterMetadata(configCluster.id, metadataID)
+      toast.success("Metadata deleted.")
+      await refreshConfigCluster()
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to delete metadata.")
     } finally {
       setBusyKey(null)
     }
@@ -1479,6 +1527,83 @@ export const ClustersPage = () => {
                   ) : (
                     <p className="text-muted-foreground mt-1 text-xs">
                       No node pools attached to this cluster yet.
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              {/* Metadata */}
+              <section className="space-y-2 rounded-xl border p-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Key className="h-4 w-4" />
+                    <h3 className="text-sm font-semibold">Cluster Metadata</h3>
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    Store custom key-value metadata for cluster configuration.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2 md:flex-row">
+                  <div className="flex-1">
+                    <Label className="text-xs">Key</Label>
+                    <Input
+                      placeholder="e.g., network.service_cidr"
+                      value={metadataKey}
+                      onChange={(e) => setMetadataKey(e.target.value)}
+                      className="text-xs"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label className="text-xs">Value</Label>
+                    <Input
+                      placeholder="e.g., 10.96.0.0/12"
+                      value={metadataValue}
+                      onChange={(e) => setMetadataValue(e.target.value)}
+                      className="text-xs"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={handleCreateMetadata}
+                    disabled={isBusy("metadata") || !metadataKey.trim() || !metadataValue.trim()}
+                    className="self-end"
+                  >
+                    {isBusy("metadata") ? "Adding…" : "Add"}
+                  </Button>
+                </div>
+
+                <div className="mt-3 space-y-1">
+                  <Label className="text-xs">Stored Metadata</Label>
+                  {configCluster.metadata && configCluster.metadata.length > 0 ? (
+                    <div className="divide-border mt-1 rounded-md border">
+                      {configCluster.metadata.map((m: DtoClusterMetadataResponse) => (
+                        <div
+                          key={m.id}
+                          className="flex items-center justify-between gap-3 px-3 py-2 text-xs"
+                        >
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2">
+                              <code className="font-mono font-medium">{m.key}</code>
+                            </div>
+                            <code className="text-muted-foreground font-mono text-xs truncate">
+                              {m.value}
+                            </code>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => m.id && handleDeleteMetadata(m.id)}
+                            disabled={isBusy(`metadata:${m.id}`)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      No metadata set for this cluster yet.
                     </p>
                   )}
                 </div>
