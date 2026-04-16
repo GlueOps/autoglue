@@ -22,8 +22,9 @@ type ClusterResponse struct {
 	LastError             string                `json:"last_error"`
 	RandomToken           string                `json:"random_token"`
 	CertificateKey        string                `json:"certificate_key"`
-	NodePools             []NodePoolResponse    `json:"node_pools,omitempty"`
-	DockerImage           string                `json:"docker_image"`
+	NodePools             []NodePoolResponse        `json:"node_pools,omitempty"`
+	Metadata              []ClusterMetadataResponse `json:"metadata,omitempty"`
+	DockerImage           string                    `json:"docker_image"`
 	DockerTag             string                `json:"docker_tag"`
 	Kubeconfig            *string               `json:"kubeconfig,omitempty"`
 	OrgKey                *string               `json:"org_key,omitempty"`

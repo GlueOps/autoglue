@@ -63,6 +63,7 @@ func ListClusters(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			Find(&rows).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -132,6 +133,7 @@ func GetCluster(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster).Error; err != nil {
 
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -313,6 +315,7 @@ func UpdateCluster(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -452,6 +455,7 @@ func AttachCaptainDomain(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -521,6 +525,7 @@ func DetachCaptainDomain(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -613,6 +618,7 @@ func AttachControlPlaneRecordSet(db *gorm.DB, cfg config.Config) http.HandlerFun
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -683,6 +689,7 @@ func DetachControlPlaneRecordSet(db *gorm.DB, cfg config.Config) http.HandlerFun
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -771,6 +778,7 @@ func AttachAppsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -841,6 +849,7 @@ func DetachAppsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -929,6 +938,7 @@ func AttachGlueOpsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc 
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -999,6 +1009,7 @@ func DetachGlueOpsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc 
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -1087,6 +1098,7 @@ func AttachBastionServer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -1157,6 +1169,7 @@ func DetachBastionServer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -1244,6 +1257,7 @@ func SetClusterKubeconfig(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -1317,6 +1331,7 @@ func ClearClusterKubeconfig(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
@@ -1415,6 +1430,7 @@ func AttachNodePool(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
@@ -1509,6 +1525,7 @@ func DetachNodePool(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers").
+					Preload("Metadata").
 			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
 
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
@@ -1562,6 +1579,10 @@ func clusterToDTO(c models.Cluster, cfg config.Config) dto.ClusterResponse {
 	for _, np := range c.NodePools {
 		nps = append(nps, nodePoolToDTO(np))
 	}
+	metadata := make([]dto.ClusterMetadataResponse, 0, len(c.Metadata))
+	for _, m := range c.Metadata {
+		metadata = append(metadata, clusterMetadataToDTO(m))
+	}
 	fmt.Println(cfg.BaseURL)
 	return dto.ClusterResponse{
 		ID:                    c.ID,
@@ -1580,6 +1601,7 @@ func clusterToDTO(c models.Cluster, cfg config.Config) dto.ClusterResponse {
 		RandomToken:           c.RandomToken,
 		CertificateKey:        c.CertificateKey,
 		NodePools:             nps,
+		Metadata:              metadata,
 		DockerImage:           c.DockerImage,
 		DockerTag:             c.DockerTag,
 		CreatedAt:             c.CreatedAt,

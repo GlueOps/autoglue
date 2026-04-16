@@ -35,8 +35,9 @@ type Cluster struct {
 	GlueOpsLoadBalancer     *LoadBalancer `gorm:"foreignKey:GlueOpsLoadBalancerID" json:"glueops_load_balancer,omitempty"`
 	BastionServerID         *uuid.UUID    `gorm:"type:uuid" json:"bastion_server_id,omitempty"`
 	BastionServer           *Server       `gorm:"foreignKey:BastionServerID" json:"bastion_server,omitempty"`
-	NodePools               []NodePool    `gorm:"many2many:cluster_node_pools;constraint:OnDelete:CASCADE" json:"node_pools,omitempty"`
-	RandomToken             string        `json:"random_token"`
+	NodePools               []NodePool        `gorm:"many2many:cluster_node_pools;constraint:OnDelete:CASCADE" json:"node_pools,omitempty"`
+	Metadata                []ClusterMetadata `gorm:"foreignKey:ClusterID;constraint:OnDelete:CASCADE" json:"metadata,omitempty"`
+	RandomToken             string            `json:"random_token"`
 	CertificateKey          string        `json:"certificate_key"`
 	EncryptedKubeconfig     string        `gorm:"type:text" json:"-"`
 	KubeIV                  string        `json:"-"`
