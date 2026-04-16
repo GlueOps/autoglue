@@ -77,6 +77,7 @@ func ClusterPrepareWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers.SshKey").
+			Preload("Metadata").
 			Where("status = ?", clusterStatusPrePending).
 			Find(&clusters).Error; err != nil {
 			log.Error().Err(err).Msg("[cluster_prepare] query clusters failed")
