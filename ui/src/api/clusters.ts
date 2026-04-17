@@ -1,6 +1,6 @@
 import { withRefresh } from "@/api/with-refresh";
 import type { DtoAttachBastionRequest, DtoAttachCaptainDomainRequest, DtoAttachLoadBalancerRequest, DtoAttachRecordSetRequest, DtoCreateClusterRequest, DtoSetKubeconfigRequest, DtoUpdateClusterRequest } from "@/sdk";
-import { makeClusterApi, makeClusterRunsApi } from "@/sdkClient";
+import { makeClusterApi, makeClusterMetadataApi, makeClusterRunsApi } from "@/sdkClient";
 
 
 
@@ -8,6 +8,7 @@ import { makeClusterApi, makeClusterRunsApi } from "@/sdkClient";
 
 const clusters = makeClusterApi()
 const clusterRuns = makeClusterRunsApi()
+const clusterMetadata = makeClusterMetadataApi()
 
 export const clustersApi = {
   // --- basic CRUD ---
@@ -149,7 +150,7 @@ export const clustersApi = {
 
   createClusterMetadata: (clusterID: string, key: string, value: string) =>
     withRefresh(async () => {
-      return await clusters.createClusterMetadata({
+      return await clusterMetadata.createClusterMetadata({
         clusterID,
         createClusterMetadataRequest: { key, value },
       })

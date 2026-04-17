@@ -410,6 +410,9 @@ export const ClustersPage = () => {
   // --- Config dialog helpers ---
 
   useEffect(() => {
+    setMetadataKey("")
+    setMetadataValue("")
+
     if (!configCluster) {
       setCaptainDomainId("")
       setRecordSetId("")

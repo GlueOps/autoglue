@@ -17,7 +17,7 @@ import (
 
 // ListClusterMetadata godoc
 //
-//	@ID			ListClusterMetadata
+//	@ID				ListClusterMetadata
 //	@Summary		List metadata for a cluster (org scoped)
 //	@Description	Returns all metadata key-value pairs attached to the cluster.
 //	@Tags			Cluster Metadata
@@ -74,7 +74,7 @@ func ListClusterMetadata(db *gorm.DB) http.HandlerFunc {
 
 // GetClusterMetadata godoc
 //
-//	@ID			GetClusterMetadata
+//	@ID				GetClusterMetadata
 //	@Summary		Get a single cluster metadata entry (org scoped)
 //	@Description	Returns one metadata key-value pair by ID.
 //	@Tags			Cluster Metadata
@@ -139,7 +139,7 @@ func GetClusterMetadata(db *gorm.DB) http.HandlerFunc {
 
 // CreateClusterMetadata godoc
 //
-//	@ID			CreateClusterMetadata
+//	@ID				CreateClusterMetadata
 //	@Summary		Create cluster metadata (org scoped)
 //	@Description	Adds a new key-value metadata entry to a cluster. Keys are forced to lowercase; values preserve case.
 //	@Tags			Cluster Metadata
@@ -194,15 +194,24 @@ func CreateClusterMetadata(db *gorm.DB) http.HandlerFunc {
 			utils.WriteError(w, http.StatusBadRequest, "bad_request", "key is required")
 			return
 		}
+		value := strings.TrimSpace(req.Value)
+		if value == "" {
+			utils.WriteError(w, http.StatusBadRequest, "bad_request", "value is required")
+			return
+		}
 
 		m := models.ClusterMetadata{
 			ClusterID: clusterID,
 			Key:       key,
-			Value:     req.Value, // value case preserved
+			Value:     value, // value case preserved
 		}
 		m.OrganizationID = orgID
 
 		if err := db.Create(&m).Error; err != nil {
+			if isUniqueConstraintViolation(err) {
+				utils.WriteError(w, http.StatusConflict, "conflict", "metadata key already exists for this cluster")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
@@ -213,7 +222,7 @@ func CreateClusterMetadata(db *gorm.DB) http.HandlerFunc {
 
 // UpdateClusterMetadata godoc
 //
-//	@ID			UpdateClusterMetadata
+//	@ID				UpdateClusterMetadata
 //	@Summary		Update cluster metadata (org scoped)
 //	@Description	Partially updates a metadata entry. Key is forced to lowercase if provided; value case is preserved.
 //	@Tags			Cluster Metadata
@@ -281,13 +290,27 @@ func UpdateClusterMetadata(db *gorm.DB) http.HandlerFunc {
 		}
 
 		if req.Key != nil {
-			m.Key = strings.ToLower(strings.TrimSpace(*req.Key))
+			normalizedKey := strings.TrimSpace(*req.Key)
+			if normalizedKey == "" {
+				utils.WriteError(w, http.StatusBadRequest, "bad_request", "key cannot be empty")
+				return
+			}
+			m.Key = strings.ToLower(normalizedKey)
 		}
 		if req.Value != nil {
-			m.Value = *req.Value // value case preserved
+			value := strings.TrimSpace(*req.Value)
+			if value == "" {
+				utils.WriteError(w, http.StatusBadRequest, "bad_request", "value cannot be empty")
+				return
+			}
+			m.Value = value // value case preserved
 		}
 
 		if err := db.Save(&m).Error; err != nil {
+			if isUniqueConstraintViolation(err) {
+				utils.WriteError(w, http.StatusConflict, "conflict", "metadata key already exists for this cluster")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
@@ -298,7 +321,7 @@ func UpdateClusterMetadata(db *gorm.DB) http.HandlerFunc {
 
 // DeleteClusterMetadata godoc
 //
-//	@ID			DeleteClusterMetadata
+//	@ID				DeleteClusterMetadata
 //	@Summary		Delete cluster metadata (org scoped)
 //	@Description	Permanently deletes a metadata entry from a cluster.
 //	@Tags			Cluster Metadata
@@ -362,4 +385,15 @@ func clusterMetadataToDTO(m models.ClusterMetadata) dto.ClusterMetadataResponse 
 		Key:         m.Key,
 		Value:       m.Value,
 	}
+}
+
+func isUniqueConstraintViolation(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return true
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "duplicate key value") || strings.Contains(msg, "unique constraint")
 }
