@@ -5,10 +5,10 @@ import { dnsApi } from "@/api/dns";
 import { loadBalancersApi } from "@/api/loadbalancers";
 import { nodePoolsApi } from "@/api/node_pools";
 import { serversApi } from "@/api/servers";
-import type { DtoActionResponse, DtoClusterResponse, DtoClusterRunResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse } from "@/sdk";
+import type { DtoActionResponse, DtoClusterMetadataResponse, DtoClusterResponse, DtoClusterRunResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse } from "@/sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Key, Loader2, MapPin, Pencil, Plus, Search, Server, Wrench } from "lucide-react";
+import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Key, Loader2, MapPin, Pencil, Plus, Save, Search, Server, Wrench, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -222,6 +222,8 @@ export const ClustersPage = () => {
   const [nodePoolId, setNodePoolId] = useState("")
   const [metadataKey, setMetadataKey] = useState("")
   const [metadataValue, setMetadataValue] = useState("")
+  const [editingMetadataId, setEditingMetadataId] = useState<string | null>(null)
+  const [editingMetadataValue, setEditingMetadataValue] = useState("")
   const [kubeconfigText, setKubeconfigText] = useState("")
   const [busyKey, setBusyKey] = useState<string | null>(null)
 
@@ -283,6 +285,13 @@ export const ClustersPage = () => {
       })
       return active ? 2000 : false
     },
+  })
+
+  const metadataQ = useQuery({
+    queryKey: ["cluster-metadata", configCluster?.id],
+    enabled: !!configCluster?.id,
+    queryFn: async () =>
+      asArray<DtoClusterMetadataResponse>(await clustersApi.listClusterMetadata(configCluster!.id!)),
   })
 
   const actionLabelByTarget = useMemo(() => {
@@ -412,6 +421,8 @@ export const ClustersPage = () => {
   useEffect(() => {
     setMetadataKey("")
     setMetadataValue("")
+    setEditingMetadataId(null)
+    setEditingMetadataValue("")
 
     if (!configCluster) {
       setCaptainDomainId("")
@@ -441,6 +452,7 @@ export const ClustersPage = () => {
       setConfigCluster(updated)
       await qc.invalidateQueries({ queryKey: ["clusters"] })
       await qc.invalidateQueries({ queryKey: ["cluster-runs", configCluster.id] })
+      await qc.invalidateQueries({ queryKey: ["cluster-metadata", configCluster.id] })
     } catch {
       // ignore
     }
@@ -671,6 +683,38 @@ export const ClustersPage = () => {
     } finally {
       setBusyKey(null)
     }
+  }
+
+  async function handleUpdateMetadata() {
+    if (!configCluster?.id || !editingMetadataId) return
+    if (!editingMetadataValue.trim()) return toast.error("Value is required")
+    setBusyKey(`metadata:${editingMetadataId}`)
+    try {
+      await clustersApi.updateClusterMetadata(
+        configCluster.id,
+        editingMetadataId,
+        editingMetadataValue.trim(),
+      )
+      toast.success("Metadata updated.")
+      setEditingMetadataId(null)
+      setEditingMetadataValue("")
+      await refreshConfigCluster()
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to update metadata.")
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  function beginMetadataEdit(metadata: DtoClusterMetadataResponse) {
+    if (!metadata.id) return
+    setEditingMetadataId(metadata.id)
+    setEditingMetadataValue(metadata.value ?? "")
+  }
+
+  function cancelMetadataEdit() {
+    setEditingMetadataId(null)
+    setEditingMetadataValue("")
   }
 
 
@@ -1552,18 +1596,60 @@ export const ClustersPage = () => {
 
                 <div className="mt-3 space-y-1">
                   <Label className="text-xs">Stored Metadata</Label>
-                  {configCluster.metadata && Object.keys(configCluster.metadata).length > 0 ? (
+                  {metadataQ.isLoading ? (
+                    <p className="text-muted-foreground mt-1 text-xs">Loading metadata…</p>
+                  ) : (metadataQ.data ?? []).length > 0 ? (
                     <div className="divide-border mt-1 rounded-md border">
-                      {Object.entries(configCluster.metadata).map(([key, value]) => (
+                      {(metadataQ.data ?? []).map((metadata) => (
                         <div
-                          key={key}
+                          key={metadata.id}
                           className="flex items-center justify-between gap-3 px-3 py-2 text-xs"
                         >
-                          <div className="flex flex-col min-w-0">
-                            <code className="font-mono font-medium">{key}</code>
-                            <code className="text-muted-foreground font-mono text-xs truncate">
-                              {value}
-                            </code>
+                          <div className="flex min-w-0 flex-1 flex-col gap-1">
+                            <code className="font-mono font-medium">{metadata.key}</code>
+                            {editingMetadataId === metadata.id ? (
+                              <Input
+                                value={editingMetadataValue}
+                                onChange={(e) => setEditingMetadataValue(e.target.value)}
+                                className="h-8 text-xs"
+                              />
+                            ) : (
+                              <code className="text-muted-foreground font-mono text-xs break-all">
+                                {metadata.value}
+                              </code>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {editingMetadataId === metadata.id ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={handleUpdateMetadata}
+                                  disabled={
+                                    isBusy(`metadata:${metadata.id}`) || !editingMetadataValue.trim()
+                                  }
+                                >
+                                  <Save className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelMetadataEdit}
+                                  disabled={isBusy(`metadata:${metadata.id}`)}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => beginMetadataEdit(metadata)}
+                                disabled={!!editingMetadataId}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       ))}
