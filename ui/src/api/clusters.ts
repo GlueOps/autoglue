@@ -152,7 +152,6 @@ export const clustersApi = {
     withRefresh(async () => {
       return await clusterMetadata.listClusterMetadata({ clusterID })
     }),
-
   createClusterMetadata: (clusterID: string, key: string, value: string) =>
     withRefresh(async () => {
       return await clusterMetadata.createClusterMetadata({
@@ -160,7 +159,6 @@ export const clustersApi = {
         createClusterMetadataRequest: { key, value },
       })
     }),
-
   updateClusterMetadata: (clusterID: string, metadataID: string, value: string) =>
     withRefresh(async () => {
       return await clusterMetadata.updateClusterMetadata({
@@ -169,7 +167,6 @@ export const clustersApi = {
         updateClusterMetadataRequest: { value },
       })
     }),
-
   // --- cluster runs / actions ---
   listClusterRuns: (clusterID: string) =>
     withRefresh(async () => {

@@ -718,7 +718,6 @@ export const ClustersPage = () => {
   }
 
 
-
   if (clustersQ.isLoading) return <div className="p-6">Loading clusters…</div>
   if (clustersQ.error) return <div className="p-6 text-red-500">Error loading clusters.</div>
 
