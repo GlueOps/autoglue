@@ -40,6 +40,12 @@ func mountClusterRoutes(r chi.Router, db *gorm.DB, cfg config.Config, jobs *bg.J
 		c.Post("/{clusterID}/node-pools", handlers.AttachNodePool(db, cfg))
 		c.Delete("/{clusterID}/node-pools/{nodePoolID}", handlers.DetachNodePool(db, cfg))
 
+		c.Get("/{clusterID}/metadata", handlers.ListClusterMetadata(db))
+		c.Post("/{clusterID}/metadata", handlers.CreateClusterMetadata(db))
+		c.Get("/{clusterID}/metadata/{metadataID}", handlers.GetClusterMetadata(db))
+		c.Patch("/{clusterID}/metadata/{metadataID}", handlers.UpdateClusterMetadata(db))
+		c.Delete("/{clusterID}/metadata/{metadataID}", handlers.DeleteClusterMetadata(db))
+
 		c.Get("/{clusterID}/runs", handlers.ListClusterRuns(db))
 		c.Get("/{clusterID}/runs/{runID}", handlers.GetClusterRun(db))
 		c.Post("/{clusterID}/actions/{actionID}/runs", handlers.RunClusterAction(db, jobs))

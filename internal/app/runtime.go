@@ -45,8 +45,8 @@ func NewRuntime() *Runtime {
 		&models.LoadBalancer{},
 		&models.Cluster{},
 		&models.Action{},
-		&models.Cluster{},
 		&models.ClusterRun{},
+		&models.ClusterMetadata{},
 	)
 
 	if err != nil {

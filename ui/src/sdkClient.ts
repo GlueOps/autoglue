@@ -6,6 +6,7 @@ import {
   ArcherAdminApi,
   AuthApi,
   ClusterRunsApi,
+  ClusterMetadataApi,
   ClustersApi,
   Configuration,
   CredentialsApi,
@@ -142,4 +143,8 @@ export function makeActionsApi() {
 
 export function makeClusterRunsApi() {
   return makeApiClient(ClusterRunsApi)
+}
+
+export function makeClusterMetadataApi() {
+  return makeApiClient(ClusterMetadataApi)
 }

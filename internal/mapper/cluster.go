@@ -52,6 +52,11 @@ func ClusterToDTO(c models.Cluster) dto.ClusterResponse {
 		nps = append(nps, NodePoolToDTO(np))
 	}
 
+	metadata := make(map[string]string, len(c.Metadata))
+	for _, m := range c.Metadata {
+		metadata[m.Key] = m.Value
+	}
+
 	return dto.ClusterResponse{
 		ID:                    c.ID,
 		Name:                  c.Name,
@@ -68,6 +73,7 @@ func ClusterToDTO(c models.Cluster) dto.ClusterResponse {
 		RandomToken:           c.RandomToken,
 		CertificateKey:        c.CertificateKey,
 		NodePools:             nps,
+		Metadata:              metadata,
 		DockerImage:           c.DockerImage,
 		DockerTag:             c.DockerTag,
 		CreatedAt:             c.CreatedAt,
