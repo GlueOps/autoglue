@@ -105,6 +105,7 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 			Preload("NodePools.Annotations").
 			Preload("NodePools.Taints").
 			Preload("NodePools.Servers.SshKey").
+			Preload("Metadata").
 			Where("id = ? AND organization_id = ?", args.ClusterID, args.OrgID).
 			First(&c).Error; err != nil {
 			updateRun("failed", fmt.Errorf("load cluster: %w", err).Error())
