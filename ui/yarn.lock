@@ -2603,9 +2603,9 @@ base64-js@^1.3.1:
   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
 
 baseline-browser-mapping@^2.10.44:
-  version "2.11.6"
-  resolved "https://registry.yarnpkg.com/baseline-browser-mapping/-/baseline-browser-mapping-2.11.6.tgz#56934c812026ae4fcdb039fc790a94b9a7d81d63"
-  integrity sha512-69D/imtToCsIcAl8WBS2YaRwA4jO/j0HhU+hELqMEu9f54MoUtI6+XH5mrKU8rEFNEk/Ui1I2MK4/JkWacclGw==
+  version "2.11.7"
+  resolved "https://registry.yarnpkg.com/baseline-browser-mapping/-/baseline-browser-mapping-2.11.7.tgz#65b41243f29d2cca7b5d72ca6e9b8285df1ed975"
+  integrity sha512-APw5YuIQAg6L9w4sHDI6j26DGFJI6RpYOhnkMPdC9lWbkKvsyPHzDsve1yd73lk21yz7Y09Kci8B2Pp9FonzWA==
 
 body-parser@^2.2.1:
   version "2.3.0"
@@ -4783,9 +4783,9 @@ postcss-selector-parser@^7.1.0:
     util-deprecate "^1.0.2"
 
 postcss@^8.5.6:
-  version "8.5.24"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.5.24.tgz#01d8b032451e1b9ec41ae66eaf02843f42a720d2"
-  integrity sha512-8RyVklq0owXUTa4xlpzu4l9AaVKIdQvAcOHZWaMh98HgySsUtxRVf/chRe3dsSLqb6i40BzGRzEUddRaI+9TSw==
+  version "8.5.25"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.5.25.tgz#5012a598eaaa897f21bbe8553be3cb7bd2bd78cb"
+  integrity sha512-DTPx3RWSSnWyzLxQnlH0rJP+EW5ekl16ZU4/psbIhA0e53kJfdgaN5vKM+xP7yJtXVu+nfdVFmlgFDEKAe4Pyw==
   dependencies:
     nanoid "^3.3.16"
     picocolors "^1.1.1"
