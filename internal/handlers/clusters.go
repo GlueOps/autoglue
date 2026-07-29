@@ -344,10 +344,7 @@ func UpdateCluster(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 		// Apply only provided fields. Keys are hardcoded, never taken from the
 		// request: a map keyed from request JSON would make organization_id and
 		// the kubeadm credentials writable by any caller.
-		updates := map[string]any{
-			colClusterStatus:    models.ClusterStatusPrePending,
-			colClusterLastError: "",
-		}
+		updates := map[string]any{}
 		if in.Name != nil {
 			updates[colClusterName] = *in.Name
 		}
@@ -364,30 +361,8 @@ func UpdateCluster(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			updates[colClusterDockerTag] = *in.DockerTag
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(updates)
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		// Preload for a rich response
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, updates)
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -500,34 +475,10 @@ func AttachCaptainDomain(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterCaptainDomainID: domain.ID,
-				colClusterStatus:          models.ClusterStatusPrePending,
-				colClusterLastError:       "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		// Preload domain for response
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterCaptainDomainID: domain.ID,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -574,33 +525,10 @@ func DetachCaptainDomain(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterCaptainDomainID: nil,
-				colClusterStatus:          models.ClusterStatusPrePending,
-				colClusterLastError:       "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterCaptainDomainID: nil,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -669,33 +597,10 @@ func AttachControlPlaneRecordSet(db *gorm.DB, cfg config.Config) http.HandlerFun
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterControlPlaneRecordSetID: rs.ID,
-				colClusterStatus:                  models.ClusterStatusPrePending,
-				colClusterLastError:               "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterControlPlaneRecordSetID: rs.ID,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -742,33 +647,10 @@ func DetachControlPlaneRecordSet(db *gorm.DB, cfg config.Config) http.HandlerFun
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterControlPlaneRecordSetID: nil,
-				colClusterStatus:                  models.ClusterStatusPrePending,
-				colClusterLastError:               "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterControlPlaneRecordSetID: nil,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -833,33 +715,10 @@ func AttachAppsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterAppsLoadBalancerID: lb.ID,
-				colClusterStatus:             models.ClusterStatusPrePending,
-				colClusterLastError:          "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterAppsLoadBalancerID: lb.ID,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -906,33 +765,10 @@ func DetachAppsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterAppsLoadBalancerID: nil,
-				colClusterStatus:             models.ClusterStatusPrePending,
-				colClusterLastError:          "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterAppsLoadBalancerID: nil,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -997,33 +833,10 @@ func AttachGlueOpsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc 
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterGlueOpsLoadBalancerID: lb.ID,
-				colClusterStatus:                models.ClusterStatusPrePending,
-				colClusterLastError:             "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterGlueOpsLoadBalancerID: lb.ID,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -1070,33 +883,10 @@ func DetachGlueOpsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc 
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterGlueOpsLoadBalancerID: nil,
-				colClusterStatus:                models.ClusterStatusPrePending,
-				colClusterLastError:             "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterGlueOpsLoadBalancerID: nil,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -1161,33 +951,10 @@ func AttachBastionServer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterBastionServerID: server.ID,
-				colClusterStatus:          models.ClusterStatusPrePending,
-				colClusterLastError:       "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterBastionServerID: server.ID,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -1234,33 +1001,10 @@ func DetachBastionServer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterBastionServerID: nil,
-				colClusterStatus:          models.ClusterStatusPrePending,
-				colClusterLastError:       "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterBastionServerID: nil,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -1321,35 +1065,12 @@ func SetClusterKubeconfig(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterEncryptedKubeconfig: ct,
-				colClusterKubeIV:              iv,
-				colClusterKubeTag:             tag,
-				colClusterStatus:              models.ClusterStatusPrePending,
-				colClusterLastError:           "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterEncryptedKubeconfig: ct,
+			colClusterKubeIV:              iv,
+			colClusterKubeTag:             tag,
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -1396,35 +1117,12 @@ func ClearClusterKubeconfig(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		res := db.Model(&models.Cluster{}).
-			Where("id = ? AND organization_id = ?", clusterID, orgID).
-			Updates(map[string]any{
-				colClusterEncryptedKubeconfig: "",
-				colClusterKubeIV:              "",
-				colClusterKubeTag:             "",
-				colClusterStatus:              models.ClusterStatusPrePending,
-				colClusterLastError:           "",
-			})
-		if res.Error != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-		if res.RowsAffected == 0 {
-			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-			return
-		}
-
-		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		out, err := writeClusterColumns(db, clusterID, orgID, map[string]any{
+			colClusterEncryptedKubeconfig: "",
+			colClusterKubeIV:              "",
+			colClusterKubeTag:             "",
+		})
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -1505,18 +1203,8 @@ func AttachNodePool(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 
 		_ = markClusterNeedsValidation(db, cluster.ID, orgID)
 
-		// Reload for rich response
 		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -1594,16 +1282,7 @@ func DetachNodePool(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 		_ = markClusterNeedsValidation(db, cluster.ID, orgID)
 
 		out, err := loadClusterForResponse(db, cluster.ID, orgID)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
-				return
-			}
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
+		respondCluster(w, cfg, out, err)
 	}
 }
 
@@ -1828,6 +1507,54 @@ func loadClusterForResponse(db *gorm.DB, clusterID, orgID uuid.UUID) (models.Clu
 		Where("id = ? AND organization_id = ?", clusterID, orgID).
 		First(&c).Error
 	return c, err
+}
+
+// writeClusterColumns updates the columns a handler owns on one org-scoped
+// cluster, then reloads it for rendering.
+//
+// It sets status and last_error itself rather than trusting each caller to
+// remember them. Every change to a cluster's shape has to re-arm validation,
+// and that invariant held by convention across a dozen hand-written maps is one
+// omission away from a cluster that silently never gets revalidated.
+//
+// cols carries only the columns the caller owns, never the whole row: a
+// whole-row write replays every column from a snapshot taken before the read,
+// so two concurrent handlers undo each other. Keys must be column names from
+// the colCluster* constants -- see the comment on those for why a Go field name
+// silently writes nothing.
+//
+// A write matching no rows is ErrRecordNotFound, not success. The row was
+// deleted between the caller's read and this write, and the caller must not
+// report a change it did not make; db.Save used to answer that case with an
+// INSERT that resurrected the row with every stale foreign key restored.
+func writeClusterColumns(db *gorm.DB, clusterID, orgID uuid.UUID, cols map[string]any) (models.Cluster, error) {
+	cols[colClusterStatus] = models.ClusterStatusPrePending
+	cols[colClusterLastError] = ""
+
+	res := db.Model(&models.Cluster{}).
+		Where("id = ? AND organization_id = ?", clusterID, orgID).
+		Updates(cols)
+	if res.Error != nil {
+		return models.Cluster{}, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return models.Cluster{}, gorm.ErrRecordNotFound
+	}
+
+	return loadClusterForResponse(db, clusterID, orgID)
+}
+
+// respondCluster writes the response for a handler that has finished its work:
+// a missing row is 404, any other error is 500.
+func respondCluster(w http.ResponseWriter, cfg config.Config, c models.Cluster, err error) {
+	switch {
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+	case err != nil:
+		utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+	default:
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(c, cfg))
+	}
 }
 
 // markClusterNeedsValidation is for callers that change a cluster's shape
