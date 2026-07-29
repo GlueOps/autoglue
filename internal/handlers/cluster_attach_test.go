@@ -307,11 +307,13 @@ func newAttachCluster(t *testing.T, db *gorm.DB, orgID uuid.UUID) models.Cluster
 func newTestCredential(t *testing.T, db *gorm.DB, orgID uuid.UUID) models.Credential {
 	t.Helper()
 	c := models.Credential{
-		OrganizationID:   orgID,
-		Provider:         "aws",
-		Kind:             "static",
-		ScopeKind:        "org",
-		ScopeFingerprint: strings.Repeat("0", 64),
+		OrganizationID: orgID,
+		Provider:       "aws",
+		Kind:           "static",
+		ScopeKind:      "org",
+		// Unique per credential: (org, provider, scope_kind, fingerprint) is a
+		// unique index, and a test may need several credentials in one org.
+		ScopeFingerprint: strings.ReplaceAll(uuid.NewString()+uuid.NewString(), "-", ""), // char(64)
 		Name:             "cred-" + uuid.NewString(),
 		EncryptedData:    "x",
 		IV:               "x",

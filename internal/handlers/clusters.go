@@ -21,6 +21,70 @@ import (
 	"gorm.io/gorm"
 )
 
+// Column names on the clusters table.
+//
+// These handlers write individual columns rather than saving the whole row: a
+// whole-row write replays every column from a snapshot taken before the read,
+// so two concurrent requests silently undo each other's changes. Writing only
+// the columns a handler owns makes them commutative.
+//
+// Two of these names do not follow from the Go field or the JSON tag:
+//   - the column is glue_ops_load_balancer_id; the JSON tag is glueops_load_balancer_id
+//   - the column is provider; the request field is cluster_provider
+//
+// cluster_columns_test.go asserts every name here is a real, writable column,
+// which is the only protection against a name that silently writes nothing:
+// GORM resolves an association field (ControlPlaneRecordSet) to a field with no
+// column and drops the assignment, reporting success.
+const (
+	colClusterName                    = "name"
+	colClusterProvider                = "provider"
+	colClusterRegion                  = "region"
+	colClusterStatus                  = "status"
+	colClusterLastError               = "last_error"
+	colClusterCaptainDomainID         = "captain_domain_id"
+	colClusterControlPlaneRecordSetID = "control_plane_record_set_id"
+	colClusterAppsLoadBalancerID      = "apps_load_balancer_id"
+	colClusterGlueOpsLoadBalancerID   = "glue_ops_load_balancer_id"
+	colClusterBastionServerID         = "bastion_server_id"
+	colClusterEncryptedKubeconfig     = "encrypted_kubeconfig"
+	colClusterKubeIV                  = "kube_iv"
+	colClusterKubeTag                 = "kube_tag"
+	colClusterDockerImage             = "docker_image"
+	colClusterDockerTag               = "docker_tag"
+)
+
+// clusterWritableColumns is every column the handlers in this file write.
+var clusterWritableColumns = []string{
+	colClusterName,
+	colClusterProvider,
+	colClusterRegion,
+	colClusterStatus,
+	colClusterLastError,
+	colClusterCaptainDomainID,
+	colClusterControlPlaneRecordSetID,
+	colClusterAppsLoadBalancerID,
+	colClusterGlueOpsLoadBalancerID,
+	colClusterBastionServerID,
+	colClusterEncryptedKubeconfig,
+	colClusterKubeIV,
+	colClusterKubeTag,
+	colClusterDockerImage,
+	colClusterDockerTag,
+}
+
+// clusterImmutableColumns is every remaining column on the table. Together the
+// two lists must cover models.Cluster exactly, so a new column has to be
+// classified deliberately rather than defaulting to writable.
+var clusterImmutableColumns = []string{
+	"id",
+	"organization_id",
+	"random_token",
+	"certificate_key",
+	"created_at",
+	"updated_at",
+}
+
 // ListClusters godoc
 //
 //	@ID				ListClusters
@@ -277,51 +341,53 @@ func UpdateCluster(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		// Apply only provided fields
+		// Apply only provided fields. Keys are hardcoded, never taken from the
+		// request: a map keyed from request JSON would make organization_id and
+		// the kubeadm credentials writable by any caller.
+		updates := map[string]any{
+			colClusterStatus:    models.ClusterStatusPrePending,
+			colClusterLastError: "",
+		}
 		if in.Name != nil {
-			cluster.Name = *in.Name
+			updates[colClusterName] = *in.Name
 		}
 		if in.ClusterProvider != nil {
-			cluster.Provider = *in.ClusterProvider
+			updates[colClusterProvider] = *in.ClusterProvider
 		}
 		if in.Region != nil {
-			cluster.Region = *in.Region
+			updates[colClusterRegion] = *in.Region
 		}
-
 		if in.DockerImage != nil {
-			cluster.DockerImage = *in.DockerImage
+			updates[colClusterDockerImage] = *in.DockerImage
 		}
-
 		if in.DockerTag != nil {
-			cluster.DockerTag = *in.DockerTag
+			updates[colClusterDockerTag] = *in.DockerTag
 		}
 
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(updates)
+		if res.Error != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
-
-		// Any change to the cluster config may require re-validation.
-		_ = markClusterNeedsValidation(db, cluster.ID)
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
 
 		// Preload for a rich response
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -434,33 +500,34 @@ func AttachCaptainDomain(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		cluster.CaptainDomainID = &domain.ID
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterCaptainDomainID: domain.ID,
+				colClusterStatus:          models.ClusterStatusPrePending,
+				colClusterLastError:       "",
+			})
+		if res.Error != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
-
-		if err := markClusterNeedsValidation(db, cluster.ID); err != nil {
-			// Don't fail the request, just log if you have logging.
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
 		}
 
 		// Preload domain for response
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -507,31 +574,33 @@ func DetachCaptainDomain(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		cluster.CaptainDomainID = nil
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterCaptainDomainID: nil,
+				colClusterStatus:          models.ClusterStatusPrePending,
+				colClusterLastError:       "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
+
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -600,31 +669,33 @@ func AttachControlPlaneRecordSet(db *gorm.DB, cfg config.Config) http.HandlerFun
 			return
 		}
 
-		cluster.ControlPlaneRecordSetID = &rs.ID
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterControlPlaneRecordSetID: rs.ID,
+				colClusterStatus:                  models.ClusterStatusPrePending,
+				colClusterLastError:               "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
+
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -671,31 +742,33 @@ func DetachControlPlaneRecordSet(db *gorm.DB, cfg config.Config) http.HandlerFun
 			return
 		}
 
-		cluster.ControlPlaneRecordSetID = nil
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterControlPlaneRecordSetID: nil,
+				colClusterStatus:                  models.ClusterStatusPrePending,
+				colClusterLastError:               "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
+
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -760,31 +833,33 @@ func AttachAppsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		cluster.AppsLoadBalancerID = &lb.ID
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterAppsLoadBalancerID: lb.ID,
+				colClusterStatus:             models.ClusterStatusPrePending,
+				colClusterLastError:          "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
+
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -831,31 +906,33 @@ func DetachAppsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		cluster.AppsLoadBalancerID = nil
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterAppsLoadBalancerID: nil,
+				colClusterStatus:             models.ClusterStatusPrePending,
+				colClusterLastError:          "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
+
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -920,31 +997,33 @@ func AttachGlueOpsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc 
 			return
 		}
 
-		cluster.GlueOpsLoadBalancerID = &lb.ID
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterGlueOpsLoadBalancerID: lb.ID,
+				colClusterStatus:                models.ClusterStatusPrePending,
+				colClusterLastError:             "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
+
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -991,31 +1070,33 @@ func DetachGlueOpsLoadBalancer(db *gorm.DB, cfg config.Config) http.HandlerFunc 
 			return
 		}
 
-		cluster.GlueOpsLoadBalancerID = nil
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterGlueOpsLoadBalancerID: nil,
+				colClusterStatus:                models.ClusterStatusPrePending,
+				colClusterLastError:             "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
+
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -1080,31 +1161,33 @@ func AttachBastionServer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		cluster.BastionServerID = &server.ID
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterBastionServerID: server.ID,
+				colClusterStatus:          models.ClusterStatusPrePending,
+				colClusterLastError:       "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
+
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -1151,31 +1234,33 @@ func DetachBastionServer(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		cluster.BastionServerID = nil
-		if err := db.Save(&cluster).Error; err != nil {
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterBastionServerID: nil,
+				colClusterStatus:          models.ClusterStatusPrePending,
+				colClusterLastError:       "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
+
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -1236,34 +1321,35 @@ func SetClusterKubeconfig(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		cluster.EncryptedKubeconfig = ct
-		cluster.KubeIV = iv
-		cluster.KubeTag = tag
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterEncryptedKubeconfig: ct,
+				colClusterKubeIV:              iv,
+				colClusterKubeTag:             tag,
+				colClusterStatus:              models.ClusterStatusPrePending,
+				colClusterLastError:           "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
 
-		if err := db.Save(&cluster).Error; err != nil {
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -1310,34 +1396,35 @@ func ClearClusterKubeconfig(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		cluster.EncryptedKubeconfig = ""
-		cluster.KubeIV = ""
-		cluster.KubeTag = ""
+		res := db.Model(&models.Cluster{}).
+			Where("id = ? AND organization_id = ?", clusterID, orgID).
+			Updates(map[string]any{
+				colClusterEncryptedKubeconfig: "",
+				colClusterKubeIV:              "",
+				colClusterKubeTag:             "",
+				colClusterStatus:              models.ClusterStatusPrePending,
+				colClusterLastError:           "",
+			})
+		if res.Error != nil {
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
+			return
+		}
+		if res.RowsAffected == 0 {
+			utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+			return
+		}
 
-		if err := db.Save(&cluster).Error; err != nil {
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
-
-		if err := db.Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
-			return
-		}
-
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -1416,28 +1503,20 @@ func AttachNodePool(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
+		_ = markClusterNeedsValidation(db, cluster.ID, orgID)
 
 		// Reload for rich response
-		if err := db.
-			Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -1512,27 +1591,19 @@ func DetachNodePool(db *gorm.DB, cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		_ = markClusterNeedsValidation(db, cluster.ID)
+		_ = markClusterNeedsValidation(db, cluster.ID, orgID)
 
-		if err := db.
-			Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("BastionServer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers").
-			Preload("Metadata").
-			First(&cluster, "id = ?", cluster.ID).Error; err != nil {
-
+		out, err := loadClusterForResponse(db, cluster.ID, orgID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "not_found", "cluster not found")
+				return
+			}
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "db error")
 			return
 		}
 
-		utils.WriteJSON(w, http.StatusOK, clusterToDTO(cluster, cfg))
+		utils.WriteJSON(w, http.StatusOK, clusterToDTO(out, cfg))
 	}
 }
 
@@ -1734,9 +1805,39 @@ func GenerateFormattedToken() (string, error) {
 	return fmt.Sprintf("%s.%s", part1, part2), nil
 }
 
-func markClusterNeedsValidation(db *gorm.DB, clusterID uuid.UUID) error {
-	return db.Model(&models.Cluster{}).Where("id = ?", clusterID).Updates(map[string]any{
-		"status":     models.ClusterStatusPrePending,
-		"last_error": "",
-	}).Error
+// loadClusterForResponse reads a cluster into a fresh struct for rendering.
+//
+// It must not reuse a struct a handler has already written through. Re-scanning
+// a row into a struct whose pointer field is already set does not clear that
+// field when the column is NULL, so a reused struct can report an attachment
+// that no longer exists.
+func loadClusterForResponse(db *gorm.DB, clusterID, orgID uuid.UUID) (models.Cluster, error) {
+	var c models.Cluster
+	err := db.
+		Preload("CaptainDomain").
+		Preload("ControlPlaneRecordSet").
+		Preload("AppsLoadBalancer").
+		Preload("GlueOpsLoadBalancer").
+		Preload("BastionServer").
+		Preload("NodePools").
+		Preload("NodePools.Labels").
+		Preload("NodePools.Annotations").
+		Preload("NodePools.Taints").
+		Preload("NodePools.Servers").
+		Preload("Metadata").
+		Where("id = ? AND organization_id = ?", clusterID, orgID).
+		First(&c).Error
+	return c, err
+}
+
+// markClusterNeedsValidation is for callers that change a cluster's shape
+// without writing the cluster row itself; handlers that do write the row fold
+// these two columns into that write so the change is atomic.
+func markClusterNeedsValidation(db *gorm.DB, clusterID, orgID uuid.UUID) error {
+	return db.Model(&models.Cluster{}).
+		Where("id = ? AND organization_id = ?", clusterID, orgID).
+		Updates(map[string]any{
+			colClusterStatus:    models.ClusterStatusPrePending,
+			colClusterLastError: "",
+		}).Error
 }
