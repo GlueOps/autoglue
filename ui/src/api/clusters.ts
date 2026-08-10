@@ -173,6 +173,11 @@ export const clustersApi = {
       return await clusterRuns.listClusterRuns({ clusterID })
     }),
 
+  getClusterRunLogs: (clusterID: string, runID: string, after: number, limit?: number) =>
+    withRefresh(async () => {
+      return await clusterRuns.getClusterRunLogs({ clusterID, runID, after, limit })
+    }),
+
   getClusterRun: (clusterID: string, runID: string) =>
     withRefresh(async () => {
       return await clusterRuns.getClusterRun({ clusterID, runID })

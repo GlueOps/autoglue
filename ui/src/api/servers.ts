@@ -13,6 +13,11 @@ export const serversApi = {
     withRefresh(async () => {
       return await servers.createServer({ createServerRequest: body })
     }),
+  getServerLogs: (id: string, after: number, limit?: number) =>
+    withRefresh(async () => {
+      return await servers.getServerLogs({ id, after, limit })
+    }),
+
   getServer: (id: string) =>
     withRefresh(async () => {
       return await servers.getServer({ id })
