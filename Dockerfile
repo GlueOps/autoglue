@@ -39,7 +39,17 @@ RUN apk add --no-cache ca-certificates tzdata postgresql17-client \
  && addgroup -S app && adduser -S app -G app
 
 WORKDIR /app
-COPY --from=builder /src/autoglue /app/autoglue
+
+# Install onto PATH, not just /app. Kubernetes `command:` replaces ENTRYPOINT
+# rather than appending to it, so a manifest saying `command: ["autoglue",
+# "worker"]` resolves the name through $PATH — and /app is not on it:
+#   /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# Without this the container dies with
+#   exec: "autoglue": executable file not found in $PATH
+COPY --from=builder /src/autoglue /usr/local/bin/autoglue
+
+# Keep the historical path working for anything that hardcodes /app/autoglue.
+RUN ln -s /usr/local/bin/autoglue /app/autoglue
 
 ENV PORT=8080
 EXPOSE 8080
@@ -52,5 +62,8 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
 
 # One image, two roles. Override the command with `worker` to run background
 # jobs; `serve` never processes them.
-ENTRYPOINT ["/app/autoglue"]
+#
+# Works as `args: ["worker"]` (ENTRYPOINT is kept) and as
+# `command: ["autoglue", "worker"]` (ENTRYPOINT is replaced, name found on PATH).
+ENTRYPOINT ["autoglue"]
 CMD ["serve"]
