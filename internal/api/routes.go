@@ -24,7 +24,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func NewRouter(db *gorm.DB, jobs *bg.Jobs, cfg config.Config, studio http.Handler) http.Handler {
+// RouterOpts carries the optional handlers the API mounts alongside the
+// versioned routes. Both are nil unless explicitly enabled.
+type RouterOpts struct {
+	// Studio is the pgweb handler mounted at /db-studio.
+	Studio http.Handler
+	// RiverUI is the River dashboard mounted at RiverUIPrefix.
+	RiverUI http.Handler
+}
+
+func NewRouter(db *gorm.DB, jobs *bg.Client, cfg config.Config, opts RouterOpts) http.Handler {
 	zerolog.TimeFieldFormat = time.RFC3339
 
 	l := log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: "15:04:05"})
@@ -40,7 +49,7 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs, cfg config.Config, studio http.Handle
 	r.Use(httprate.LimitByIP(1000, 1*time.Minute))
 	r.Use(middleware.StripSlashes)
 
-	allowed := getAllowedOrigins()
+	allowed := config.AllowedOrigins()
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: allowed,
 		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
@@ -73,12 +82,23 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs, cfg config.Config, studio http.Handle
 	mountAPIRoutes(r, db, cfg, jobs)
 
 	// Optional DB studio
-	if studio != nil {
+	if opts.Studio != nil {
 		r.Group(func(gr chi.Router) {
 			authUser := httpmiddleware.AuthMiddleware(db, false)
 			adminOnly := httpmiddleware.RequirePlatformAdmin()
 			gr.Use(authUser, adminOnly)
-			gr.Mount("/db-studio", studio)
+			gr.Mount("/db-studio", opts.Studio)
+		})
+	}
+
+	// River dashboard. Same admin gate as the DB studio: AuthMiddleware falls
+	// back to the ag_jwt cookie, so a plain browser navigation authenticates.
+	if opts.RiverUI != nil {
+		r.Group(func(gr chi.Router) {
+			authUser := httpmiddleware.AuthMiddleware(db, false)
+			adminOnly := httpmiddleware.RequirePlatformAdmin()
+			gr.Use(authUser, adminOnly)
+			gr.Mount(RiverUIPrefix, opts.RiverUI)
 		})
 	}
 
@@ -107,6 +127,7 @@ func NewRouter(db *gorm.DB, jobs *bg.Jobs, cfg config.Config, studio http.Handle
 		mux.Handle("/swagger", r)
 		mux.Handle("/swagger/", r)
 		mux.Handle("/db-studio/", r)
+		mux.Handle(RiverUIPrefix+"/", r)
 		mux.Handle("/debug/pprof/", r)
 		mux.Handle("/", proxy)
 		return mux

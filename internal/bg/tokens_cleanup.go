@@ -4,9 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/dyaksa/archer"
-	"github.com/dyaksa/archer/job"
-	"github.com/google/uuid"
+	"github.com/riverqueue/river"
 	"gorm.io/gorm"
 )
 
@@ -19,28 +17,25 @@ type RefreshTokenRow struct {
 
 func (RefreshTokenRow) TableName() string { return "refresh_tokens" }
 
-type TokensCleanupArgs struct {
-	// kept in case you want to change retention or add dry-run later
+type TokensCleanupArgs struct{}
+
+func (TokensCleanupArgs) Kind() string { return "tokens_cleanup" }
+
+func (TokensCleanupArgs) InsertOpts() river.InsertOpts {
+	return river.InsertOpts{Queue: QueueMaintenance, MaxAttempts: 2}
 }
 
-func TokensCleanupWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
-	return func(ctx context.Context, j job.Job) (any, error) {
-		if err := CleanupRefreshTokens(db); err != nil {
-			return nil, err
-		}
+type TokensCleanupWorker struct {
+	river.WorkerDefaults[TokensCleanupArgs]
+	db *gorm.DB
+}
 
-		// schedule tomorrow 03:45
-		next := time.Now().Truncate(24 * time.Hour).Add(24 * time.Hour).Add(3*time.Hour + 45*time.Minute)
-		_, _ = jobs.Enqueue(
-			ctx,
-			uuid.NewString(),
-			"tokens_cleanup",
-			TokensCleanupArgs{},
-			archer.WithScheduleTime(next),
-			archer.WithMaxRetries(1),
-		)
-		return nil, nil
-	}
+func (w *TokensCleanupWorker) Timeout(*river.Job[TokensCleanupArgs]) time.Duration {
+	return 5 * time.Minute
+}
+
+func (w *TokensCleanupWorker) Work(_ context.Context, _ *river.Job[TokensCleanupArgs]) error {
+	return CleanupRefreshTokens(w.db)
 }
 
 func CleanupRefreshTokens(db *gorm.DB) error {

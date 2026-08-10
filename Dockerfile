@@ -10,7 +10,16 @@ RUN apk add --no-cache \
     openjdk17-jre-headless \
     jq yq brotli
 
-RUN npm i -g yarn pnpm
+# The UI is on Yarn 4 (berry). `npm i -g yarn` would install classic 1.x, which
+# cannot read a berry lockfile and ignores ui/.yarnrc.yml entirely. Yarn 4 is
+# not published to npm either, so corepack is the only route — and Alpine's
+# nodejs package does not bundle it.
+#
+# The exact version comes from "packageManager" in ui/package.json.
+RUN npm i -g corepack@0.35.0 && corepack enable
+
+# Corepack prompts before downloading a package manager; that would hang a build.
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 WORKDIR /src
 
@@ -36,7 +45,12 @@ ENV PORT=8080
 EXPOSE 8080
 USER app
 
+# Only meaningful for the `serve` command. A container started with `worker`
+# serves no HTTP and should override or disable this healthcheck.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD wget -qO- "http://127.0.0.1:${PORT}/api/v1/healthz" || exit 1
 
+# One image, two roles. Override the command with `worker` to run background
+# jobs; `serve` never processes them.
 ENTRYPOINT ["/app/autoglue"]
+CMD ["serve"]

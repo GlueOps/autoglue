@@ -20,7 +20,7 @@ import (
 //	@ID				ListClusterMetadata
 //	@Summary		List metadata for a cluster (org scoped)
 //	@Description	Returns all metadata key-value pairs attached to the cluster.
-//	@Tags			Cluster Metadata
+//	@Tags			ClusterMetadata
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			clusterID	path		string	true	"Cluster ID"
@@ -77,7 +77,7 @@ func ListClusterMetadata(db *gorm.DB) http.HandlerFunc {
 //	@ID				GetClusterMetadata
 //	@Summary		Get a single cluster metadata entry (org scoped)
 //	@Description	Returns one metadata key-value pair by ID.
-//	@Tags			Cluster Metadata
+//	@Tags			ClusterMetadata
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
 //	@Param			clusterID	path		string	true	"Cluster ID"
@@ -142,7 +142,7 @@ func GetClusterMetadata(db *gorm.DB) http.HandlerFunc {
 //	@ID				CreateClusterMetadata
 //	@Summary		Create cluster metadata (org scoped)
 //	@Description	Adds a new key-value metadata entry to a cluster. Keys are forced to lowercase; values preserve case.
-//	@Tags			Cluster Metadata
+//	@Tags			ClusterMetadata
 //	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string								false	"Organization UUID"
@@ -225,7 +225,7 @@ func CreateClusterMetadata(db *gorm.DB) http.HandlerFunc {
 //	@ID				UpdateClusterMetadata
 //	@Summary		Update cluster metadata (org scoped)
 //	@Description	Partially updates a metadata entry. Key is forced to lowercase if provided; value case is preserved.
-//	@Tags			Cluster Metadata
+//	@Tags			ClusterMetadata
 //	@Accept			json
 //	@Produce		json
 //	@Param			X-Org-ID	header		string								false	"Organization UUID"
@@ -324,7 +324,7 @@ func UpdateClusterMetadata(db *gorm.DB) http.HandlerFunc {
 //	@ID				DeleteClusterMetadata
 //	@Summary		Delete cluster metadata (org scoped)
 //	@Description	Permanently deletes a metadata entry from a cluster.
-//	@Tags			Cluster Metadata
+//	@Tags			ClusterMetadata
 //	@Param			X-Org-ID	header	string	false	"Organization UUID"
 //	@Param			clusterID	path	string	true	"Cluster ID"
 //	@Param			metadataID	path	string	true	"Metadata ID (UUID)"

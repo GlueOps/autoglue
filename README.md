@@ -50,13 +50,51 @@ if you witness a failure here, run `make ui`
 
 This is most likely the SPA handler trying to embed ui files that dont exist
 ```bash
-go run .
+go run . serve
 ```
+
+The API and the background workers are separate processes. `serve` enqueues
+jobs but never runs them, so anything asynchronous — bastion bootstrap, DNS
+reconcile, cluster actions, backups, key sweeps — stays queued until you also
+start a worker in a second terminal:
+
+```bash
+go run . worker
+```
+
+Bare `go run .` is still an alias for `serve`, so on its own it gives you an API
+whose jobs never execute. If a cluster action sits in `queued` forever, this is
+why.
+
+Multiple workers are safe to run at once: River leases each job to exactly one
+of them, and the periodic schedule runs only on the elected leader.
 
 From your GLUEOPS profiled browser - http://localhost:8080
 Login - this is restricted to glueops.dev at the minute (in google workspace settings - outside of the API)
 
 Create your org (http://localhost:8080/me) - you should be redirected here after initial login
+
+## Background jobs
+
+Jobs run on [River](https://riverqueue.com), backed by the same Postgres
+database. The schema (`river_job` and friends) is migrated automatically at
+startup by either process.
+
+Queues:
+
+| Queue         | Concurrency | Work                                            |
+| ------------- | ----------- | ----------------------------------------------- |
+| `clusters`    | 30          | `cluster_action`, `bootstrap_bastion`           |
+| `maintenance` | 2           | `dns_reconcile`, `db_backup_s3`, `org_key_sweeper`, `tokens_cleanup` |
+| `default`     | 10          | unassigned work                                 |
+
+Long-running cluster work is kept off `maintenance` so a multi-hour bootstrap
+cannot starve the hourly sweepers.
+
+River's own dashboard is mounted at `/admin/river/` behind the platform-admin
+gate, and replaces the old hand-rolled jobs admin page. Retention of finished
+jobs is handled by River itself (`river.completed_retain_days` and friends in
+config), not by a cleanup job.
 
 Once you have an org - create a set of api keys for your org:
 They will be in the format of:

@@ -12,7 +12,35 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/18/docker
+
+  # The API and the worker are separate processes off the same image. `serve`
+  # only enqueues jobs; nothing runs them unless `worker` is up.
+  #
+  # These are opt-in so `docker compose up -d` stays a database-only bring-up
+  # for the `go run . serve` + `go run . worker` local flow:
+  #   docker compose --profile app up -d
+  api:
+    profiles: ["app"]
+    build:
+      context: .
+    env_file: .env
+    command: ["serve"]
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+
+  worker:
+    profiles: ["app"]
+    build:
+      context: .
+    env_file: .env
+    command: ["worker"]
+    depends_on:
+      - postgres
+    healthcheck:
+      disable: true
 
   mailpit:
     image: axllent/mailpit@sha256:7f33095f80e901f6ad08028f06ca284aa58fe84942be5496008d041d3b9f4d4d

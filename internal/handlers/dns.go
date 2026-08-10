@@ -255,7 +255,7 @@ func GetDomain(db *gorm.DB) http.HandlerFunc {
 //
 //	@ID				CreateDomain
 //	@Summary		Create a domain (org scoped)
-//	@Description	Creates a domain bound to a Route 53 scoped credential. Archer will backfill ZoneID if omitted.
+//	@Description	Creates a domain bound to a Route 53 scoped credential. The dns_reconcile worker will backfill ZoneID if omitted.
 //	@Tags			DNS
 //	@Accept			json
 //	@Produce		json
@@ -550,7 +550,7 @@ func GetRecordSet(db *gorm.DB) http.HandlerFunc {
 // CreateRecordSet godoc
 //
 //	@ID			CreateRecordSet
-//	@Summary	Create a record set (pending; Archer will UPSERT to Route 53)
+//	@Summary	Create a record set (pending; the dns_reconcile worker will UPSERT to Route 53)
 //	@Tags		DNS
 //	@Accept		json
 //	@Produce	json

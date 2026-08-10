@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Yarn 4: track .yarnrc.yml and yarn.lock, but install-state is a local cache
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+.pnp.*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

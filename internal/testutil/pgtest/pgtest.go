@@ -58,7 +58,6 @@ func initDB() {
 	// Use the same model list as app.NewRuntime so schema matches prod
 	if err := db.Run(
 		dbConn,
-		&models.Job{},
 		&models.MasterKey{},
 		&models.SigningKey{},
 		&models.User{},

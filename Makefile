@@ -167,7 +167,7 @@ upgrade: ## Upgrade module requirements with go-mod-upgrade (best-effort)
 ui-install: ## Install frontend dependencies (yarn or npm)
 	@echo ">> Installing UI deps in $(UI_DIR)..."
 	@if [ -n "$(YARN)" ]; then \
-		cd $(UI_DIR) && yarn install --frozen-lockfile; \
+		cd $(UI_DIR) && yarn install --immutable; \
 	elif [ -n "$(NPM)" ]; then \
 		cd $(UI_DIR) && npm ci; \
 	else \
@@ -218,6 +218,8 @@ print-version: ## Print ldflags/version metadata
 # --- development ---
 dev: ui-install swagger ## Run Vite dev server and Go API (serve)
 	@echo ">> Starting Vite (frontend) and Go API (backend) with dev env..."
+	@echo ">> Browse the API origin (default http://localhost:8080), NOT the Vite port."
+	@echo ">> UI_DEV=true makes the API proxy / to Vite, so both are one origin."
 	@cd $(UI_DIR) && \
 	( \
 		if command -v yarn >/dev/null 2>&1; then \
@@ -228,7 +230,7 @@ dev: ui-install swagger ## Run Vite dev server and Go API (serve)
 			echo "Error: neither yarn nor npm is installed." >&2; exit 1; \
 		fi; \
 		cd .. && \
-		$(GOCMD) run . serve & \
+		UI_DEV=true $(GOCMD) run . serve & \
 		wait \
 	)
 

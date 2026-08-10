@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func mountClusterRoutes(r chi.Router, db *gorm.DB, cfg config.Config, jobs *bg.Jobs, authOrg func(http.Handler) http.Handler) {
+func mountClusterRoutes(r chi.Router, db *gorm.DB, cfg config.Config, jobs *bg.Client, authOrg func(http.Handler) http.Handler) {
 	r.Route("/clusters", func(c chi.Router) {
 		c.Use(authOrg)
 		c.Get("/", handlers.ListClusters(db, cfg))

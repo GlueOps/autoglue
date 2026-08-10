@@ -8,7 +8,6 @@ import { ClustersPage } from "@/pages/cluster-page"
 import { CredentialPage } from "@/pages/credential-page.tsx"
 import { DnsPage } from "@/pages/dns-page.tsx"
 import { DocsPage } from "@/pages/docs-page.tsx"
-import { JobsPage } from "@/pages/jobs-page.tsx"
 import { LabelsPage } from "@/pages/labels-page.tsx"
 import { LoadBalancersPage } from "@/pages/load-balancers-page"
 import { Login } from "@/pages/login.tsx"
@@ -46,7 +45,6 @@ export default function App() {
           <Route path="/load-balancers" element={<LoadBalancersPage />} />
           <Route path="/clusters" element={<ClustersPage />} />
 
-          <Route path="/admin/jobs" element={<JobsPage />} />
           <Route path="/admin/actions" element={<ActionsPage />} />
         </Route>
       </Route>

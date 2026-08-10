@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dyaksa/archer"
 	"github.com/glueops/autoglue/internal/api/httpmiddleware"
 	"github.com/glueops/autoglue/internal/bg"
 	"github.com/glueops/autoglue/internal/handlers/dto"
@@ -153,7 +152,7 @@ func GetClusterRun(db *gorm.DB) http.HandlerFunc {
 //	@Security		BearerAuth
 //	@Security		OrgKeyAuth
 //	@Security		OrgSecretAuth
-func RunClusterAction(db *gorm.DB, jobs *bg.Jobs) http.HandlerFunc {
+func RunClusterAction(db *gorm.DB, jobs *bg.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
 		if !ok {
@@ -211,20 +210,16 @@ func RunClusterAction(db *gorm.DB, jobs *bg.Jobs) http.HandlerFunc {
 			return
 		}
 
+		// RunID travels in the args: River assigns its own job IDs, so the
+		// worker cannot recover the ClusterRun from the job identity.
 		args := bg.ClusterActionArgs{
+			RunID:      run.ID,
 			OrgID:      orgID,
 			ClusterID:  clusterID,
 			Action:     action.MakeTarget,
 			MakeTarget: action.MakeTarget,
 		}
-		// Enqueue with run.ID as the job ID so the worker can look it up.
-		_, enqueueErr := jobs.Enqueue(
-			r.Context(),
-			run.ID.String(),
-			"cluster_action",
-			args,
-			archer.WithMaxRetries(0),
-		)
+		enqueueErr := bg.Insert(r.Context(), jobs, args, nil)
 
 		if enqueueErr != nil {
 			_ = db.Model(&models.ClusterRun{}).

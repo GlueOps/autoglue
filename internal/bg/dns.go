@@ -9,12 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dyaksa/archer"
-	"github.com/dyaksa/archer/job"
 	"github.com/glueops/autoglue/internal/handlers/dto"
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
-	"github.com/google/uuid"
+	"github.com/riverqueue/river"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
@@ -33,7 +31,12 @@ import (
 type DNSReconcileArgs struct {
 	MaxDomains int `json:"max_domains,omitempty"`
 	MaxRecords int `json:"max_records,omitempty"`
-	IntervalS  int `json:"interval_seconds,omitempty"`
+}
+
+func (DNSReconcileArgs) Kind() string { return "dns_reconcile" }
+
+func (DNSReconcileArgs) InsertOpts() river.InsertOpts {
+	return river.InsertOpts{Queue: QueueMaintenance, MaxAttempts: 2}
 }
 
 // TXT marker content (compact)
@@ -55,42 +58,35 @@ const defaultRecordTTLSeconds int64 = 300
 
 /************* entrypoint worker *************/
 
-func DNSReconsileWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
-	return func(ctx context.Context, j job.Job) (any, error) {
-		args := DNSReconcileArgs{MaxDomains: 25, MaxRecords: 100, IntervalS: 30}
-		_ = j.ParseArguments(&args)
+type DNSReconcileWorker struct {
+	river.WorkerDefaults[DNSReconcileArgs]
+	db *gorm.DB
+}
 
-		if args.MaxDomains <= 0 {
-			args.MaxDomains = 25
-		}
-		if args.MaxRecords <= 0 {
-			args.MaxRecords = 100
-		}
-		if args.IntervalS <= 0 {
-			args.IntervalS = 30
-		}
+func (w *DNSReconcileWorker) Timeout(*river.Job[DNSReconcileArgs]) time.Duration {
+	return 2 * time.Minute
+}
 
-		processedDomains, processedRecords, err := reconcileDNSOnce(ctx, db, args)
-		if err != nil {
-			log.Error().Err(err).Msg("[dns] reconcile tick failed")
-		} else {
-			log.Debug().
-				Int("domains", processedDomains).
-				Int("records", processedRecords).
-				Msg("[dns] reconcile tick ok")
-		}
-
-		next := time.Now().Add(time.Duration(args.IntervalS) * time.Second)
-		_, _ = jobs.Enqueue(ctx, uuid.NewString(), "dns_reconcile", args,
-			archer.WithScheduleTime(next),
-			archer.WithMaxRetries(1),
-		)
-
-		return map[string]any{
-			"domains_processed": processedDomains,
-			"records_processed": processedRecords,
-		}, nil
+func (w *DNSReconcileWorker) Work(ctx context.Context, job *river.Job[DNSReconcileArgs]) error {
+	args := job.Args
+	if args.MaxDomains <= 0 {
+		args.MaxDomains = 25
 	}
+	if args.MaxRecords <= 0 {
+		args.MaxRecords = 100
+	}
+
+	processedDomains, processedRecords, err := reconcileDNSOnce(ctx, w.db, args)
+	if err != nil {
+		log.Error().Err(err).Msg("[dns] reconcile tick failed")
+		return err
+	}
+
+	log.Debug().
+		Int("domains", processedDomains).
+		Int("records", processedRecords).
+		Msg("[dns] reconcile tick ok")
+	return nil
 }
 
 /************* core tick *************/
