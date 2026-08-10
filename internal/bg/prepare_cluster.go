@@ -5,16 +5,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net"
 	"strings"
 	"time"
 
-	"github.com/dyaksa/archer"
-	"github.com/dyaksa/archer/job"
 	"github.com/glueops/autoglue/internal/auth"
-	"github.com/glueops/autoglue/internal/mapper"
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
 	"github.com/google/uuid"
@@ -22,26 +18,6 @@ import (
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
 )
-
-type ClusterPrepareArgs struct {
-	IntervalS int `json:"interval_seconds,omitempty"`
-}
-
-type ClusterPrepareFailure struct {
-	ClusterID uuid.UUID `json:"cluster_id"`
-	Step      string    `json:"step"`
-	Reason    string    `json:"reason"`
-}
-
-type ClusterPrepareResult struct {
-	Status        string                  `json:"status"`
-	Processed     int                     `json:"processed"`
-	MarkedPending int                     `json:"marked_pending"`
-	Failed        int                     `json:"failed"`
-	ElapsedMs     int                     `json:"elapsed_ms"`
-	FailedIDs     []uuid.UUID             `json:"failed_cluster_ids"`
-	Failures      []ClusterPrepareFailure `json:"failures"`
-}
 
 // Alias the status constants from models to avoid string drift.
 const (
@@ -52,219 +28,6 @@ const (
 	clusterStatusFailed        = models.ClusterStatusFailed
 	clusterStatusBootstrapping = models.ClusterStatusBootstrapping
 )
-
-func ClusterPrepareWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
-	return func(ctx context.Context, j job.Job) (any, error) {
-		args := ClusterPrepareArgs{IntervalS: 120}
-		jobID := j.ID
-		start := time.Now()
-
-		_ = j.ParseArguments(&args)
-		if args.IntervalS <= 0 {
-			args.IntervalS = 120
-		}
-
-		// Load all clusters that are pre_pending; we’ll filter for bastion.ready in memory.
-		var clusters []models.Cluster
-		if err := db.
-			Preload("BastionServer.SshKey").
-			Preload("CaptainDomain").
-			Preload("ControlPlaneRecordSet").
-			Preload("AppsLoadBalancer").
-			Preload("GlueOpsLoadBalancer").
-			Preload("NodePools").
-			Preload("NodePools.Labels").
-			Preload("NodePools.Annotations").
-			Preload("NodePools.Taints").
-			Preload("NodePools.Servers.SshKey").
-			Preload("Metadata").
-			Where("status = ?", clusterStatusPrePending).
-			Find(&clusters).Error; err != nil {
-			log.Error().Err(err).Msg("[cluster_prepare] query clusters failed")
-			return nil, err
-		}
-
-		proc, ok, fail := 0, 0, 0
-		var failedIDs []uuid.UUID
-		var failures []ClusterPrepareFailure
-
-		perClusterTimeout := 8 * time.Minute
-
-		for i := range clusters {
-			c := &clusters[i]
-			proc++
-
-			// bastion must exist and be ready
-			if c.BastionServer == nil || c.BastionServerID == nil || *c.BastionServerID == uuid.Nil || c.BastionServer.Status != "ready" {
-				continue
-			}
-
-			if err := setClusterStatus(db, c.ID, clusterStatusBootstrapping, ""); err != nil {
-				log.Error().Err(err).Msg("[cluster_prepare] failed to mark cluster bootstrapping")
-				continue
-			}
-
-			c.Status = clusterStatusBootstrapping
-
-			clusterLog := log.With().
-				Str("job", jobID).
-				Str("cluster_id", c.ID.String()).
-				Str("cluster_name", c.Name).
-				Logger()
-
-			clusterLog.Info().Msg("[cluster_prepare] starting")
-
-			if err := validateClusterForPrepare(c); err != nil {
-				fail++
-				failedIDs = append(failedIDs, c.ID)
-				failures = append(failures, ClusterPrepareFailure{
-					ClusterID: c.ID,
-					Step:      "validate",
-					Reason:    err.Error(),
-				})
-				clusterLog.Error().Err(err).Msg("[cluster_prepare] validation failed")
-				_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
-				continue
-			}
-
-			allServers := flattenClusterServers(c)
-			keyPayloads, sshConfig, err := buildSSHAssetsForCluster(db, c, allServers)
-			if err != nil {
-				fail++
-				failedIDs = append(failedIDs, c.ID)
-				failures = append(failures, ClusterPrepareFailure{
-					ClusterID: c.ID,
-					Step:      "build_ssh_assets",
-					Reason:    err.Error(),
-				})
-				clusterLog.Error().Err(err).Msg("[cluster_prepare] build ssh assets failed")
-				_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
-				continue
-			}
-
-			dtoCluster := mapper.ClusterToDTO(*c)
-
-			if c.EncryptedKubeconfig != "" && c.KubeIV != "" && c.KubeTag != "" {
-				kubeconfig, err := utils.DecryptForOrg(
-					c.OrganizationID,
-					c.EncryptedKubeconfig,
-					c.KubeIV,
-					c.KubeTag,
-					db,
-				)
-				if err != nil {
-					fail++
-					failedIDs = append(failedIDs, c.ID)
-					failures = append(failures, ClusterPrepareFailure{
-						ClusterID: c.ID,
-						Step:      "decrypt_kubeconfig",
-						Reason:    err.Error(),
-					})
-					clusterLog.Error().Err(err).Msg("[cluster_prepare] decrypt kubeconfig failed")
-					_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
-					continue
-				}
-				dtoCluster.Kubeconfig = &kubeconfig
-			}
-
-			orgKey, orgSecret, err := findOrCreateClusterAutomationKey(
-				db,
-				c.OrganizationID,
-				c.ID,
-				24*time.Hour,
-			)
-
-			if err != nil {
-				fail++
-				failedIDs = append(failedIDs, c.ID)
-				failures = append(failures, ClusterPrepareFailure{
-					ClusterID: c.ID,
-					Step:      "create_org_key",
-					Reason:    err.Error(),
-				})
-				clusterLog.Error().Err(err).Msg("[cluster_prepare] create org key for payload failed")
-				_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
-				continue
-			}
-
-			dtoCluster.OrgKey = &orgKey
-			dtoCluster.OrgSecret = &orgSecret
-
-			payloadJSON, err := json.MarshalIndent(dtoCluster, "", "  ")
-			if err != nil {
-				fail++
-				failedIDs = append(failedIDs, c.ID)
-				failures = append(failures, ClusterPrepareFailure{
-					ClusterID: c.ID,
-					Step:      "marshal_payload",
-					Reason:    err.Error(),
-				})
-				clusterLog.Error().Err(err).Msg("[cluster_prepare] json marshal failed")
-				_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
-				continue
-			}
-
-			runCtx, cancel := context.WithTimeout(ctx, perClusterTimeout)
-			err = pushAssetsToBastion(runCtx, db, c, sshConfig, keyPayloads, payloadJSON)
-			cancel()
-
-			if err != nil {
-				fail++
-				failedIDs = append(failedIDs, c.ID)
-				failures = append(failures, ClusterPrepareFailure{
-					ClusterID: c.ID,
-					Step:      "ssh_push",
-					Reason:    err.Error(),
-				})
-				clusterLog.Error().Err(err).Msg("[cluster_prepare] failed to push assets to bastion")
-				_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
-				continue
-			}
-
-			if err := setClusterStatus(db, c.ID, clusterStatusPending, ""); err != nil {
-				fail++
-				failedIDs = append(failedIDs, c.ID)
-				failures = append(failures, ClusterPrepareFailure{
-					ClusterID: c.ID,
-					Step:      "set_pending",
-					Reason:    err.Error(),
-				})
-				clusterLog.Error().Err(err).Msg("[cluster_prepare] failed to mark cluster pending")
-				continue
-			}
-
-			ok++
-			clusterLog.Info().Msg("[cluster_prepare] cluster marked pending")
-		}
-
-		res := ClusterPrepareResult{
-			Status:        "ok",
-			Processed:     proc,
-			MarkedPending: ok,
-			Failed:        fail,
-			ElapsedMs:     int(time.Since(start).Milliseconds()),
-			FailedIDs:     failedIDs,
-			Failures:      failures,
-		}
-
-		log.Info().
-			Int("processed", proc).
-			Int("pending", ok).
-			Int("failed", fail).
-			Msg("[cluster_prepare] reconcile tick ok")
-
-		next := time.Now().Add(time.Duration(args.IntervalS) * time.Second)
-		_, _ = jobs.Enqueue(
-			ctx,
-			uuid.NewString(),
-			"prepare_cluster",
-			args,
-			archer.WithScheduleTime(next),
-			archer.WithMaxRetries(1),
-		)
-		return res, nil
-	}
-}
 
 // ---------- helpers ----------
 

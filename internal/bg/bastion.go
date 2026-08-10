@@ -5,14 +5,14 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/dyaksa/archer"
-	"github.com/dyaksa/archer/job"
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
 	"github.com/google/uuid"
+	"github.com/riverqueue/river"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
@@ -21,8 +21,12 @@ import (
 
 // ----- Public types -----
 
-type BastionBootstrapArgs struct {
-	IntervalS int `json:"interval_seconds,omitempty"`
+type BastionBootstrapArgs struct{}
+
+func (BastionBootstrapArgs) Kind() string { return "bootstrap_bastion" }
+
+func (BastionBootstrapArgs) InsertOpts() river.InsertOpts {
+	return river.InsertOpts{Queue: QueueClusters, MaxAttempts: 3}
 }
 
 type BastionBootstrapFailure struct {
@@ -43,17 +47,23 @@ type BastionBootstrapResult struct {
 
 // ----- Worker -----
 
-func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
-	return func(ctx context.Context, j job.Job) (any, error) {
-		args := BastionBootstrapArgs{IntervalS: 120}
-		jobID := j.ID
-		start := time.Now()
+type BastionBootstrapWorker struct {
+	river.WorkerDefaults[BastionBootstrapArgs]
+	db *gorm.DB
+}
 
-		_ = j.ParseArguments(&args)
-		if args.IntervalS <= 0 {
-			args.IntervalS = 120
-		}
+// Timeout is generous because a single tick SSHes into every pending bastion in
+// series, each with its own 8 minute budget.
+func (w *BastionBootstrapWorker) Timeout(*river.Job[BastionBootstrapArgs]) time.Duration {
+	return time.Hour
+}
 
+func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionBootstrapArgs]) error {
+	db := w.db
+	jobID := strconv.FormatInt(j.ID, 10)
+	start := time.Now()
+
+	{
 		// Atomically claim pending bastion servers using SELECT FOR UPDATE SKIP LOCKED
 		// so that concurrent worker instances never process the same server simultaneously
 		// (which would cause apt lock conflicts on the remote host).
@@ -77,7 +87,7 @@ func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 				}).Error
 		}); err != nil {
 			log.Printf("[bastion] level=ERROR job=%s step=claim_servers msg=%q", jobID, err)
-			return nil, err
+			return err
 		}
 
 		var servers []models.Server
@@ -87,7 +97,7 @@ func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 				Where("id IN ?", claimedIDs).
 				Find(&servers).Error; err != nil {
 				log.Printf("[bastion] level=ERROR job=%s step=fetch_servers msg=%q", jobID, err)
-				return nil, err
+				return err
 			}
 		}
 
@@ -160,29 +170,16 @@ func BastionBootstrapWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
 			ok++
 		}
 
-		res := BastionBootstrapResult{
-			Status:       "ok",
-			Processed:    proc,
-			Ready:        ok,
-			Failed:       fail,
-			ElapsedMs:    int(time.Since(start).Milliseconds()),
-			FailedServer: failedIDs,
-			Failures:     failures,
-		}
-
-		log.Debug().Int("processed", proc).Int("ready", ok).Int("failed", fail).Msg("[bastion] reconcile tick ok")
-
-		next := time.Now().Add(time.Duration(args.IntervalS) * time.Second)
-		_, _ = jobs.Enqueue(
-			ctx,
-			uuid.NewString(),
-			"bootstrap_bastion",
-			args,
-			archer.WithScheduleTime(next),
-			archer.WithMaxRetries(1),
-		)
-		return res, nil
+		log.Debug().
+			Int("processed", proc).
+			Int("ready", ok).
+			Int("failed", fail).
+			Int64("elapsed_ms", time.Since(start).Milliseconds()).
+			Interface("failures", failures).
+			Interface("failed_server_ids", failedIDs).
+			Msg("[bastion] reconcile tick ok")
 	}
+	return nil
 }
 
 // ----- Helpers -----

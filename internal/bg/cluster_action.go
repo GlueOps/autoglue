@@ -6,39 +6,55 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dyaksa/archer"
-	"github.com/dyaksa/archer/job"
 	"github.com/glueops/autoglue/internal/mapper"
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
 	"github.com/google/uuid"
+	"github.com/riverqueue/river"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type ClusterActionArgs struct {
+	// RunID identifies the models.ClusterRun row this job reports into. Under
+	// archer this rode on the job ID itself; River assigns its own int64 IDs, so
+	// it travels in the args.
+	RunID      uuid.UUID `json:"run_id"`
 	OrgID      uuid.UUID `json:"org_id"`
 	ClusterID  uuid.UUID `json:"cluster_id"`
 	Action     string    `json:"action"`
 	MakeTarget string    `json:"make_target"`
 }
 
-type ClusterActionResult struct {
-	Status    string `json:"status"`
-	Action    string `json:"action"`
-	ClusterID string `json:"cluster_id"`
-	ElapsedMs int    `json:"elapsed_ms"`
+func (ClusterActionArgs) Kind() string { return "cluster_action" }
+
+func (ClusterActionArgs) InsertOpts() river.InsertOpts {
+	// A cluster action is not safely repeatable: it drives make targets against
+	// a live bastion. Archer ran these with MaxRetries(0); River counts the
+	// first attempt, so 1 is the equivalent.
+	return river.InsertOpts{Queue: QueueClusters, MaxAttempts: 1}
 }
 
-func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
-	return func(ctx context.Context, j job.Job) (any, error) {
-		start := time.Now()
-		var args ClusterActionArgs
-		_ = j.ParseArguments(&args)
+type ClusterActionWorker struct {
+	river.WorkerDefaults[ClusterActionArgs]
+	db      *gorm.DB
+	baseURL string
+}
 
-		runID, _ := uuid.Parse(j.ID)
+// Timeout covers the full prepare -> ping-servers -> bootstrap sequence, whose
+// inner steps carry their own shorter budgets.
+func (w *ClusterActionWorker) Timeout(*river.Job[ClusterActionArgs]) time.Duration {
+	return 168 * time.Hour
+}
 
+func (w *ClusterActionWorker) Work(ctx context.Context, j *river.Job[ClusterActionArgs]) error {
+	db, baseURL := w.db, w.baseURL
+	start := time.Now()
+	args := j.Args
+	runID := args.RunID
+
+	{
 		updateRun := func(status string, errMsg string) {
 			updates := map[string]any{
 				"status": status,
@@ -53,7 +69,7 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 		updateRun("running", "")
 
 		logger := log.With().
-			Str("job", j.ID).
+			Int64("job", j.ID).
 			Str("cluster_id", args.ClusterID.String()).
 			Str("action", args.Action).
 			Logger()
@@ -83,7 +99,7 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 				}).Error
 		}); err != nil {
 			updateRun("failed", err.Error())
-			return nil, fmt.Errorf("claim cluster: %w", err)
+			return fmt.Errorf("claim cluster: %w", err)
 		}
 
 		if len(claimedIDs) == 0 {
@@ -109,7 +125,7 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 			Where("id = ? AND organization_id = ?", args.ClusterID, args.OrgID).
 			First(&c).Error; err != nil {
 			updateRun("failed", fmt.Errorf("load cluster: %w", err).Error())
-			return nil, fmt.Errorf("load cluster: %w", err)
+			return fmt.Errorf("load cluster: %w", err)
 		}
 
 		// ---- Step 1: Prepare (mostly lifted from ClusterPrepareWorker)
@@ -119,7 +135,7 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 		if err := validateClusterForPrepare(&c); err != nil {
 			_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
 			updateRun("failed", err.Error())
-			return nil, fmt.Errorf("validate: %w", err)
+			return fmt.Errorf("validate: %w", err)
 		}
 
 		allServers := flattenClusterServers(&c)
@@ -127,7 +143,7 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 		if err != nil {
 			_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
 			updateRun("failed", err.Error())
-			return nil, fmt.Errorf("build ssh assets: %w", err)
+			return fmt.Errorf("build ssh assets: %w", err)
 		}
 
 		dtoCluster := mapper.ClusterToDTO(c)
@@ -142,7 +158,7 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 			)
 			if err != nil {
 				_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
-				return nil, fmt.Errorf("decrypt kubeconfig: %w", err)
+				return fmt.Errorf("decrypt kubeconfig: %w", err)
 			}
 			dtoCluster.Kubeconfig = &kubeconfig
 		}
@@ -151,7 +167,7 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 		if err != nil {
 			_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
 			updateRun("failed", err.Error())
-			return nil, fmt.Errorf("org key: %w", err)
+			return fmt.Errorf("org key: %w", err)
 		}
 		dtoCluster.OrgKey = &orgKey
 		dtoCluster.OrgSecret = &orgSecret
@@ -161,7 +177,7 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 		if err != nil {
 			_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
 			updateRun("failed", err.Error())
-			return nil, fmt.Errorf("marshal payload: %w", err)
+			return fmt.Errorf("marshal payload: %w", err)
 		}
 
 		{
@@ -171,13 +187,13 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 			if err != nil {
 				_ = setClusterStatus(db, c.ID, clusterStatusFailed, err.Error())
 				updateRun("failed", err.Error())
-				return nil, fmt.Errorf("push assets: %w", err)
+				return fmt.Errorf("push assets: %w", err)
 			}
 		}
 
 		if err := setClusterStatus(db, c.ID, clusterStatusPending, ""); err != nil {
 			updateRun("failed", err.Error())
-			return nil, fmt.Errorf("mark pending: %w", err)
+			return fmt.Errorf("mark pending: %w", err)
 		}
 		c.Status = clusterStatusPending
 
@@ -190,13 +206,13 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 				logger.Error().Err(err).Str("output", out).Msg("ping-servers failed")
 				_ = setClusterStatus(db, c.ID, clusterStatusFailed, fmt.Sprintf("make ping-servers: %v", err))
 				updateRun("failed", err.Error())
-				return nil, fmt.Errorf("ping-servers: %w", err)
+				return fmt.Errorf("ping-servers: %w", err)
 			}
 		}
 
 		if err := setClusterStatus(db, c.ID, clusterStatusProvisioning, ""); err != nil {
 			updateRun("failed", err.Error())
-			return nil, fmt.Errorf("mark provisioning: %w", err)
+			return fmt.Errorf("mark provisioning: %w", err)
 		}
 		c.Status = clusterStatusProvisioning
 
@@ -209,22 +225,21 @@ func ClusterActionWorker(db *gorm.DB, baseURL string) archer.WorkerFn {
 				logger.Error().Err(err).Str("output", out).Msg("bootstrap target failed")
 				_ = setClusterStatus(db, c.ID, clusterStatusFailed, fmt.Sprintf("make %s: %v", args.MakeTarget, err))
 				updateRun("failed", err.Error())
-				return nil, fmt.Errorf("make %s: %w", args.MakeTarget, err)
+				return fmt.Errorf("make %s: %w", args.MakeTarget, err)
 			}
 		}
 
 		if err := setClusterStatus(db, c.ID, clusterStatusReady, ""); err != nil {
 			updateRun("failed", err.Error())
-			return nil, fmt.Errorf("mark ready: %w", err)
+			return fmt.Errorf("mark ready: %w", err)
 		}
 
 		updateRun("succeeded", "")
 
-		return ClusterActionResult{
-			Status:    "ok",
-			Action:    args.Action,
-			ClusterID: c.ID.String(),
-			ElapsedMs: int(time.Since(start).Milliseconds()),
-		}, nil
+		logger.Info().
+			Str("cluster_id", c.ID.String()).
+			Int64("elapsed_ms", time.Since(start).Milliseconds()).
+			Msg("[cluster_action] completed")
 	}
+	return nil
 }

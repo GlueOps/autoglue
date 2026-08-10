@@ -18,18 +18,20 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/dyaksa/archer"
-	"github.com/dyaksa/archer/job"
 	"github.com/glueops/autoglue/internal/config"
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
-	"github.com/google/uuid"
+	"github.com/riverqueue/river"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 )
 
-type DbBackupArgs struct {
-	IntervalS int `json:"interval_seconds,omitempty"`
+type DbBackupArgs struct{}
+
+func (DbBackupArgs) Kind() string { return "db_backup_s3" }
+
+func (DbBackupArgs) InsertOpts() river.InsertOpts {
+	return river.InsertOpts{Queue: QueueMaintenance, MaxAttempts: 2}
 }
 
 type s3Scope struct {
@@ -42,40 +44,17 @@ type encAWS struct {
 	SecretAccessKey string `json:"secret_access_key"`
 }
 
-func DbBackupWorker(db *gorm.DB, jobs *Jobs) archer.WorkerFn {
-	return func(ctx context.Context, j job.Job) (any, error) {
-		args := DbBackupArgs{IntervalS: 3600}
-		_ = j.ParseArguments(&args)
+type DbBackupWorker struct {
+	river.WorkerDefaults[DbBackupArgs]
+	db *gorm.DB
+}
 
-		if args.IntervalS <= 0 {
-			args.IntervalS = 3600
-		}
+func (w *DbBackupWorker) Timeout(*river.Job[DbBackupArgs]) time.Duration {
+	return 15 * time.Minute
+}
 
-		if err := DbBackup(ctx, db); err != nil {
-			return nil, err
-		}
-
-		queue := j.QueueName
-		if strings.TrimSpace(queue) == "" {
-			queue = "db_backup_s3"
-		}
-
-		next := time.Now().Add(time.Duration(args.IntervalS) * time.Second)
-
-		payload := DbBackupArgs{}
-
-		opts := []archer.FnOptions{
-			archer.WithScheduleTime(next),
-			archer.WithMaxRetries(1),
-		}
-
-		if _, err := jobs.Enqueue(ctx, uuid.NewString(), queue, payload, opts...); err != nil {
-			log.Error().Err(err).Str("queue", queue).Time("next", next).Msg("failed to enqueue next db backup")
-		} else {
-			log.Info().Str("queue", queue).Time("next", next).Msg("scheduled next db backup")
-		}
-		return nil, nil
-	}
+func (w *DbBackupWorker) Work(ctx context.Context, _ *river.Job[DbBackupArgs]) error {
+	return DbBackup(ctx, w.db)
 }
 
 func DbBackup(ctx context.Context, db *gorm.DB) error {

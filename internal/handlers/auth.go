@@ -18,6 +18,7 @@ import (
 	"github.com/glueops/autoglue/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
@@ -297,7 +298,21 @@ func AuthCallback(db *gorm.DB) http.HandlerFunc {
 		// If the state indicates SPA popup mode, postMessage tokens to the opener and close
 		state := r.URL.Query().Get("state")
 		if strings.Contains(state, "mode=spa") {
-			origin := canonicalOrigin(cfg.OAuthRedirectBase)
+			// The SPA puts its own window origin in the state (AuthStart embeds
+			// it). Target that, not OAuthRedirectBase: a browser drops
+			// postMessage silently when the target origin does not match the
+			// opener exactly, and http://localhost:8080 and
+			// http://127.0.0.1:8080 are different origins. Validate against the
+			// allowlist so state cannot redirect tokens to an attacker.
+			origin := canonicalOrigin(originFromState(state))
+			if !config.IsAllowedOrigin(origin) {
+				if origin != "" {
+					log.Warn().
+						Str("origin", origin).
+						Msg("auth callback: SPA origin not in CORS_ALLOWED_ORIGINS; falling back to OAUTH_REDIRECT_BASE")
+				}
+				origin = canonicalOrigin(cfg.OAuthRedirectBase)
+			}
 			if origin == "" {
 				origin = cfg.OAuthRedirectBase
 			}
@@ -565,6 +580,21 @@ func canonicalOrigin(raw string) string {
 		Scheme: u.Scheme,
 		Host:   u.Host,
 	}).String()
+}
+
+// originFromState pulls the SPA window origin out of the OAuth state that
+// AuthStart built ("<uuid>|mode=spa|origin=<escaped>"). Returns "" if absent.
+func originFromState(state string) string {
+	for _, part := range strings.Split(state, "|") {
+		if rest, ok := strings.CutPrefix(part, "origin="); ok {
+			decoded, err := url.QueryUnescape(rest)
+			if err != nil {
+				return ""
+			}
+			return decoded
+		}
+	}
+	return ""
 }
 
 func isLocalDev(u *url.URL) bool {

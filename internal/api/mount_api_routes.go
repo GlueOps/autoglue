@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func mountAPIRoutes(r chi.Router, db *gorm.DB, cfg config.Config, jobs *bg.Jobs) {
+func mountAPIRoutes(r chi.Router, db *gorm.DB, cfg config.Config, jobs *bg.Client) {
 	r.Route("/api", func(api chi.Router) {
 		api.Route("/v1", func(v1 chi.Router) {
 			authUser := httpmiddleware.AuthMiddleware(db, false)
@@ -19,7 +19,7 @@ func mountAPIRoutes(r chi.Router, db *gorm.DB, cfg config.Config, jobs *bg.Jobs)
 			mountAuthRoutes(v1, db)
 
 			// admin
-			mountAdminRoutes(v1, db, jobs, authUser)
+			mountAdminRoutes(v1, db, authUser)
 
 			// user/org scoped
 			mountMeRoutes(v1, db, authUser)

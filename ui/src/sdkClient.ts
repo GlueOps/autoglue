@@ -3,7 +3,6 @@ import { authStore } from "@/auth/store.ts"
 import {
   ActionsApi,
   AnnotationsApi,
-  ArcherAdminApi,
   AuthApi,
   ClusterRunsApi,
   ClusterMetadataApi,
@@ -107,10 +106,6 @@ export function makeLabelsApi() {
 
 export function makeAnnotationsApi() {
   return makeApiClient(AnnotationsApi)
-}
-
-export function makeArcherAdminApi() {
-  return makeApiClient(ArcherAdminApi)
 }
 
 export function makeNodePoolApi() {
