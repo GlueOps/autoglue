@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"net"
 	"strings"
 	"time"
@@ -266,11 +267,18 @@ func setClusterStatus(db *gorm.DB, id uuid.UUID, status, lastError string) error
 }
 
 // runMakeOnBastion runs `make <target>` from the cluster's directory on the bastion.
+// runMakeOnBastion runs `make <target>` on the cluster's bastion, streaming the
+// combined output to sink as it arrives. sink may be nil, in which case output
+// is still captured for the returned tail but nothing is persisted.
+//
+// The returned string is the trailing logMaxTailBytes of output, not the whole
+// run: the full transcript lives in job_logs when a sink is supplied.
 func runMakeOnBastion(
 	ctx context.Context,
 	db *gorm.DB,
 	c *models.Cluster,
 	target string,
+	sink io.Writer,
 ) (string, error) {
 	logger := log.With().
 		Str("cluster_id", c.ID.String()).
@@ -342,11 +350,16 @@ func runMakeOnBastion(
 		Str("cmd", cmd).
 		Msg("[runMakeOnBastion] executing remote command")
 
-	out, runErr := sess.CombinedOutput(cmd)
-	if runErr != nil {
-		return string(out), wrapSSHError(runErr, string(out))
+	tail := &tailBuffer{max: logMaxTailBytes}
+	var w io.Writer = tail
+	if sink != nil {
+		w = io.MultiWriter(tail, sink)
 	}
-	return string(out), nil
+
+	if runErr := runSSHStreaming(sess, cmd, w); runErr != nil {
+		return tail.String(), wrapSSHError(runErr, tail.String())
+	}
+	return tail.String(), nil
 }
 
 func randomB64URL(n int) (string, error) {

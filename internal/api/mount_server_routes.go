@@ -14,6 +14,7 @@ func mountServerRoutes(r chi.Router, db *gorm.DB, authOrg func(http.Handler) htt
 		s.Get("/", handlers.ListServers(db))
 		s.Post("/", handlers.CreateServer(db))
 		s.Get("/{id}", handlers.GetServer(db))
+		s.Get("/{id}/logs", handlers.GetServerLogs(db))
 		s.Patch("/{id}", handlers.UpdateServer(db))
 		s.Delete("/{id}", handlers.DeleteServer(db))
 		s.Post("/{id}/reset-hostkey", handlers.ResetServerHostKey(db))

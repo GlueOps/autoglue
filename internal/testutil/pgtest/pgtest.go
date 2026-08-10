@@ -115,6 +115,7 @@ func initDB() {
 		&models.Action{},
 		&models.ClusterRun{},
 		&models.ClusterMetadata{},
+		&models.JobLog{},
 	); err != nil {
 		initErr = fmt.Errorf("migrate: %w", err)
 		return

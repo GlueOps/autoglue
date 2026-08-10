@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"net"
 	"strconv"
 	"strings"
@@ -138,16 +139,25 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 				continue
 			}
 
-			// 3) SSH + install docker
+			// 3) SSH + install docker.
+			//
+			// Output streams into job_logs under this server, so a failed
+			// bootstrap can be read back from the API instead of hunting
+			// through worker pod stdout for a truncated tail.
 			host := net.JoinHostPort(*s.PublicIPAddress, "22")
+			sink := NewLogSink(db, j.ID, s.OrganizationID, models.JobLogSubjectServer, s.ID)
+			sink.System(fmt.Sprintf("bootstrapping bastion %s (%s) as %s", s.ID, host, s.SSHUser))
+
 			runCtx, cancel := context.WithTimeout(ctx, perHostTimeout)
-			out, err := sshInstallDockerWithOutput(runCtx, db, s, host, s.SSHUser, []byte(privKey))
+			out, err := sshInstallDockerWithOutput(runCtx, db, s, host, s.SSHUser, []byte(privKey), sink)
 			cancel()
 
 			if err != nil {
 				fail++
 				failedIDs = append(failedIDs, s.ID)
 				failures = append(failures, BastionBootstrapFailure{ID: s.ID, Step: "ssh_install", Reason: err.Error()})
+				sink.System("bootstrap failed: " + err.Error())
+				_ = sink.Close()
 				// include a short tail of output to speed debugging without flooding logs
 				tail := out
 				if len(tail) > 800 {
@@ -163,11 +173,27 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 				fail++
 				failedIDs = append(failedIDs, s.ID)
 				failures = append(failures, BastionBootstrapFailure{ID: s.ID, Step: "set_ready", Reason: err.Error()})
+				sink.System("failed to mark ready: " + err.Error())
+				_ = sink.Close()
 				logHostErr(jobID, s, "set_ready", err)
 				_ = setServerStatus(db, s.ID, "failed")
 				continue
 			}
+			sink.System("bastion ready")
+			_ = sink.Close()
 			ok++
+		}
+
+		if err := river.RecordOutput(ctx, BastionBootstrapResult{
+			Status:       "ok",
+			Processed:    proc,
+			Ready:        ok,
+			Failed:       fail,
+			ElapsedMs:    int(time.Since(start).Milliseconds()),
+			FailedServer: failedIDs,
+			Failures:     failures,
+		}); err != nil {
+			log.Warn().Err(err).Msg("[bastion] could not record output")
 		}
 
 		log.Debug().
@@ -215,12 +241,20 @@ func logHostInfo(jobID string, s *models.Server, step, msg string, kv ...any) {
 // ----- SSH & command execution -----
 
 // returns combined stdout/stderr so caller can log it on error
+// sshInstallDockerWithOutput bootstraps a bastion over SSH, streaming the
+// remote script's combined output to sink as it arrives. sink may be nil.
+//
+// The returned string is the trailing logMaxTailBytes only; the full transcript
+// is in job_logs when a sink is supplied. That matters here because the script
+// runs under `set -euxo pipefail`, so the useful evidence is the last `+` trace
+// line before it died — which the old 800-byte stdout tail routinely cut off.
 func sshInstallDockerWithOutput(
 	ctx context.Context,
 	db *gorm.DB,
 	s *models.Server,
 	host, user string,
 	privateKeyPEM []byte,
+	sink io.Writer,
 ) (string, error) {
 	signer, err := ssh.ParsePrivateKey(privateKeyPEM)
 	if err != nil {
@@ -539,9 +573,16 @@ echo "Bootstrap complete. If you were added to the docker group, log out and bac
 	// Send script via stdin to avoid quoting/escaping issues
 	sess.Stdin = strings.NewReader(script)
 
-	// Capture combined stdout+stderr
-	out, runErr := sess.CombinedOutput("bash -s")
-	return string(out), wrapSSHError(runErr, string(out))
+	// Stream combined stdout+stderr rather than buffering to exit, so a
+	// bootstrap that hangs on (say) an apt lock is visible while it hangs.
+	tail := &tailBuffer{max: logMaxTailBytes}
+	var w io.Writer = tail
+	if sink != nil {
+		w = io.MultiWriter(tail, sink)
+	}
+
+	runErr := runSSHStreaming(sess, "bash -s", w)
+	return tail.String(), wrapSSHError(runErr, tail.String())
 }
 
 // annotate common SSH/remote failure modes to speed triage

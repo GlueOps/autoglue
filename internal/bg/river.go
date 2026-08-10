@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
+	"github.com/riverqueue/river/rivertype"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
@@ -52,6 +53,7 @@ func NewWorkerClient(pool *pgxpool.Pool, d Deps) (*Client, error) {
 	river.AddWorker(workers, &ClusterActionWorker{db: d.DB, baseURL: d.BaseURL})
 	river.AddWorker(workers, &DNSReconcileWorker{db: d.DB})
 	river.AddWorker(workers, &DbBackupWorker{db: d.DB})
+	river.AddWorker(workers, &JobLogsCleanupWorker{db: d.DB})
 	river.AddWorker(workers, &OrgKeySweeperWorker{db: d.DB})
 	river.AddWorker(workers, &TokensCleanupWorker{db: d.DB})
 
@@ -64,6 +66,12 @@ func NewWorkerClient(pool *pgxpool.Pool, d Deps) (*Client, error) {
 			QueueClusters:    {MaxWorkers: 30},
 		},
 		PeriodicJobs: periodicJobs(),
+		// The rescuer reclaims jobs whose attempt started longer ago than this,
+		// and it is purely time based — it has no idea whether a worker is
+		// still alive and working. The default is one hour, which would reap a
+		// cluster_action mid-bootstrap and, because that job is not retryable,
+		// discard it outright. Keep the window above the longest worker Timeout.
+		RescueStuckJobsAfter: rescueWindow(),
 		// Archer had a bespoke cleanup job for this. River expires finished
 		// jobs itself, so the retention windows live here instead.
 		CompletedJobRetentionPeriod: retention("river.completed_retain_days", 7),
@@ -79,16 +87,16 @@ func NewWorkerClient(pool *pgxpool.Pool, d Deps) (*Client, error) {
 func periodicJobs() []*river.PeriodicJob {
 	return []*river.PeriodicJob{
 		river.NewPeriodicJob(
-			river.PeriodicInterval(interval("bastion.interval_seconds", 10*time.Second)),
+			river.PeriodicInterval(interval("bastion.interval_seconds", 30*time.Second)),
 			func() (river.JobArgs, *river.InsertOpts) {
-				return BastionBootstrapArgs{}, nil
+				return BastionBootstrapArgs{}, &river.InsertOpts{UniqueOpts: tickUnique}
 			},
 			&river.PeriodicJobOpts{ID: "bootstrap_bastion", RunOnStart: true},
 		),
 		river.NewPeriodicJob(
-			river.PeriodicInterval(interval("dns.interval_seconds", 10*time.Second)),
+			river.PeriodicInterval(interval("dns.interval_seconds", 30*time.Second)),
 			func() (river.JobArgs, *river.InsertOpts) {
-				return DNSReconcileArgs{}, nil
+				return DNSReconcileArgs{}, &river.InsertOpts{UniqueOpts: tickUnique}
 			},
 			&river.PeriodicJobOpts{ID: "dns_reconcile", RunOnStart: true},
 		),
@@ -107,6 +115,13 @@ func periodicJobs() []*river.PeriodicJob {
 			&river.PeriodicJobOpts{ID: "db_backup_s3"},
 		),
 		river.NewPeriodicJob(
+			dailyAt(4, 15),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return JobLogsCleanupArgs{}, nil
+			},
+			&river.PeriodicJobOpts{ID: "job_logs_cleanup"},
+		),
+		river.NewPeriodicJob(
 			dailyAt(3, 45),
 			func() (river.JobArgs, *river.InsertOpts) {
 				return TokensCleanupArgs{}, nil
@@ -114,6 +129,16 @@ func periodicJobs() []*river.PeriodicJob {
 			&river.PeriodicJobOpts{ID: "tokens_cleanup"},
 		),
 	}
+}
+
+// tickUnique stops reconcile ticks from stacking up. Under archer each worker
+// enqueued its own successor, so exactly one tick existed at a time. River's
+// PeriodicInterval inserts on a wall clock regardless of whether the previous
+// tick finished, so an 8 minute bastion bootstrap would otherwise queue dozens
+// of redundant ticks against the same queue cluster_action runs on.
+var tickUnique = river.UniqueOpts{
+	ByArgs:  true,
+	ByState: []rivertype.JobState{rivertype.JobStateAvailable, rivertype.JobStateScheduled, rivertype.JobStateRunning, rivertype.JobStateRetryable, rivertype.JobStatePending},
 }
 
 // dailyAtSchedule fires once per day at a fixed local wall-clock time.
@@ -134,11 +159,34 @@ func dailyAt(hour, minute int) river.PeriodicSchedule {
 	return dailyAtSchedule{hour: hour, minute: minute}
 }
 
+// maxWorkerTimeout is the longest Timeout any registered worker returns. Keep
+// this in step with the Timeout methods; ClusterActionWorker is the outlier.
+const maxWorkerTimeout = 168 * time.Hour
+
+// rescueWindow keeps stuck-job rescue comfortably clear of legitimately
+// long-running work, while still reclaiming genuinely abandoned jobs.
+func rescueWindow() time.Duration {
+	if h := viper.GetInt("river.rescue_after_hours"); h > 0 {
+		return time.Duration(h) * time.Hour
+	}
+	return maxWorkerTimeout + time.Hour
+}
+
 func interval(key string, def time.Duration) time.Duration {
 	if s := viper.GetInt(key); s > 0 {
 		return time.Duration(s) * time.Second
 	}
 	return def
+}
+
+// jobLogRetainDays is how long a job transcript is kept. Longer than River's
+// own job retention, because the transcript is usually what someone comes back
+// for after a failure.
+func jobLogRetainDays() int {
+	if d := viper.GetInt("job_logs.retain_days"); d > 0 {
+		return d
+	}
+	return 14
 }
 
 func retention(key string, defDays int) time.Duration {

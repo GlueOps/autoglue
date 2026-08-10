@@ -48,6 +48,7 @@ func mountClusterRoutes(r chi.Router, db *gorm.DB, cfg config.Config, jobs *bg.C
 
 		c.Get("/{clusterID}/runs", handlers.ListClusterRuns(db))
 		c.Get("/{clusterID}/runs/{runID}", handlers.GetClusterRun(db))
+		c.Get("/{clusterID}/runs/{runID}/logs", handlers.GetClusterRunLogs(db))
 		c.Post("/{clusterID}/actions/{actionID}/runs", handlers.RunClusterAction(db, jobs))
 	})
 }

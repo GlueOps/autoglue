@@ -29,6 +29,15 @@ type ClusterActionArgs struct {
 
 func (ClusterActionArgs) Kind() string { return "cluster_action" }
 
+// ClusterActionResult is recorded on the job row via river.RecordOutput, which
+// is River's replacement for the jobs.result column archer used to persist.
+type ClusterActionResult struct {
+	Status    string `json:"status"`
+	Action    string `json:"action"`
+	ClusterID string `json:"cluster_id"`
+	ElapsedMs int    `json:"elapsed_ms"`
+}
+
 func (ClusterActionArgs) InsertOpts() river.InsertOpts {
 	// A cluster action is not safely repeatable: it drives make targets against
 	// a live bastion. Archer ran these with MaxRetries(0); River counts the
@@ -53,6 +62,12 @@ func (w *ClusterActionWorker) Work(ctx context.Context, j *river.Job[ClusterActi
 	start := time.Now()
 	args := j.Args
 	runID := args.RunID
+
+	// Everything this action prints streams into job_logs under the ClusterRun,
+	// so the cluster page can tail it live instead of waiting for the run to
+	// finish (and, on success, losing the output entirely).
+	sink := NewLogSink(db, j.ID, args.OrgID, models.JobLogSubjectClusterRun, runID)
+	defer func() { _ = sink.Close() }()
 
 	{
 		updateRun := func(status string, errMsg string) {
@@ -200,7 +215,8 @@ func (w *ClusterActionWorker) Work(ctx context.Context, j *river.Job[ClusterActi
 		// ---- Step 2: Setup (ping-servers)
 		{
 			runCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
-			out, err := runMakeOnBastion(runCtx, db, &c, "ping-servers")
+			sink.System("running make ping-servers")
+			out, err := runMakeOnBastion(runCtx, db, &c, "ping-servers", sink)
 			cancel()
 			if err != nil {
 				logger.Error().Err(err).Str("output", out).Msg("ping-servers failed")
@@ -219,7 +235,8 @@ func (w *ClusterActionWorker) Work(ctx context.Context, j *river.Job[ClusterActi
 		// ---- Step 3: Bootstrap (parameterized target)
 		{
 			runCtx, cancel := context.WithTimeout(ctx, 60*time.Minute)
-			out, err := runMakeOnBastion(runCtx, db, &c, args.MakeTarget)
+			sink.System("running make " + args.MakeTarget)
+			out, err := runMakeOnBastion(runCtx, db, &c, args.MakeTarget, sink)
 			cancel()
 			if err != nil {
 				logger.Error().Err(err).Str("output", out).Msg("bootstrap target failed")
@@ -235,6 +252,16 @@ func (w *ClusterActionWorker) Work(ctx context.Context, j *river.Job[ClusterActi
 		}
 
 		updateRun("succeeded", "")
+		sink.System("completed")
+
+		if err := river.RecordOutput(ctx, ClusterActionResult{
+			Status:    "ok",
+			Action:    args.Action,
+			ClusterID: c.ID.String(),
+			ElapsedMs: int(time.Since(start).Milliseconds()),
+		}); err != nil {
+			logger.Warn().Err(err).Msg("[cluster_action] could not record output")
+		}
 
 		logger.Info().
 			Str("cluster_id", c.ID.String()).
