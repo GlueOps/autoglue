@@ -49,6 +49,7 @@ func NewInsertClient(pool *pgxpool.Pool) (*Client, error) {
 func NewWorkerClient(pool *pgxpool.Pool, d Deps) (*Client, error) {
 	workers := river.NewWorkers()
 
+	river.AddWorker(workers, &BastionSweepWorker{db: d.DB})
 	river.AddWorker(workers, &BastionBootstrapWorker{db: d.DB})
 	river.AddWorker(workers, &ClusterActionWorker{db: d.DB, baseURL: d.BaseURL})
 	river.AddWorker(workers, &DNSReconcileWorker{db: d.DB})
@@ -86,12 +87,16 @@ func NewWorkerClient(pool *pgxpool.Pool, d Deps) (*Client, error) {
 // double-insert.
 func periodicJobs() []*river.PeriodicJob {
 	return []*river.PeriodicJob{
+		// The sweep only claims and dispatches; the bootstraps themselves run
+		// as one job per server on the clusters queue, which is what restores
+		// archer's 30-way concurrency after the port collapsed it to a single
+		// serial tick.
 		river.NewPeriodicJob(
 			river.PeriodicInterval(interval("bastion.interval_seconds", 30*time.Second)),
 			func() (river.JobArgs, *river.InsertOpts) {
-				return BastionBootstrapArgs{}, &river.InsertOpts{UniqueOpts: tickUnique}
+				return BastionSweepArgs{}, &river.InsertOpts{UniqueOpts: tickUnique}
 			},
-			&river.PeriodicJobOpts{ID: "bootstrap_bastion", RunOnStart: true},
+			&river.PeriodicJobOpts{ID: "bastion_sweep", RunOnStart: true},
 		),
 		river.NewPeriodicJob(
 			river.PeriodicInterval(interval("dns.interval_seconds", 30*time.Second)),
