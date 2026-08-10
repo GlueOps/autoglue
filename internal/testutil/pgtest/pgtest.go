@@ -3,6 +3,9 @@ package pgtest
 import (
 	"fmt"
 	"log"
+	"net"
+	"os"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -13,6 +16,34 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+// EnvPort lets a caller pin the embedded Postgres port. When unset, a free
+// port is chosen at runtime: a fixed port collides with anything else already
+// listening (another checkout, a local Postgres, a stray container) and turns
+// an unrelated process into an unexplained test failure.
+const EnvPort = "AUTOGLUE_TEST_PG_PORT"
+
+// listenPort returns the port embedded Postgres should bind.
+func listenPort() uint32 {
+	if v := os.Getenv(EnvPort); v != "" {
+		p, err := strconv.ParseUint(v, 10, 16)
+		if err != nil || p == 0 {
+			log.Printf("pgtest: ignoring invalid %s=%q, selecting a free port", EnvPort, v)
+		} else {
+			return uint32(p)
+		}
+	}
+
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		// Nothing better to fall back to; Start will report the real failure.
+		log.Printf("pgtest: could not reserve a free port (%v), falling back to 55432", err)
+		return 55432
+	}
+	port := uint32(l.Addr().(*net.TCPAddr).Port)
+	_ = l.Close()
+	return port
+}
 
 var (
 	once    sync.Once
@@ -25,7 +56,7 @@ var (
 // initDB is called once via sync.Once. It starts embedded Postgres,
 // opens a GORM connection and runs the same migrations as NewRuntime.
 func initDB() {
-	const port uint32 = 55432
+	port := listenPort()
 
 	cfg := embeddedpostgres.
 		DefaultConfig().
@@ -55,7 +86,9 @@ func initDB() {
 		return
 	}
 
-	// Use the same model list as app.NewRuntime so schema matches prod
+	// Keep this list identical to app.NewRuntime, in the same order, so tests
+	// migrate the same schema production does. Anything missing here surfaces
+	// as an unrelated-looking failure in whichever test first Preloads it.
 	if err := db.Run(
 		dbConn,
 		&models.MasterKey{},
@@ -74,10 +107,14 @@ func initDB() {
 		&models.Label{},
 		&models.Annotation{},
 		&models.NodePool{},
-		&models.Cluster{},
 		&models.Credential{},
 		&models.Domain{},
 		&models.RecordSet{},
+		&models.LoadBalancer{},
+		&models.Cluster{},
+		&models.Action{},
+		&models.ClusterRun{},
+		&models.ClusterMetadata{},
 	); err != nil {
 		initErr = fmt.Errorf("migrate: %w", err)
 		return

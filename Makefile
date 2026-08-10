@@ -94,7 +94,7 @@ SDK_REPO_CLEAN      := $(call trim,$(SDK_REPO))
 SDK_PKG_CLEAN       := $(call trim,$(SDK_PKG))
 
 # --- phony targets ---
-.PHONY: all prepare ui-install ui-build ui swagger build clean fmt vet tidy upgrade \
+.PHONY: all prepare ui-install ui-build ui swagger build clean fmt vet tidy upgrade test \
         sdk sdk-go sdk-ts sdk-ts-ui sdk-all help dev ui-compress print-version \
         validate-spec check-tags doctor diff-swagger
 
@@ -151,6 +151,17 @@ fmt: ## go fmt ./...
 
 vet: ## go vet ./...
 	@$(GOCMD) vet ./...
+
+# Packages that embed generated artifacts (docs/openapi.json, internal/web/dist)
+# cannot compile on a fresh checkout, because those artifacts are gitignored and
+# produced by `make swagger` / `make ui-build`. Exclude them so `make test` works
+# from a bare clone; `go list -e` is required because plain `go list ./...`
+# returns nothing and exits non-zero when any package fails to load.
+TEST_PKGS = $(shell $(GOCMD) list -e ./... | grep -vE '^github.com/glueops/autoglue$$|/cmd$$|/docs$$|/internal/api$$|/internal/web$$')
+
+test: ## go test -race over packages that build without generated embeds
+	@test -n "$(TEST_PKGS)" || { echo ">> go list returned no packages"; exit 1; }
+	@$(GOCMD) test -race -count=1 $(TEST_PKGS)
 
 tidy: ## go mod tidy
 	@$(GOCMD) mod tidy
