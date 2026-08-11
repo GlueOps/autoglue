@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "packageRules": [
+    {
+      "description": [
+        "Hold TypeScript below 7 until typescript-eslint supports it.",
+        "TS 7 was merged in #1057 and reverted in #1061 the same day: typescript-eslint's latest release declares typescript '>=4.8.4 <6.1.0' and refuses to load against 7.0, which breaks `yarn lint` outright. There is no 9.x or 10.x, so there is no version of this toolchain where TS 7 and a working linter coexist.",
+        "This uses allowedVersions rather than relying on closing the PRs. The org base preset sets recreateWhen: always, so a closed major PR comes straight back - #1017, #1040, #1055 and #1063 were all the same update arriving four times.",
+        "Remove this rule once typescript-eslint ships TS 7 support; the lint-ui CI job added in #1067 will then be what proves it."
+      ],
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<7"
+    }
+  ]
+}
