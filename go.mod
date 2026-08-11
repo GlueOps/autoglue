@@ -28,7 +28,6 @@ require (
 	github.com/sosedoff/pgweb v0.17.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
-	github.com/swaggo/swag/v2 v2.0.0-rc5
 	golang.org/x/crypto v0.54.0
 	golang.org/x/oauth2 v0.36.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -40,7 +39,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.1 // indirect
-	github.com/BurntSushi/toml v1.1.0 // indirect
+	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/ScaleFT/sshkeys v0.0.0-20200327173127-6142f742bca5 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.14 // indirect
@@ -62,6 +61,7 @@ require (
 	github.com/bytedance/sonic/loader v0.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/dchest/bcrypt_pbkdf v0.0.0-20150205184540-83f37f9c154a // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
@@ -108,6 +108,7 @@ require (
 	github.com/riverqueue/apiframe v0.0.0-20251229202423-2b52ce1c482e // indirect
 	github.com/riverqueue/river/riverdriver v0.43.0 // indirect
 	github.com/riverqueue/river/rivershared v0.43.0 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
@@ -116,6 +117,7 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/sv-tools/openapi v0.4.0 // indirect
+	github.com/swaggo/swag/v2 v2.0.0-rc5 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
@@ -123,7 +125,9 @@ require (
 	github.com/tuvistavie/securerandom v0.0.0-20140719024926-15512123a948 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.1 // indirect
+	github.com/urfave/cli/v2 v2.27.5 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
@@ -135,4 +139,7 @@ require (
 	golang.org/x/tools v0.47.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 	gorm.io/driver/mysql v1.5.6 // indirect
+	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+tool github.com/swaggo/swag/v2/cmd/swag

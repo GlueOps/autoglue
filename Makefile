@@ -45,7 +45,11 @@ SDK_TS_PROPS_FLAGS := $(foreach p,$(subst , ,$(SDK_TS_PROPS)),-p $(p))
 SDK_TS_UI_OUTDIR ?= ui/src/sdk
 SDK_TS_UI_DIR    := $(abspath $(SDK_TS_UI_OUTDIR))
 
-SWAG         := $(shell command -v swag 2>/dev/null)
+# swag is a `tool` directive in go.mod, so the version pinned there is the one
+# that runs. Do not switch this back to a PATH lookup or a `go install ...@latest`:
+# this binary generates the OpenAPI spec every SDK is then generated from, so an
+# unpinned version makes the shipped API surface non-reproducible.
+SWAG         := $(GOCMD) tool swag
 GMU          := $(shell command -v go-mod-upgrade 2>/dev/null)
 YARN         := $(shell command -v yarn 2>/dev/null)
 NPM          := $(shell command -v npm 2>/dev/null)
@@ -115,13 +119,9 @@ GO_SRCS := $(shell ( \
 # Rebuild swagger when Go sources change
 $(DOCS_JSON) $(DOCS_YAML): $(GO_SRCS)
 	@echo ">> Generating Swagger docs..."
-	@if ! command -v swag >/dev/null 2>&1; then \
-		echo "Installing swag/v2 CLI @latest..."; \
-		$(GOINSTALL) github.com/swaggo/swag/v2/cmd/swag@latest; \
-	fi
 	@rm -rf docs/openapi.* docs/docs.go
-	@swag fmt --exclude main.go -d .
-	@swag init $(SWAG_FLAGS) -g $(MAIN) -o docs
+	@$(SWAG) fmt --exclude main.go -d .
+	@$(SWAG) init $(SWAG_FLAGS) -g $(MAIN) -o docs
 	@mv docs/swagger.json $(DOCS_JSON)
 	@mv docs/swagger.yaml $(DOCS_YAML)
 
