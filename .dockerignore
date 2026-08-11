@@ -1,3 +1,44 @@
+# Build context hygiene.
+#
+# NOTE: .git is deliberately NOT ignored. The version ldflags come from
+# `git describe` (see VERSION in the Makefile), so excluding it silently
+# stamps every image "dev" with no other symptom.
+
+# --- Secrets and local-only config -------------------------------------------
+# These would otherwise be copied into the builder layer and cached there.
+.env
+.env.*
+!.env.example
+config.yaml
+profile.json
+projile.json
+
+# --- Regenerated during the build --------------------------------------------
+# `make clean` wipes these anyway, and `make ui` / `make sdk-*` rebuild them.
+ui/node_modules
+ui/dist
+ui/.yarn/cache
+ui/.yarn/install-state.gz
+ui/src/sdk
+internal/web/dist
+sdk
+# The spec is generated from Go annotations by `make swagger`, whose rule is
+# mtime based. A stale copy in the context newer than the sources silently
+# skips regeneration and builds the whole image against the wrong spec.
+docs/openapi.*
+docs/swagger.*
+docs/docs.go
+
+# --- Not used by the image ---------------------------------------------------
 terraform
 terraform-provider-autoglue
-sdk
+.terraform
+.terraform.lock*
+terraform.tfstate*
+repomix-output.xml
+.dragon-buddy
+.github
+.idea
+.vscode
+.DS_Store
+*.log
