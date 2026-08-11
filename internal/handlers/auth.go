@@ -304,18 +304,7 @@ func AuthCallback(db *gorm.DB) http.HandlerFunc {
 			// opener exactly, and http://localhost:8080 and
 			// http://127.0.0.1:8080 are different origins. Validate against the
 			// allowlist so state cannot redirect tokens to an attacker.
-			origin := canonicalOrigin(originFromState(state))
-			if !config.IsAllowedOrigin(origin) {
-				if origin != "" {
-					log.Warn().
-						Str("origin", origin).
-						Msg("auth callback: SPA origin not in CORS_ALLOWED_ORIGINS; falling back to OAUTH_REDIRECT_BASE")
-				}
-				origin = canonicalOrigin(cfg.OAuthRedirectBase)
-			}
-			if origin == "" {
-				origin = cfg.OAuthRedirectBase
-			}
+			origin := postMessageOrigin(state, cfg.OAuthRedirectBase)
 			payload := dto.TokenPair{
 				AccessToken:  access,
 				RefreshToken: rp.Plain,
@@ -580,6 +569,34 @@ func canonicalOrigin(raw string) string {
 		Scheme: u.Scheme,
 		Host:   u.Host,
 	}).String()
+}
+
+// postMessageOrigin decides which browser origin the OAuth tokens may be
+// delivered to, and is the only thing standing between the token pair and an
+// attacker-chosen window.
+//
+// AuthStart copies `origin` out of the query string into the state without
+// validating it, so the origin arriving here is attacker-controlled. A page the
+// attacker controls can open the callback in a popup, making itself the opener;
+// if the target origin were taken from state unchecked, the browser would then
+// hand that page a live access and refresh token.
+//
+// Anything not on the allowlist falls back to OAUTH_REDIRECT_BASE, which simply
+// means the message is not delivered to the attacker.
+func postMessageOrigin(state, oauthRedirectBase string) string {
+	origin := canonicalOrigin(originFromState(state))
+	if !config.IsAllowedOrigin(origin) {
+		if origin != "" {
+			log.Warn().
+				Str("origin", origin).
+				Msg("auth callback: SPA origin not in CORS_ALLOWED_ORIGINS; falling back to OAUTH_REDIRECT_BASE")
+		}
+		origin = canonicalOrigin(oauthRedirectBase)
+	}
+	if origin == "" {
+		origin = oauthRedirectBase
+	}
+	return origin
 }
 
 // originFromState pulls the SPA window origin out of the OAuth state that
