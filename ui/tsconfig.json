@@ -5,8 +5,7 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    /* `baseUrl` removed in TypeScript 7 (TS5102); `paths` below resolve
-       relative to this file, which is what `"baseUrl": "."` already meant. */
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
