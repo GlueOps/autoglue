@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
       - name: Set up Node
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
@@ -55,3 +55,31 @@ jobs:
       - name: Test
         working-directory: ui
         run: yarn test
+  # govulncheck is reachability-aware: it reports only advisories whose
+  # vulnerable symbols are actually called from this code, which is the
+  # difference between a list of advisories and a list of problems. It needs
+  # the generated embeds to load packages, hence `make swagger` first.
+  vulncheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+
+      - name: Generate embeds
+        run: |
+          make swagger
+          # go:embed ignores dotfiles, so a .keep here would still fail with
+          # "contains no embeddable files". The UI bundle itself is irrelevant
+          # to a vulnerability scan; only a loadable package tree is needed.
+          mkdir -p internal/web/dist && touch internal/web/dist/index.html
+
+      - name: govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          "$(go env GOPATH)/bin/govulncheck" ./...

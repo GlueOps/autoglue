@@ -53,7 +53,11 @@ BROTLI       := $(shell command -v brotli 2>/dev/null)
 GZIP         := $(shell command -v gzip 2>/dev/null)
 
 # OpenAPI Generator wrapper (npm) and *core* version pin
-OGC_WRAPPER                ?= @openapitools/openapi-generator-cli@latest
+# Pinned deliberately. This wrapper fetches and executes the generator inside
+# the build that produces the shipped artifact, and no generated code is
+# committed, so an unpinned @latest here is arbitrary third-party code entering
+# every release. The generator version it selects is pinned separately below.
+OGC_WRAPPER                ?= @openapitools/openapi-generator-cli@2.40.1
 OPENAPI_GENERATOR_VERSION  ?= 7.17.0
 OGC_BIN                    := npx -y $(OGC_WRAPPER)
 
