@@ -94,7 +94,7 @@ SDK_REPO_CLEAN      := $(call trim,$(SDK_REPO))
 SDK_PKG_CLEAN       := $(call trim,$(SDK_PKG))
 
 # --- phony targets ---
-.PHONY: all prepare ui-install ui-build ui swagger build clean fmt vet tidy upgrade test \
+.PHONY: all prepare ui-install ui-build ui swagger build clean fmt vet tidy upgrade test test-ui test-all \
         sdk sdk-go sdk-ts sdk-ts-ui sdk-all help dev ui-compress print-version \
         validate-spec check-tags doctor diff-swagger
 
@@ -158,6 +158,12 @@ vet: ## go vet ./...
 # from a bare clone; `go list -e` is required because plain `go list ./...`
 # returns nothing and exits non-zero when any package fails to load.
 TEST_PKGS = $(shell $(GOCMD) list -e ./... | grep -vE '^github.com/glueops/autoglue$$|/cmd$$|/docs$$|/internal/api$$|/internal/web$$')
+
+test-ui: ui-install ## Run the frontend unit tests (vitest)
+	@echo ">> Running UI tests in $(UI_DIR)..."
+	@cd $(UI_DIR) && yarn test
+
+test-all: test test-ui ## Run both the Go and the frontend test suites
 
 test: ## go test -race over packages that build without generated embeds
 	@test -n "$(TEST_PKGS)" || { echo ">> go list returned no packages"; exit 1; }

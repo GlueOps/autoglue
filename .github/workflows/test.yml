@@ -30,3 +30,28 @@ jobs:
 
       - name: Test
         run: make test
+
+  test-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Node
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: 22
+
+      # The UI is on Yarn 4, which is not published to npm; corepack reads the
+      # version from packageManager in ui/package.json.
+      - name: Enable corepack
+        run: npm i -g corepack@0.35.0 && corepack enable
+
+      - name: Install
+        working-directory: ui
+        run: yarn install --immutable
+
+      - name: Test
+        working-directory: ui
+        run: yarn test
