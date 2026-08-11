@@ -37,7 +37,7 @@ export const DocsPage: FC = () => {
     const rd = rdRef.current
     if (!rd) return
 
-    let effectiveTheme: "light" | "dark" = "light"
+    let effectiveTheme: "light" | "dark"
     if (rdThemeMode === "light") {
       effectiveTheme = "light"
     } else if (rdThemeMode === "dark") {
