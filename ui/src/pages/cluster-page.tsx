@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { actionsApi } from "@/api/actions";
+import { JobLogViewer } from "@/components/job-log-viewer";
 import { clustersApi } from "@/api/clusters";
 import { dnsApi } from "@/api/dns";
 import { loadBalancersApi } from "@/api/loadbalancers";
@@ -8,7 +9,7 @@ import { serversApi } from "@/api/servers";
 import type { DtoActionResponse, DtoClusterMetadataResponse, DtoClusterResponse, DtoClusterRunResponse, DtoDomainResponse, DtoLoadBalancerResponse, DtoNodePoolResponse, DtoRecordSetResponse, DtoServerResponse } from "@/sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Key, Loader2, MapPin, Pencil, Plus, Save, Search, Server, Wrench, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, CircleSlash2, FileCode2, Globe2, Key, Loader2, MapPin, Pencil, Plus, Save, ScrollText, Search, Server, Wrench, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -113,6 +114,56 @@ function StatusBadge({ status }: { status?: string | null }) {
     <Badge variant="outline" className="text-xs">
       {value}
     </Badge>
+  )
+}
+
+function RunLogsDialog({
+  clusterID,
+  runID,
+  title,
+  status,
+}: {
+  clusterID: string
+  runID: string
+  title: string
+  status?: string | null
+}) {
+  const [open, setOpen] = useState(false)
+
+  // Stable per run, so opening the dialog does not restart polling on every
+  // parent re-render.
+  const fetchPage = useCallback(
+    (after: number) => clustersApi.getClusterRunLogs(clusterID, runID, after),
+    [clusterID, runID],
+  )
+
+  const s = (status ?? "").toLowerCase()
+  const live = s === "running" || s === "queued"
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">
+          <ScrollText className="mr-1 size-3.5" />
+          View
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {title}
+            <RunStatusBadge status={status} />
+          </DialogTitle>
+        </DialogHeader>
+        {open && (
+          <JobLogViewer
+            fetchPage={fetchPage}
+            live={live}
+            emptyMessage="No output recorded for this run."
+          />
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -1106,6 +1157,7 @@ export const ClustersPage = () => {
                             <TableHead>Created</TableHead>
                             <TableHead>Finished</TableHead>
                             <TableHead>Error</TableHead>
+                            <TableHead className="w-[90px] text-right">Logs</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1132,6 +1184,16 @@ export const ClustersPage = () => {
                               </TableCell>
                               <TableCell className="text-xs">
                                 {r.error ? truncateMiddle(r.error, 80) : "-"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {configCluster?.id && r.id && (
+                                  <RunLogsDialog
+                                    clusterID={configCluster.id}
+                                    runID={r.id}
+                                    title={runDisplayName(r)}
+                                    status={r.status}
+                                  />
+                                )}
                               </TableCell>
                             </TableRow>
                           ))}

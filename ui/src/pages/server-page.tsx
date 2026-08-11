@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { serversApi } from "@/api/servers.ts"
+import { JobLogViewer } from "@/components/job-log-viewer"
 import { sshApi } from "@/api/ssh.ts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { formatDistanceToNow } from "date-fns"
-import { Plus, Search } from "lucide-react"
+import { Plus, ScrollText, Search } from "lucide-react"
 import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -100,6 +101,52 @@ const updateServerSchema = z
     }
   })
 type UpdateServerValues = z.input<typeof updateServerSchema>
+
+function ServerLogsDialog({
+  serverID,
+  hostname,
+  status,
+}: {
+  serverID: string
+  hostname?: string
+  status: Status
+}) {
+  const [open, setOpen] = useState(false)
+
+  const fetchPage = useCallback(
+    (after: number) => serversApi.getServerLogs(serverID, after),
+    [serverID],
+  )
+
+  // "pending" means a sweep has not claimed it yet, so output is still coming.
+  const live = status === "pending" || status === "provisioning"
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <ScrollText className="mr-1 size-3.5" />
+          Logs
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <span className="truncate">{hostname ?? "Server"}</span>
+            <StatusBadge status={status} />
+          </DialogTitle>
+        </DialogHeader>
+        {open && (
+          <JobLogViewer
+            fetchPage={fetchPage}
+            live={live}
+            emptyMessage="No bootstrap output recorded for this server yet."
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 function StatusBadge({ status }: { status: Status }) {
   const v =
@@ -645,6 +692,11 @@ export const ServerPage = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <ServerLogsDialog
+                            serverID={k.id}
+                            hostname={k.hostname}
+                            status={(k.status ?? "pending") as Status}
+                          />
                           <Button variant="outline" size="sm" onClick={() => openEdit(k)}>
                             Edit
                           </Button>

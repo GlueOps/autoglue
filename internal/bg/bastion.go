@@ -3,7 +3,9 @@ package bg
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"strconv"
 	"strings"
@@ -12,7 +14,9 @@ import (
 	"github.com/glueops/autoglue/internal/models"
 	"github.com/glueops/autoglue/internal/utils"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/riverqueue/river"
+	"github.com/riverqueue/river/rivertype"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
@@ -21,12 +25,44 @@ import (
 
 // ----- Public types -----
 
-type BastionBootstrapArgs struct{}
+// BastionSweepArgs drives the periodic claim tick. It does no SSH work itself:
+// it moves servers from pending to provisioning and fans out one bootstrap job
+// per server.
+type BastionSweepArgs struct{}
+
+func (BastionSweepArgs) Kind() string { return "bastion_sweep" }
+
+func (BastionSweepArgs) InsertOpts() river.InsertOpts {
+	return river.InsertOpts{Queue: QueueMaintenance, MaxAttempts: 2}
+}
+
+// BastionBootstrapArgs bootstraps exactly one bastion.
+//
+// One job per server, rather than one job per tick, because the claim flips a
+// server to provisioning up front: if a single job owned every claimed server
+// and then hit its timeout, the ones it never reached would sit in
+// provisioning forever with nothing to reclaim them.
+type BastionBootstrapArgs struct {
+	ServerID uuid.UUID `json:"server_id"`
+}
 
 func (BastionBootstrapArgs) Kind() string { return "bootstrap_bastion" }
 
 func (BastionBootstrapArgs) InsertOpts() river.InsertOpts {
-	return river.InsertOpts{Queue: QueueClusters, MaxAttempts: 3}
+	return river.InsertOpts{
+		Queue:       QueueClusters,
+		MaxAttempts: 1,
+		// Never bootstrap the same host twice concurrently: the remote script
+		// takes apt/dpkg locks and two runs would fight over them.
+		UniqueOpts: river.UniqueOpts{
+			ByArgs: true,
+			ByState: []rivertype.JobState{
+				rivertype.JobStateAvailable, rivertype.JobStateScheduled,
+				rivertype.JobStateRunning, rivertype.JobStateRetryable,
+				rivertype.JobStatePending,
+			},
+		},
+	}
 }
 
 type BastionBootstrapFailure struct {
@@ -35,27 +71,105 @@ type BastionBootstrapFailure struct {
 	Reason string    `json:"reason"`
 }
 
-type BastionBootstrapResult struct {
-	Status       string                    `json:"status"`
-	Processed    int                       `json:"processed"`
-	Ready        int                       `json:"ready"`
-	Failed       int                       `json:"failed"`
-	ElapsedMs    int                       `json:"elapsed_ms"`
-	FailedServer []uuid.UUID               `json:"failed_server_ids"`
-	Failures     []BastionBootstrapFailure `json:"failures"`
+type BastionSweepResult struct {
+	Status     string      `json:"status"`
+	Claimed    int         `json:"claimed"`
+	Dispatched int         `json:"dispatched"`
+	ServerIDs  []uuid.UUID `json:"server_ids"`
 }
 
-// ----- Worker -----
+type BastionBootstrapResult struct {
+	Status    string    `json:"status"`
+	ServerID  uuid.UUID `json:"server_id"`
+	ElapsedMs int       `json:"elapsed_ms"`
+}
+
+// ----- Sweep (claim + dispatch) -----
+
+type BastionSweepWorker struct {
+	river.WorkerDefaults[BastionSweepArgs]
+	db *gorm.DB
+}
+
+func (w *BastionSweepWorker) Timeout(*river.Job[BastionSweepArgs]) time.Duration {
+	return time.Minute
+}
+
+func (w *BastionSweepWorker) Work(ctx context.Context, j *river.Job[BastionSweepArgs]) error {
+	db := w.db
+
+	// Atomically claim pending bastion servers using SELECT FOR UPDATE SKIP LOCKED
+	// so that concurrent sweeps never claim the same server. `pending` is the
+	// enqueue signal; flipping to `provisioning` is what removes a server from
+	// this tick's queue.
+	var claimedIDs []uuid.UUID
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.
+			Model(&models.Server{}).
+			Where("role = ? AND status = ?", "bastion", "pending").
+			Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+			Pluck("id", &claimedIDs).Error; err != nil {
+			return err
+		}
+		if len(claimedIDs) == 0 {
+			return nil
+		}
+		return tx.Model(&models.Server{}).
+			Where("id IN ?", claimedIDs).
+			Updates(map[string]any{
+				"status":     "provisioning",
+				"updated_at": time.Now(),
+			}).Error
+	}); err != nil {
+		log.Printf("[bastion] level=ERROR job=%d step=claim_servers msg=%q", j.ID, err)
+		return err
+	}
+
+	if len(claimedIDs) == 0 {
+		return nil
+	}
+
+	client := river.ClientFromContext[pgx.Tx](ctx)
+
+	dispatched := 0
+	for _, id := range claimedIDs {
+		if _, err := client.Insert(ctx, BastionBootstrapArgs{ServerID: id}, nil); err != nil {
+			// Hand the server back so a later tick retries it, rather than
+			// leaving it stranded in provisioning.
+			log.Error().Err(err).Str("server_id", id.String()).
+				Msg("[bastion] could not dispatch bootstrap; returning server to pending")
+			_ = setServerStatus(db, id, "pending")
+			continue
+		}
+		dispatched++
+	}
+
+	log.Info().Int("claimed", len(claimedIDs)).Int("dispatched", dispatched).
+		Msg("[bastion] sweep dispatched bootstrap jobs")
+
+	if err := river.RecordOutput(ctx, BastionSweepResult{
+		Status:     "ok",
+		Claimed:    len(claimedIDs),
+		Dispatched: dispatched,
+		ServerIDs:  claimedIDs,
+	}); err != nil {
+		log.Warn().Err(err).Msg("[bastion] could not record sweep output")
+	}
+	return nil
+}
+
+// ----- Bootstrap (one server) -----
 
 type BastionBootstrapWorker struct {
 	river.WorkerDefaults[BastionBootstrapArgs]
 	db *gorm.DB
 }
 
-// Timeout is generous because a single tick SSHes into every pending bastion in
-// series, each with its own 8 minute budget.
+// Timeout bounds a single host. The remote script installs packages over a
+// network that may be slow, so this is generous, but it is per server rather
+// than per tick.
 func (w *BastionBootstrapWorker) Timeout(*river.Job[BastionBootstrapArgs]) time.Duration {
-	return time.Hour
+	return 30 * time.Minute
 }
 
 func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionBootstrapArgs]) error {
@@ -63,121 +177,84 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 	jobID := strconv.FormatInt(j.ID, 10)
 	start := time.Now()
 
-	{
-		// Atomically claim pending bastion servers using SELECT FOR UPDATE SKIP LOCKED
-		// so that concurrent worker instances never process the same server simultaneously
-		// (which would cause apt lock conflicts on the remote host).
-		var claimedIDs []uuid.UUID
-		if err := db.Transaction(func(tx *gorm.DB) error {
-			if err := tx.
-				Model(&models.Server{}).
-				Where("role = ? AND status = ?", "bastion", "pending").
-				Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
-				Pluck("id", &claimedIDs).Error; err != nil {
-				return err
-			}
-			if len(claimedIDs) == 0 {
-				return nil
-			}
-			return tx.Model(&models.Server{}).
-				Where("id IN ?", claimedIDs).
-				Updates(map[string]any{
-					"status":     "provisioning",
-					"updated_at": time.Now(),
-				}).Error
-		}); err != nil {
-			log.Printf("[bastion] level=ERROR job=%s step=claim_servers msg=%q", jobID, err)
-			return err
+	var s models.Server
+	if err := db.Preload("SshKey").
+		Where("id = ?", j.Args.ServerID).
+		First(&s).Error; err != nil {
+		// The server was deleted between claim and execution. Nothing to do,
+		// and failing would only requeue a job that can never succeed.
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Warn().Str("server_id", j.Args.ServerID.String()).
+				Msg("[bastion] server vanished before bootstrap")
+			return nil
 		}
+		return err
+	}
 
-		var servers []models.Server
-		if len(claimedIDs) > 0 {
-			if err := db.
-				Preload("SshKey").
-				Where("id IN ?", claimedIDs).
-				Find(&servers).Error; err != nil {
-				log.Printf("[bastion] level=ERROR job=%s step=fetch_servers msg=%q", jobID, err)
-				return err
-			}
+	fail := func(step string, err error, sink *LogSink) error {
+		if sink != nil {
+			sink.System("bootstrap failed at " + step + ": " + err.Error())
+			_ = sink.Close()
 		}
+		logHostErr(jobID, &s, step, err)
+		_ = setServerStatus(db, s.ID, "failed")
+		// The failure is recorded on the server row and in job_logs; returning
+		// nil keeps it out of River's retry path, since the operator re-runs by
+		// setting the server back to pending.
+		return nil
+	}
 
-		proc, ok, fail := 0, 0, 0
-		var failedIDs []uuid.UUID
-		var failures []BastionBootstrapFailure
+	// 1) Defensive IP check
+	if s.PublicIPAddress == nil || *s.PublicIPAddress == "" {
+		return fail("ip_check", fmt.Errorf("missing public ip"), nil)
+	}
 
-		perHostTimeout := 8 * time.Minute
+	// 2) Decrypt private key for org
+	privKey, err := utils.DecryptForOrg(
+		s.OrganizationID,
+		s.SshKey.EncryptedPrivateKey,
+		s.SshKey.PrivateIV,
+		s.SshKey.PrivateTag,
+		db,
+	)
+	if err != nil {
+		return fail("decrypt_key", err, nil)
+	}
 
-		for i := range servers {
-			s := &servers[i]
-			proc++
+	// 3) SSH + install docker. Output streams into job_logs under this server,
+	// so a failed bootstrap can be read back from the API instead of hunting
+	// through worker pod stdout for a truncated tail.
+	host := net.JoinHostPort(*s.PublicIPAddress, "22")
+	sink := NewLogSink(db, j.ID, s.OrganizationID, models.JobLogSubjectServer, s.ID)
+	sink.System(fmt.Sprintf("bootstrapping bastion %s (%s) as %s", s.ID, host, s.SSHUser))
 
-			// 1) Defensive IP check
-			if s.PublicIPAddress == nil || *s.PublicIPAddress == "" {
-				fail++
-				failedIDs = append(failedIDs, s.ID)
-				failures = append(failures, BastionBootstrapFailure{ID: s.ID, Step: "ip_check", Reason: "missing public ip"})
-				logHostErr(jobID, s, "ip_check", fmt.Errorf("missing public ip"))
-				_ = setServerStatus(db, s.ID, "failed")
-				continue
-			}
-
-			// 2) Decrypt private key for org
-			privKey, err := utils.DecryptForOrg(
-				s.OrganizationID,
-				s.SshKey.EncryptedPrivateKey,
-				s.SshKey.PrivateIV,
-				s.SshKey.PrivateTag,
-				db,
-			)
-			if err != nil {
-				fail++
-				failedIDs = append(failedIDs, s.ID)
-				failures = append(failures, BastionBootstrapFailure{ID: s.ID, Step: "decrypt_key", Reason: err.Error()})
-				logHostErr(jobID, s, "decrypt_key", err)
-				_ = setServerStatus(db, s.ID, "failed")
-				continue
-			}
-
-			// 3) SSH + install docker
-			host := net.JoinHostPort(*s.PublicIPAddress, "22")
-			runCtx, cancel := context.WithTimeout(ctx, perHostTimeout)
-			out, err := sshInstallDockerWithOutput(runCtx, db, s, host, s.SSHUser, []byte(privKey))
-			cancel()
-
-			if err != nil {
-				fail++
-				failedIDs = append(failedIDs, s.ID)
-				failures = append(failures, BastionBootstrapFailure{ID: s.ID, Step: "ssh_install", Reason: err.Error()})
-				// include a short tail of output to speed debugging without flooding logs
-				tail := out
-				if len(tail) > 800 {
-					tail = tail[len(tail)-800:]
-				}
-				logHostErr(jobID, s, "ssh_install", fmt.Errorf("%v | tail=%q", err, tail))
-				_ = setServerStatus(db, s.ID, "failed")
-				continue
-			}
-
-			// 4) Mark ready
-			if err := setServerStatus(db, s.ID, "ready"); err != nil {
-				fail++
-				failedIDs = append(failedIDs, s.ID)
-				failures = append(failures, BastionBootstrapFailure{ID: s.ID, Step: "set_ready", Reason: err.Error()})
-				logHostErr(jobID, s, "set_ready", err)
-				_ = setServerStatus(db, s.ID, "failed")
-				continue
-			}
-			ok++
+	out, err := sshInstallDockerWithOutput(ctx, db, &s, host, s.SSHUser, []byte(privKey), sink)
+	if err != nil {
+		tail := out
+		if len(tail) > 800 {
+			tail = tail[len(tail)-800:]
 		}
+		return fail("ssh_install", fmt.Errorf("%v | tail=%q", err, tail), sink)
+	}
 
-		log.Debug().
-			Int("processed", proc).
-			Int("ready", ok).
-			Int("failed", fail).
-			Int64("elapsed_ms", time.Since(start).Milliseconds()).
-			Interface("failures", failures).
-			Interface("failed_server_ids", failedIDs).
-			Msg("[bastion] reconcile tick ok")
+	// 4) Mark ready
+	if err := setServerStatus(db, s.ID, "ready"); err != nil {
+		return fail("set_ready", err, sink)
+	}
+
+	sink.System("bastion ready")
+	_ = sink.Close()
+
+	log.Info().Str("server_id", s.ID.String()).
+		Int64("elapsed_ms", time.Since(start).Milliseconds()).
+		Msg("[bastion] bootstrap ok")
+
+	if err := river.RecordOutput(ctx, BastionBootstrapResult{
+		Status:    "ok",
+		ServerID:  s.ID,
+		ElapsedMs: int(time.Since(start).Milliseconds()),
+	}); err != nil {
+		log.Warn().Err(err).Msg("[bastion] could not record output")
 	}
 	return nil
 }
@@ -215,12 +292,20 @@ func logHostInfo(jobID string, s *models.Server, step, msg string, kv ...any) {
 // ----- SSH & command execution -----
 
 // returns combined stdout/stderr so caller can log it on error
+// sshInstallDockerWithOutput bootstraps a bastion over SSH, streaming the
+// remote script's combined output to sink as it arrives. sink may be nil.
+//
+// The returned string is the trailing logMaxTailBytes only; the full transcript
+// is in job_logs when a sink is supplied. That matters here because the script
+// runs under `set -euxo pipefail`, so the useful evidence is the last `+` trace
+// line before it died — which the old 800-byte stdout tail routinely cut off.
 func sshInstallDockerWithOutput(
 	ctx context.Context,
 	db *gorm.DB,
 	s *models.Server,
 	host, user string,
 	privateKeyPEM []byte,
+	sink io.Writer,
 ) (string, error) {
 	signer, err := ssh.ParsePrivateKey(privateKeyPEM)
 	if err != nil {
@@ -539,9 +624,16 @@ echo "Bootstrap complete. If you were added to the docker group, log out and bac
 	// Send script via stdin to avoid quoting/escaping issues
 	sess.Stdin = strings.NewReader(script)
 
-	// Capture combined stdout+stderr
-	out, runErr := sess.CombinedOutput("bash -s")
-	return string(out), wrapSSHError(runErr, string(out))
+	// Stream combined stdout+stderr rather than buffering to exit, so a
+	// bootstrap that hangs on (say) an apt lock is visible while it hangs.
+	tail := &tailBuffer{max: logMaxTailBytes}
+	var w io.Writer = tail
+	if sink != nil {
+		w = io.MultiWriter(tail, sink)
+	}
+
+	runErr := runSSHStreaming(sess, "bash -s", w)
+	return tail.String(), wrapSSHError(runErr, tail.String())
 }
 
 // annotate common SSH/remote failure modes to speed triage

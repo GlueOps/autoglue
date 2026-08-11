@@ -219,7 +219,15 @@ func RunClusterAction(db *gorm.DB, jobs *bg.Client) http.HandlerFunc {
 			Action:     action.MakeTarget,
 			MakeTarget: action.MakeTarget,
 		}
-		enqueueErr := bg.Insert(r.Context(), jobs, args, nil)
+		insertRes, enqueueErr := jobs.Insert(r.Context(), args, nil)
+		if enqueueErr == nil && insertRes != nil && insertRes.Job != nil {
+			// Correlate the run with its River job so the logs endpoint and the
+			// River dashboard can be cross-referenced.
+			jobID := insertRes.Job.ID
+			_ = db.Model(&models.ClusterRun{}).
+				Where("id = ?", run.ID).
+				Update("job_id", jobID).Error
+		}
 
 		if enqueueErr != nil {
 			_ = db.Model(&models.ClusterRun{}).

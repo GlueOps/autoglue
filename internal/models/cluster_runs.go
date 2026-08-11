@@ -21,7 +21,9 @@ type ClusterRun struct {
 	Action         string    `json:"action" gorm:"type:text;not null"`
 	Status         string    `json:"status" gorm:"type:text;not null"`
 	Error          string    `json:"error" gorm:"type:text;not null"`
-	CreatedAt      time.Time `json:"created_at,omitempty" gorm:"type:timestamptz;column:created_at;not null;default:now()" format:"date-time"`
-	UpdatedAt      time.Time `json:"updated_at,omitempty" gorm:"type:timestamptz;autoUpdateTime;column:updated_at;not null;default:now()" format:"date-time"`
-	FinishedAt     time.Time `json:"finished_at,omitempty" gorm:"type:timestamptz" format:"date-time"`
+	// JobID is the River job executing this run, so logs can be correlated.
+	JobID      *int64    `json:"job_id,omitempty" gorm:"index"`
+	CreatedAt  time.Time `json:"created_at,omitempty" gorm:"type:timestamptz;column:created_at;not null;default:now()" format:"date-time"`
+	UpdatedAt  time.Time `json:"updated_at,omitempty" gorm:"type:timestamptz;autoUpdateTime;column:updated_at;not null;default:now()" format:"date-time"`
+	FinishedAt time.Time `json:"finished_at,omitempty" gorm:"type:timestamptz" format:"date-time"`
 }

@@ -86,6 +86,13 @@ func (w *DNSReconcileWorker) Work(ctx context.Context, job *river.Job[DNSReconci
 		Int("domains", processedDomains).
 		Int("records", processedRecords).
 		Msg("[dns] reconcile tick ok")
+
+	if err := river.RecordOutput(ctx, map[string]any{
+		"domains_processed": processedDomains,
+		"records_processed": processedRecords,
+	}); err != nil {
+		log.Warn().Err(err).Msg("[dns] could not record output")
+	}
 	return nil
 }
 

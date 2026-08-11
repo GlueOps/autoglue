@@ -16,6 +16,14 @@ type OrgKeySweeperArgs struct {
 
 func (OrgKeySweeperArgs) Kind() string { return "org_key_sweeper" }
 
+// OrgKeySweeperResult is recorded on the job row via river.RecordOutput.
+type OrgKeySweeperResult struct {
+	Status           string `json:"status"`
+	MarkedRevoked    int    `json:"marked_revoked"`
+	DeletedEphemeral int    `json:"deleted_ephemeral"`
+	ElapsedMs        int    `json:"elapsed_ms"`
+}
+
 func (OrgKeySweeperArgs) InsertOpts() river.InsertOpts {
 	return river.InsertOpts{Queue: QueueMaintenance, MaxAttempts: 2}
 }
@@ -29,7 +37,8 @@ func (w *OrgKeySweeperWorker) Timeout(*river.Job[OrgKeySweeperArgs]) time.Durati
 	return 5 * time.Minute
 }
 
-func (w *OrgKeySweeperWorker) Work(_ context.Context, job *river.Job[OrgKeySweeperArgs]) error {
+func (w *OrgKeySweeperWorker) Work(ctx context.Context, job *river.Job[OrgKeySweeperArgs]) error {
+	start := time.Now()
 	retentionDays := job.Args.RetentionDays
 	if retentionDays <= 0 {
 		retentionDays = 10
@@ -68,5 +77,13 @@ func (w *OrgKeySweeperWorker) Work(_ context.Context, job *river.Job[OrgKeySweep
 		Int("deleted_ephemeral", deletedEphemeral).
 		Msg("[org_key_sweeper] cleanup tick ok")
 
+	if err := river.RecordOutput(ctx, OrgKeySweeperResult{
+		Status:           "ok",
+		MarkedRevoked:    markedRevoked,
+		DeletedEphemeral: deletedEphemeral,
+		ElapsedMs:        int(time.Since(start).Milliseconds()),
+	}); err != nil {
+		log.Warn().Err(err).Msg("[org_key_sweeper] could not record output")
+	}
 	return nil
 }
