@@ -1,0 +1,33 @@
+# Dependabot configuration.
+#
+# Renovate already handles version drift for every ecosystem here, so Dependabot
+# is scoped to what it is uniquely good at: GitHub's own security advisories.
+# `open-pull-requests-limit: 0` disables *version* updates without disabling
+# *security* updates, which are exempt from the limit. Running both tools on
+# drift is what produced duplicate and contradictory PRs.
+#
+# The commit-message prefix matters. Dependabot's default is `build(deps): …`,
+# and `build` is not one of this org's allowed conventional-commit types, so
+# every Dependabot PR failed "Validate Conventional Commit Messages" and could
+# never merge — four of them sat open for up to five months for that reason
+# alone. See docs/security/2026-08-11-dependency-audit.md.
+version: 2
+
+updates:
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+
+  - package-ecosystem: npm
+    directory: "/ui"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
