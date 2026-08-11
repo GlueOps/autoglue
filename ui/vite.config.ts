@@ -31,8 +31,21 @@ export default defineConfig({
     sourcemap: process.env.VITE_SOURCEMAP === "true" ? true : "hidden",
     cssMinify: "lightningcss",
     rollupOptions: {
-      output: { manualChunks: { react: ["react", "react-dom", "react-router-dom"] } },
+      output: {
+        // Vite 8 bundles with rolldown rather than rollup/esbuild, and rolldown
+        // dropped the `manualChunks` object form in favour of `advancedChunks`.
+        // The intent is unchanged: keep React and the router in one long-lived
+        // chunk so an app-code change does not invalidate them in client caches.
+        advancedChunks: {
+          groups: [
+            { name: "react", test: /[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/ },
+          ],
+        },
+        // Was `esbuild: { legalComments: "none" }`. esbuild is no longer the
+        // transformer, and rolldown's own `legalComments` is already deprecated
+        // in favour of `comments.legal`, so go straight to the latter.
+        comments: { legal: false },
+      },
     },
   },
-  esbuild: { legalComments: "none" },
 })
