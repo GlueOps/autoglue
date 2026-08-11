@@ -131,6 +131,10 @@ sketch
 # End of https://www.toptal.com/developers/gitignore/api/go,react,intellij+all
 
 .env
+# Local credential files used to hit a live environment by hand. These carry an
+# org key and secret; keep both spellings ignored.
+profile.json
+projile.json
 config.yaml
 go_*_WhiteSpaceConflict/
 notes.txt

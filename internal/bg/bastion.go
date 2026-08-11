@@ -191,11 +191,18 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 		return err
 	}
 
-	fail := func(step string, err error, sink *LogSink) error {
-		if sink != nil {
-			sink.System("bootstrap failed at " + step + ": " + err.Error())
-			_ = sink.Close()
-		}
+	// Open the sink before the first thing that can fail. A bastion with no
+	// public IP, or an org key that will not decrypt, are the two most likely
+	// early failures — and previously neither wrote anything to job_logs, so
+	// the UI showed "no output recorded" and the reason stayed in worker
+	// stdout, which is exactly what this is meant to replace.
+	sink := NewLogSink(db, j.ID, s.OrganizationID, models.JobLogSubjectServer, s.ID)
+	defer func() { _ = sink.Close() }()
+
+	sink.System(fmt.Sprintf("claimed bastion %s (%s)", s.ID, s.Hostname))
+
+	fail := func(step string, err error) error {
+		sink.System("bootstrap failed at " + step + ": " + err.Error())
 		logHostErr(jobID, &s, step, err)
 		_ = setServerStatus(db, s.ID, "failed")
 		// The failure is recorded on the server row and in job_logs; returning
@@ -206,7 +213,7 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 
 	// 1) Defensive IP check
 	if s.PublicIPAddress == nil || *s.PublicIPAddress == "" {
-		return fail("ip_check", fmt.Errorf("missing public ip"), nil)
+		return fail("ip_check", fmt.Errorf("missing public ip"))
 	}
 
 	// 2) Decrypt private key for org
@@ -218,15 +225,14 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 		db,
 	)
 	if err != nil {
-		return fail("decrypt_key", err, nil)
+		return fail("decrypt_key", err)
 	}
 
 	// 3) SSH + install docker. Output streams into job_logs under this server,
 	// so a failed bootstrap can be read back from the API instead of hunting
 	// through worker pod stdout for a truncated tail.
 	host := net.JoinHostPort(*s.PublicIPAddress, "22")
-	sink := NewLogSink(db, j.ID, s.OrganizationID, models.JobLogSubjectServer, s.ID)
-	sink.System(fmt.Sprintf("bootstrapping bastion %s (%s) as %s", s.ID, host, s.SSHUser))
+	sink.System(fmt.Sprintf("connecting to %s as %s", host, s.SSHUser))
 
 	out, err := sshInstallDockerWithOutput(ctx, db, &s, host, s.SSHUser, []byte(privKey), sink)
 	if err != nil {
@@ -234,16 +240,15 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 		if len(tail) > 800 {
 			tail = tail[len(tail)-800:]
 		}
-		return fail("ssh_install", fmt.Errorf("%v | tail=%q", err, tail), sink)
+		return fail("ssh_install", fmt.Errorf("%v | tail=%q", err, tail))
 	}
 
 	// 4) Mark ready
 	if err := setServerStatus(db, s.ID, "ready"); err != nil {
-		return fail("set_ready", err, sink)
+		return fail("set_ready", err)
 	}
 
 	sink.System("bastion ready")
-	_ = sink.Close()
 
 	log.Info().Str("server_id", s.ID.String()).
 		Int64("elapsed_ms", time.Since(start).Milliseconds()).
