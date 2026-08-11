@@ -308,7 +308,7 @@ sdk: sdk-go ## Alias for sdk-go
 # --- clean/help ---
 clean: ## Clean build artifacts, Swagger outputs, UI dist, and SDKs
 	@echo ">> Cleaning artifacts..."
-	@rm -rf "$(BIN)" docs/swagger.* docs/docs.go \
+	@rm -rf "$(BIN)" docs/swagger.* docs/openapi.* docs/docs.go \
 		"$(UI_DEST_DIR)/dist" "$(UI_DIR)/dist" "$(UI_DIR)/node_modules" \
 		"$(SDK_OUTDIR_CLEAN)" "$(SDK_TS_DIR_CLEAN)" "$(SDK_TS_UI_DIR_CLEAN)"
 
