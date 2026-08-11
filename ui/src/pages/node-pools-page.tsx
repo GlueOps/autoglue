@@ -113,10 +113,16 @@ function ManageManyDialog(props: {
   const [selected, setSelected] = useState<Set<string>>(new Set(initialSelectedIds))
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
+  // Reset the picker whenever it is reopened, or the incoming selection
+  // changes. Adjusting state during render is React's documented replacement
+  // for doing this in an effect: it re-renders before anything is committed,
+  // so the dialog never paints one frame holding the previous pool's selection.
+  const [lastReset, setLastReset] = useState({ open, initialSelectedIds })
+  if (lastReset.open !== open || lastReset.initialSelectedIds !== initialSelectedIds) {
+    setLastReset({ open, initialSelectedIds })
     setSelected(new Set(initialSelectedIds))
     setQ("")
-  }, [initialSelectedIds, open])
+  }
 
   const filtered = useMemo(() => {
     const qq = q.trim().toLowerCase()

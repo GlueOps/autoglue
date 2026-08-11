@@ -55,6 +55,41 @@ jobs:
       - name: Test
         working-directory: ui
         run: yarn test
+
+  # Nothing ran eslint on a PR before this job, which is how TypeScript 7
+  # (#1057) merged green and still broke linting outright — typescript-eslint
+  # refuses TS >= 6.1, and it had to be reverted in #1061. The build and the
+  # tests do not exercise the linter, so a toolchain change can pass both while
+  # leaving `yarn lint` unrunnable.
+  #
+  # No SDK generation step here on purpose: eslint.config.js uses
+  # tseslint.configs.recommended, not the type-checked variant, so this does
+  # not resolve types and does not need docs/openapi.json or ui/src/sdk.
+  lint-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24
+
+      # The UI is on Yarn 4, which is not published to npm; corepack reads the
+      # version from packageManager in ui/package.json.
+      - name: Enable corepack
+        run: npm i -g corepack@0.35.0 && corepack enable
+
+      - name: Install
+        working-directory: ui
+        run: yarn install --immutable
+
+      - name: Lint
+        working-directory: ui
+        run: yarn lint
+
   # govulncheck is reachability-aware: it reports only advisories whose
   # vulnerable symbols are actually called from this code, which is the
   # difference between a list of advisories and a list of problems. It needs
