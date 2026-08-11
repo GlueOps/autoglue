@@ -71,11 +71,12 @@ jobs:
       # reports standard library advisories (GO-2026-5856 in crypto/tls,
       # GO-2026-5039 in net/textproto) that are not present in the binary that
       # actually ships. Scan what ships. Keep this in step with the Dockerfile;
-      # #1020 moves both to 1.26.5.
+      # The Dockerfile moved to 1.26.5 in #1020;
+      # keep this in step with it.
       - name: Set up Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
-          go-version: "1.26.4"
+          go-version: "1.26.5"
 
       - name: Generate embeds
         run: |
