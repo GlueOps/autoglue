@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { actionsApi } from "@/api/actions";
 import { JobLogViewer } from "@/components/job-log-viewer";
 import { clustersApi } from "@/api/clusters";
@@ -469,7 +469,13 @@ export const ClustersPage = () => {
 
   // --- Config dialog helpers ---
 
-  useEffect(() => {
+  // Seed the config dialog's fields from whichever cluster it is opened on.
+  // Adjusting state during render rather than in an effect means the dialog
+  // never paints a frame showing the previously opened cluster's values.
+  const [seededFor, setSeededFor] = useState(configCluster)
+  if (seededFor !== configCluster) {
+    setSeededFor(configCluster)
+
     setMetadataKey("")
     setMetadataValue("")
     setEditingMetadataId(null)
@@ -483,17 +489,16 @@ export const ClustersPage = () => {
       setBastionId("")
       setNodePoolId("")
       setKubeconfigText("")
-      return
+    } else {
+      if (configCluster.captain_domain?.id) setCaptainDomainId(configCluster.captain_domain.id)
+      if (configCluster.control_plane_record_set?.id)
+        setRecordSetId(configCluster.control_plane_record_set.id)
+      if (configCluster.apps_load_balancer?.id) setAppsLbId(configCluster.apps_load_balancer.id)
+      if (configCluster.glueops_load_balancer?.id)
+        setGlueopsLbId(configCluster.glueops_load_balancer.id)
+      if (configCluster.bastion_server?.id) setBastionId(configCluster.bastion_server.id)
     }
-
-    if (configCluster.captain_domain?.id) setCaptainDomainId(configCluster.captain_domain.id)
-    if (configCluster.control_plane_record_set?.id)
-      setRecordSetId(configCluster.control_plane_record_set.id)
-    if (configCluster.apps_load_balancer?.id) setAppsLbId(configCluster.apps_load_balancer.id)
-    if (configCluster.glueops_load_balancer?.id)
-      setGlueopsLbId(configCluster.glueops_load_balancer.id)
-    if (configCluster.bastion_server?.id) setBastionId(configCluster.bastion_server.id)
-  }, [configCluster])
+  }
 
   async function refreshConfigCluster() {
     if (!configCluster?.id) return

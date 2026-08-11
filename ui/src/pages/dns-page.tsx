@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { credentialsApi } from "@/api/credentials"
 import { dnsApi } from "@/api/dns"
 import type {
@@ -242,7 +242,10 @@ type UpdateRecordValues = z.input<typeof updateRecordSchema>
 
 export const DnsPage = () => {
   const [filter, setFilter] = useState("")
-  const [selected, setSelected] = useState<DtoDomainResponse | null>(null)
+  // Only the user's explicit pick lives in state. The effective selection falls
+  // back to the first domain, which is what the previous effect did by writing
+  // that fallback back into state — including after a delete set it to null.
+  const [selectedOverride, setSelectedOverride] = useState<DtoDomainResponse | null>(null)
 
   const [createDomOpen, setCreateDomOpen] = useState(false)
   const [editDomOpen, setEditDomOpen] = useState(false)
@@ -260,6 +263,8 @@ export const DnsPage = () => {
     queryFn: () => dnsApi.listDomains(),
   })
 
+  const selected = selectedOverride ?? domainsQ.data?.[0] ?? null
+
   const recordsQ = useQuery({
     queryKey: ["dns", "records", selected?.id],
     queryFn: async () => {
@@ -275,12 +280,6 @@ export const DnsPage = () => {
   })
 
   const r53Credentials = useMemo(() => (credentialQ.data ?? []).filter(isR53), [credentialQ.data])
-
-  useEffect(() => {
-    if (!selected && domainsQ.data && domainsQ.data.length) {
-      setSelected(domainsQ.data[0]!)
-    }
-  }, [domainsQ.data, selected])
 
   const filteredDomains = useMemo(() => {
     const list: DtoDomainResponse[] = domainsQ.data ?? []
@@ -313,7 +312,7 @@ export const DnsPage = () => {
       setCreateDomOpen(false)
       createDomainForm.reset()
       await qc.invalidateQueries({ queryKey: ["dns", "domains"] })
-      setSelected(d as DtoDomainResponse)
+      setSelectedOverride(d as DtoDomainResponse)
     },
     onError: (e: any) =>
       toast.error("Failed to create domain", { description: e?.message ?? "Unknown error" }),
@@ -325,7 +324,7 @@ export const DnsPage = () => {
   })
 
   const openEditDomain = (d: DtoDomainResponse) => {
-    setSelected(d)
+    setSelectedOverride(d)
     editDomainForm.reset({
       domain_name: d.domain_name,
       credential_id: d.credential_id,
@@ -364,7 +363,7 @@ export const DnsPage = () => {
     onSuccess: async () => {
       toast.success("Domain deleted")
       await qc.invalidateQueries({ queryKey: ["dns", "domains"] })
-      setSelected(null)
+      setSelectedOverride(null)
     },
     onError: (e: any) =>
       toast.error("Failed to delete domain", { description: e?.message ?? "Unknown error" }),
@@ -605,7 +604,7 @@ export const DnsPage = () => {
                     className={`hover:bg-muted/30 border-t ${
                       selected?.id === d.id ? "bg-muted/40" : ""
                     }`}
-                    onClick={() => setSelected(d)}
+                    onClick={() => setSelectedOverride(d)}
                   >
                     <td className="cursor-pointer px-3 py-2 font-medium">{d.domain_name}</td>
                     <td className="px-3 py-2">{d.zone_id || "—"}</td>
