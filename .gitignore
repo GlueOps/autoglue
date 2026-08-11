@@ -149,3 +149,5 @@ internal/web/dist
 docs/docs.go
 docs/openapi.json
 docs/openapi.yaml
+docs/security
+.dragon-buddy
