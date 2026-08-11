@@ -41,7 +41,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: 22
+          node-version: 24
 
       # The UI is on Yarn 4, which is not published to npm; corepack reads the
       # version from packageManager in ui/package.json.
