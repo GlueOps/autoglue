@@ -24,7 +24,11 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     outDir: "../internal/web/dist",
     emptyOutDir: true,
-    sourcemap: true,
+    // Sourcemaps are ~20MB for this bundle and were being served publicly on
+    // demand, which is both slow through a proxy and a full source disclosure.
+    // "hidden" still emits them for upload to an error tracker, without the
+    // //# sourceMappingURL comment that makes browsers fetch them.
+    sourcemap: process.env.VITE_SOURCEMAP === "true" ? true : "hidden",
     cssMinify: "lightningcss",
     rollupOptions: {
       output: { manualChunks: { react: ["react", "react-dom", "react-router-dom"] } },
