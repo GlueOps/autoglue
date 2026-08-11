@@ -85,6 +85,12 @@ func NodePoolToDTO(np models.NodePool) dto.NodePoolResponse {
 	labels := make([]dto.LabelResponse, 0, len(np.Labels))
 	for _, l := range np.Labels {
 		labels = append(labels, dto.LabelResponse{
+			AuditFields: common.AuditFields{
+				ID:             l.ID,
+				OrganizationID: l.OrganizationID,
+				CreatedAt:      l.CreatedAt,
+				UpdatedAt:      l.UpdatedAt,
+			},
 			Key:   l.Key,
 			Value: l.Value,
 		})
@@ -93,6 +99,12 @@ func NodePoolToDTO(np models.NodePool) dto.NodePoolResponse {
 	annotations := make([]dto.AnnotationResponse, 0, len(np.Annotations))
 	for _, a := range np.Annotations {
 		annotations = append(annotations, dto.AnnotationResponse{
+			AuditFields: common.AuditFields{
+				ID:             a.ID,
+				OrganizationID: a.OrganizationID,
+				CreatedAt:      a.CreatedAt,
+				UpdatedAt:      a.UpdatedAt,
+			},
 			Key:   a.Key,
 			Value: a.Value,
 		})
@@ -101,9 +113,13 @@ func NodePoolToDTO(np models.NodePool) dto.NodePoolResponse {
 	taints := make([]dto.TaintResponse, 0, len(np.Taints))
 	for _, t := range np.Taints {
 		taints = append(taints, dto.TaintResponse{
-			Key:    t.Key,
-			Value:  t.Value,
-			Effect: t.Effect,
+			ID:             t.ID,
+			OrganizationID: t.OrganizationID,
+			Key:            t.Key,
+			Value:          t.Value,
+			Effect:         t.Effect,
+			CreatedAt:      t.CreatedAt.UTC().Format(time.RFC3339),
+			UpdatedAt:      t.UpdatedAt.UTC().Format(time.RFC3339),
 		})
 	}
 
@@ -131,6 +147,7 @@ func NodePoolToDTO(np models.NodePool) dto.NodePoolResponse {
 func ServerToDTO(s models.Server) dto.ServerResponse {
 	return dto.ServerResponse{
 		ID:               s.ID,
+		OrganizationID:   s.OrganizationID,
 		Hostname:         s.Hostname,
 		PrivateIPAddress: s.PrivateIPAddress,
 		PublicIPAddress:  s.PublicIPAddress,
