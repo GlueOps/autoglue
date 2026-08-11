@@ -7396,13 +7396,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-resizable-panels@npm:4.12.1":
-  version: 4.12.1
-  resolution: "react-resizable-panels@npm:4.12.1"
+"react-resizable-panels@npm:4.12.2":
+  version: 4.12.2
+  resolution: "react-resizable-panels@npm:4.12.2"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
     react-dom: ^18.0.0 || ^19.0.0
-  checksum: 10/70bbc47d9788946018661bf16b209560a2588d72e98383f823814ec13ce5559b3f8ad7ef2d76d541f8033237644817605f6e51babd5dbb5e47675ba0b89f157e
+  checksum: 10/99dadb23f0294eb3693084f9675f5c4520e280d673daf57e54b8e095c14977b3ae7f62b0d19124d99004b901499cd7e4aa545efd66975b87679c3c5d282a7d10
   languageName: node
   linkType: hard
 
@@ -8507,7 +8507,7 @@ __metadata:
     react-dom: "npm:^19.2.3"
     react-hook-form: "npm:^7.70.0"
     react-icons: "npm:^5.5.0"
-    react-resizable-panels: "npm:4.12.1"
+    react-resizable-panels: "npm:4.12.2"
     react-router-dom: "npm:^7.11.0"
     recharts: "npm:3.9.2"
     shadcn: "npm:4.13.0"
