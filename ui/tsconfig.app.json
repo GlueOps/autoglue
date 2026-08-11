@@ -23,7 +23,9 @@
     "erasableSyntaxOnly": false,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "baseUrl": ".",
+    /* No `baseUrl`: TypeScript 7 removed it (TS5102). The mapping below is
+       unchanged in effect — without `baseUrl`, `paths` resolve relative to this
+       file's directory, which is exactly what `"baseUrl": "."` meant here. */
     "paths": {
       "@/*": ["./src/*"]
     }
