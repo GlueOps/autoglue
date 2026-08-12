@@ -25,9 +25,11 @@ async function authedFetch(input: RequestInfo | URL, init: RequestInit = {}) {
 }
 
 export const sshApi = {
-  listSshKeys: () =>
+  // Pass unattached to get back only the keys no server references. Every key
+  // carries server_count regardless, so the page can badge without asking twice.
+  listSshKeys: (opts?: { unattached?: boolean }) =>
     withRefresh(async (): Promise<DtoSshResponse[]> => {
-      return await ssh.listPublicSshKeys()
+      return await ssh.listPublicSshKeys({ unattached: opts?.unattached })
     }),
 
   createSshKey: (body: DtoCreateSSHRequest) =>

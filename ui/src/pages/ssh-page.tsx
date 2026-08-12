@@ -49,6 +49,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip.tsx"
+import { UnattachedBadge } from "@/components/unattached-badge.tsx"
 
 const createKeySchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Max 100 characters"),
@@ -322,7 +323,12 @@ export const SshPage = () => {
                   const keyType = getKeyType(k.public_key!)
                   return (
                     <TableRow key={k.id}>
-                      <TableCell className="font-medium">{k.name || "—"}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <span>{k.name || "—"}</span>
+                          <UnattachedBadge serverCount={k.server_count} />
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Tooltip>
                           <TooltipTrigger asChild>

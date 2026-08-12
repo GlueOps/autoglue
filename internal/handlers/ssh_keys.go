@@ -25,14 +25,32 @@ import (
 	"gorm.io/gorm"
 )
 
+// sshKeyListColumns is the non-secret projection of ssh_keys plus a live count
+// of the servers referencing each key, so a caller can tell an in-use key from
+// an abandoned one without a second round trip.
+//
+// A correlated subquery rather than a LEFT JOIN with GROUP BY: the counts are
+// small, and grouping would have to list every selected column, which is how
+// this sort of projection silently starts returning duplicate rows when a key
+// backs several servers.
+const sshKeyListColumns = `ssh_keys.id, ssh_keys.organization_id, ssh_keys.name,
+	ssh_keys.public_key, ssh_keys.fingerprint, ssh_keys.created_at, ssh_keys.updated_at,
+	(SELECT count(*) FROM servers sv WHERE sv.ssh_key_id = ssh_keys.id) AS server_count`
+
+// sshKeyUnattached selects keys nothing in autoglue references. NOT EXISTS
+// rather than NOT IN: if the subquery ever yields a NULL, NOT IN returns no
+// rows at all, silently, and the caller sees "nothing to clean up".
+const sshKeyUnattached = `NOT EXISTS (SELECT 1 FROM servers sv WHERE sv.ssh_key_id = ssh_keys.id)`
+
 // ListPublicSshKeys godoc
 //
 //	@ID				ListPublicSshKeys
 //	@Summary		List ssh keys (org scoped)
-//	@Description	Returns ssh keys for the organization in X-Org-ID.
+//	@Description	Returns ssh keys for the organization in X-Org-ID, each with the number of servers referencing it.
 //	@Tags			Ssh
 //	@Produce		json
 //	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			unattached	query		bool	false	"Only return keys that no server references"
 //	@Success		200			{array}		dto.SshResponse
 //	@Failure		401			{string}	string	"Unauthorized"
 //	@Failure		403			{string}	string	"organization required"
@@ -49,14 +67,21 @@ func ListPublicSshKeys(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		var out []dto.SshResponse
-		if err := db.
+		q := db.
 			Model(&models.SshKey{}).
 			Where("organization_id = ?", orgID).
 			// avoid selecting encrypted columns here
-			Select("id", "organization_id", "name", "public_key", "fingerprint", "created_at", "updated_at").
-			Order("created_at DESC").
-			Scan(&out).Error; err != nil {
+			Select(sshKeyListColumns).
+			Order("created_at DESC")
+
+		// servers.ssh_key_id is the only foreign key into ssh_keys, so this one
+		// check is complete: there is no second table holding a reference.
+		if strings.EqualFold(r.URL.Query().Get("unattached"), "true") {
+			q = q.Where(sshKeyUnattached)
+		}
+
+		var out []dto.SshResponse
+		if err := q.Scan(&out).Error; err != nil {
 			utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to list ssh keys")
 			return
 		}
@@ -224,7 +249,7 @@ func GetSSHKey(db *gorm.DB) http.HandlerFunc {
 			if err := db.
 				Model(&models.SshKey{}).
 				Where("id = ? AND organization_id = ?", id, orgID).
-				Select("id", "organization_id", "name", "public_key", "fingerprint", "created_at", "updated_at").
+				Select(sshKeyListColumns).
 				Limit(1).
 				Scan(&out).Error; err != nil {
 				utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to get ssh key")
