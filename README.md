@@ -85,7 +85,7 @@ Queues:
 | Queue         | Concurrency | Work                                            |
 | ------------- | ----------- | ----------------------------------------------- |
 | `clusters`    | 30          | `cluster_action`, `bootstrap_bastion`           |
-| `maintenance` | 2           | `dns_reconcile`, `db_backup_s3`, `org_key_sweeper`, `tokens_cleanup` |
+| `maintenance` | 2           | `dns_reconcile`, `db_backup_s3`, `org_key_sweeper`, `tokens_cleanup`, `job_logs_cleanup`, `vacuum` |
 | `default`     | 10          | unassigned work                                 |
 
 Long-running cluster work is kept off `maintenance` so a multi-hour bootstrap
@@ -95,6 +95,25 @@ River's own dashboard is mounted at `/admin/river/` behind the platform-admin
 gate, and replaces the old hand-rolled jobs admin page. Retention of finished
 jobs is handled by River itself (`river.completed_retain_days` and friends in
 config), not by a cleanup job.
+
+### Housekeeping schedule
+
+| Job                | When            | What it does                                                  |
+| ------------------ | --------------- | ------------------------------------------------------------- |
+| `tokens_cleanup`   | daily 03:45     | Deletes revoked and expired `refresh_tokens`                   |
+| `job_logs_cleanup` | daily 04:15     | Prunes `job_logs` older than `job_logs.retain_days` (def. 45)  |
+| `vacuum`           | 1st of month 02:30 | `VACUUM (ANALYZE)` over the high-churn tables               |
+
+`vacuum` runs plain `VACUUM`, never `VACUUM FULL`. `FULL` rewrites the table
+under an `ACCESS EXCLUSIVE` lock, which on `river_job` would block the very
+workers fetching from it. Plain `VACUUM` takes only `SHARE UPDATE EXCLUSIVE`, so
+it makes dead space reusable without stopping traffic — the right trade for
+tables that immediately refill that space. The `ANALYZE` half matters just as
+much: the daily cleanups above leave the planner's row estimates badly stale.
+
+Job transcripts outlive the jobs that wrote them on purpose. A River job row is
+a status; `job_logs` is the evidence, and it is what someone comes back for
+weeks after a bootstrap failed — long after the row itself has been expired.
 
 Once you have an org - create a set of api keys for your org:
 They will be in the format of:
