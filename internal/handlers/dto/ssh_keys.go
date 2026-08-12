@@ -13,9 +13,18 @@ type CreateSSHRequest struct {
 
 type SshResponse struct {
 	common.AuditFields
-	Name                string `json:"name"`
-	PublicKey           string `json:"public_key"`
-	Fingerprint         string `json:"fingerprint"`
+	Name        string `json:"name"`
+	PublicKey   string `json:"public_key"`
+	Fingerprint string `json:"fingerprint"`
+	// ServerCount is how many servers reference this key. Zero means nothing in
+	// autoglue uses it, which is not the same as unused: the key may be in an
+	// authorized_keys on a host autoglue does not track. Absent means the count
+	// was not computed for this response, so treat absent and zero differently.
+	//
+	// A pointer for exactly that reason. Reveal and download describe key
+	// material rather than attachment and leave it nil; a plain int would
+	// render that as 0 and badge every revealed key as unattached.
+	ServerCount         *int   `json:"server_count,omitempty"`
 	EncryptedPrivateKey string `json:"-"`
 	PrivateIV           string `json:"-"`
 	PrivateTag          string `json:"-"`
