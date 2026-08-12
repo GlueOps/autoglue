@@ -57,6 +57,7 @@ func NewWorkerClient(pool *pgxpool.Pool, d Deps) (*Client, error) {
 	river.AddWorker(workers, &JobLogsCleanupWorker{db: d.DB})
 	river.AddWorker(workers, &OrgKeySweeperWorker{db: d.DB})
 	river.AddWorker(workers, &TokensCleanupWorker{db: d.DB})
+	river.AddWorker(workers, &VacuumWorker{db: d.DB})
 
 	return river.NewClient(riverpgxv5.New(pool), &river.Config{
 		Logger:  newLogger(),
@@ -133,6 +134,16 @@ func periodicJobs() []*river.PeriodicJob {
 			},
 			&river.PeriodicJobOpts{ID: "tokens_cleanup"},
 		),
+		// First of the month, at an hour that clears the daily cleanups above:
+		// their bulk deletes are exactly what this is tidying up after, so
+		// running into them would waste the pass.
+		river.NewPeriodicJob(
+			monthlyAt(1, 2, 30),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return VacuumArgs{}, nil
+			},
+			&river.PeriodicJobOpts{ID: "vacuum"},
+		),
 	}
 }
 
@@ -164,6 +175,29 @@ func dailyAt(hour, minute int) river.PeriodicSchedule {
 	return dailyAtSchedule{hour: hour, minute: minute}
 }
 
+// monthlyAtSchedule fires once per month on a fixed day at a fixed local
+// wall-clock time. Keep day at or below 28: time.Date normalizes an overflowing
+// day into the next month, so day 31 in February would silently drift to March.
+type monthlyAtSchedule struct {
+	day    int
+	hour   int
+	minute int
+}
+
+func (s monthlyAtSchedule) Next(t time.Time) time.Time {
+	next := time.Date(t.Year(), t.Month(), s.day, s.hour, s.minute, 0, 0, t.Location())
+	if !next.After(t) {
+		// Month+1 is normalized by time.Date, so December rolls into January of
+		// the following year without special-casing.
+		next = time.Date(t.Year(), t.Month()+1, s.day, s.hour, s.minute, 0, 0, t.Location())
+	}
+	return next
+}
+
+func monthlyAt(day, hour, minute int) river.PeriodicSchedule {
+	return monthlyAtSchedule{day: day, hour: hour, minute: minute}
+}
+
 // maxWorkerTimeout is the longest Timeout any registered worker returns. Keep
 // this in step with the Timeout methods; ClusterActionWorker is the outlier.
 const maxWorkerTimeout = 168 * time.Hour
@@ -184,14 +218,15 @@ func interval(key string, def time.Duration) time.Duration {
 	return def
 }
 
-// jobLogRetainDays is how long a job transcript is kept. Longer than River's
-// own job retention, because the transcript is usually what someone comes back
-// for after a failure.
+// jobLogRetainDays is how long a job transcript is kept. Much longer than
+// River's own job retention: the job row is a status, but the transcript is the
+// evidence, and it is what someone comes back for weeks after a bootstrap went
+// wrong. The row it describes will already have been expired by then.
 func jobLogRetainDays() int {
 	if d := viper.GetInt("job_logs.retain_days"); d > 0 {
 		return d
 	}
-	return 14
+	return 45
 }
 
 func retention(key string, defDays int) time.Duration {

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"testing"
@@ -45,6 +46,28 @@ func listenPort() uint32 {
 	return port
 }
 
+// runtimePath isolates the extracted Postgres runtime per test binary.
+//
+// `go test ./...` runs packages in parallel, and embedded-postgres does
+// os.RemoveAll on the runtime path at the start of every Start. Two packages
+// sharing the default (~/.embedded-postgres-go/extracted) therefore delete the
+// directory out from under each other mid-extraction, and the loser fails with
+// a rename into a directory that no longer exists. The library's own error text
+// names this fix. It only bites on a cold cache, so it looks fine locally and
+// fails in CI.
+//
+// Only the extracted runtime needs isolating: the downloaded archive is written
+// to a temp file and renamed into the cache, which the library does explicitly
+// to survive concurrent extraction. So this costs one extra unpack, not an
+// extra download.
+//
+// Keyed on the test binary name (bg.test, handlers.test) rather than the PID:
+// unique per package, but stable across runs, so the unpacked copy is still
+// reused instead of being rebuilt every time.
+func runtimePath() string {
+	return filepath.Join(os.TempDir(), "autoglue-pgtest", filepath.Base(os.Args[0]))
+}
+
 var (
 	once    sync.Once
 	epg     *embeddedpostgres.EmbeddedPostgres
@@ -64,6 +87,7 @@ func initDB() {
 		Username("autoglue").
 		Password("autoglue").
 		Port(port).
+		RuntimePath(runtimePath()).
 		StartTimeout(30 * time.Second)
 
 	epg = embeddedpostgres.NewDatabase(cfg)
