@@ -925,14 +925,14 @@ __metadata:
   linkType: hard
 
 "@napi-rs/wasm-runtime@npm:^1.1.4, @napi-rs/wasm-runtime@npm:^1.1.6":
-  version: 1.2.2
-  resolution: "@napi-rs/wasm-runtime@npm:1.2.2"
+  version: 1.2.3
+  resolution: "@napi-rs/wasm-runtime@npm:1.2.3"
   dependencies:
     "@tybys/wasm-util": "npm:^0.10.3"
   peerDependencies:
-    "@emnapi/core": ^1.7.1 || ^2.0.0-alpha.3
-    "@emnapi/runtime": ^1.7.1 || ^2.0.0-alpha.3
-  checksum: 10/19b07c017845142b711e1515684d33c16a4c0c0d64a8876c30953f0e6975a3d018ce6e8bfb1721f25dc34df3bcc689cfb44e80fe8b8ee1b72b8429d5ff2eaf61
+    "@emnapi/core": ^1.7.1 || ^2.0.0-alpha.4
+    "@emnapi/runtime": ^1.7.1 || ^2.0.0-alpha.4
+  checksum: 10/86f7f092309eb005ff9e456c12a9f81ae06ff823602740a8c9c54b2dfc17620d9b4d88c4cd179541c794aed521ac57c7e37457a00e87a624867d78f6bbce0d7c
   languageName: node
   linkType: hard
 
@@ -4677,9 +4677,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.402":
-  version: 1.5.404
-  resolution: "electron-to-chromium@npm:1.5.404"
-  checksum: 10/377d5e53d57b4c4647f8fe66f8c84b7ee365980c5223dcbbec34d7db4f5c8c76fb5eb6eac7a010cdfe8a262865396d267a3c179154c330297ea61b975f55a7d3
+  version: 1.5.405
+  resolution: "electron-to-chromium@npm:1.5.405"
+  checksum: 10/41a95c0f5a2408a2b2e4aa51d826801f84769f006f20ae5a9430dd9f8a7a141f58b2de99044e7f5591f9f9215f0dc4a4e9e40a2d229071f40a64a301cb39c36a
   languageName: node
   linkType: hard
 
