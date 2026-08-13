@@ -406,6 +406,50 @@ elif have zypper; then pm="zypper"
 elif have apk; then pm="apk"
 fi
 
+# ----------- wait for cloud-init before any package activity -----------
+# Strict about fatal errors (exit 1), tolerant of "degraded done" (exit 2).
+#
+# Degraded means one or more modules hit recoverable errors and the boot still
+# completed. A transient dpkg lock collision inside cloud-init's own apt
+# activity lands exactly there - which is the very race this wait exists to
+# survive. Aborting on it would move the failure from get.docker.com to here
+# and dress it in a message that points at cloud-init instead of apt, so the
+# bootstrap would fail about as often and be harder to trace.
+#
+# --long on the degraded path names the module that failed, and that lands in
+# job_logs where whoever is triaging will actually see it.
+#
+# </dev/null because the script arrives on stdin via "bash -s": a command that
+# reads stdin would otherwise consume the rest of its own source.
+if have cloud-init; then
+  echo "waiting for cloud-init to finish..."
+  ci_rc=0
+  cloud-init status --wait </dev/null || ci_rc=$?
+  if [ "$ci_rc" -eq 2 ]; then
+    echo "WARNING: cloud-init completed degraded, continuing" >&2
+    cloud-init status --long >&2 || true
+  elif [ "$ci_rc" -ne 0 ]; then
+    exit "$ci_rc"
+  fi
+fi
+
+# ----------- apt lock patience -----------
+# apt's default on a busy dpkg lock is to fail instantly (status 100). A
+# timeout makes every apt invocation on the box wait for the lock instead -
+# including the apt-get calls inside get.docker.com, which apt_wait_lock
+# cannot reach.
+#
+# Bounded, and sharing apt_wait_lock's budget rather than waiting forever.
+# An unbounded value would make that helper's deliberate give-up path dead
+# code, since the apt call right after it would block regardless. This file
+# also persists on the bastion, so "wait forever" would mean a wedged lock
+# hangs every later apt run by a human, with nothing saying why.
+if [ "$pm" = "apt" ]; then
+  sudo mkdir -p /etc/apt/apt.conf.d
+  printf 'DPkg::Lock::Timeout "%s";\n' "$APT_LOCK_WAIT_SECS" \
+    | sudo tee /etc/apt/apt.conf.d/90autoglue-lock-timeout >/dev/null
+fi
+
 pm_update_install() {
   case "$pm" in
     apt)
