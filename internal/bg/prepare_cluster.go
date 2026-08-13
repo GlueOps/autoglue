@@ -344,7 +344,7 @@ func runMakeOnBastion(
 	clusterDir := fmt.Sprintf("$HOME/autoglue/clusters/%s", c.ID.String())
 	sshDir := fmt.Sprintf("$HOME/.ssh")
 
-	cmd := fmt.Sprintf("cd %s && docker run -v %s:/root/.ssh -v ./payload.json:/opt/gluekube/platform.json %s:%s make %s", clusterDir, sshDir, c.DockerImage, c.DockerTag, target)
+	cmd := fmt.Sprintf("cd %s && docker run --sig-proxy=false -v %s:/root/.ssh -v ./payload.json:/opt/gluekube/platform.json %s:%s make %s", clusterDir, sshDir, c.DockerImage, c.DockerTag, target)
 
 	logger.Info().
 		Str("cmd", cmd).
