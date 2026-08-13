@@ -277,6 +277,7 @@ func runMakeOnBastion(
 	ctx context.Context,
 	db *gorm.DB,
 	c *models.Cluster,
+	runID uuid.UUID,
 	target string,
 	sink io.Writer,
 ) (string, error) {
@@ -344,7 +345,23 @@ func runMakeOnBastion(
 	clusterDir := fmt.Sprintf("$HOME/autoglue/clusters/%s", c.ID.String())
 	sshDir := fmt.Sprintf("$HOME/.ssh")
 
-	cmd := fmt.Sprintf("cd %s && docker run -v %s:/root/.ssh -v ./payload.json:/opt/gluekube/platform.json %s:%s make %s", clusterDir, sshDir, c.DockerImage, c.DockerTag, target)
+	// Labels rather than --name. --sig-proxy=false means the container now
+	// outlives a dropped SSH connection, so it has to be findable afterwards to
+	// be reaped or read — but a name is a uniqueness constraint, and Docker
+	// holds a name until the container is *removed*, not until it exits. With no
+	// --rm, any per-cluster name would collide with its own previous run, and
+	// even a per-run name would collide between the two steps of a single run
+	// (ping-servers, then the target). Labels carry the same identity with none
+	// of that:
+	//
+	//   docker ps -a --filter label=autoglue.cluster=<id>
+	//   docker logs $(docker ps -aq --filter label=autoglue.run=<id>)
+	//
+	// Both values are UUIDs, so nothing here widens the existing interpolation
+	// surface the way a free-text label would.
+	labels := fmt.Sprintf("--label autoglue.cluster=%s --label autoglue.run=%s", c.ID.String(), runID.String())
+
+	cmd := fmt.Sprintf("cd %s && docker run --sig-proxy=false %s -v %s:/root/.ssh -v ./payload.json:/opt/gluekube/platform.json %s:%s make %s", clusterDir, labels, sshDir, c.DockerImage, c.DockerTag, target)
 
 	logger.Info().
 		Str("cmd", cmd).

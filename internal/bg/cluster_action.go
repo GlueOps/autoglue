@@ -216,7 +216,7 @@ func (w *ClusterActionWorker) Work(ctx context.Context, j *river.Job[ClusterActi
 		{
 			runCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 			sink.System("running make ping-servers")
-			out, err := runMakeOnBastion(runCtx, db, &c, "ping-servers", sink)
+			out, err := runMakeOnBastion(runCtx, db, &c, runID, "ping-servers", sink)
 			cancel()
 			if err != nil {
 				logger.Error().Err(err).Str("output", out).Msg("ping-servers failed")
@@ -236,7 +236,7 @@ func (w *ClusterActionWorker) Work(ctx context.Context, j *river.Job[ClusterActi
 		{
 			runCtx, cancel := context.WithTimeout(ctx, 60*time.Minute)
 			sink.System("running make " + args.MakeTarget)
-			out, err := runMakeOnBastion(runCtx, db, &c, args.MakeTarget, sink)
+			out, err := runMakeOnBastion(runCtx, db, &c, runID, args.MakeTarget, sink)
 			cancel()
 			if err != nil {
 				logger.Error().Err(err).Str("output", out).Msg("bootstrap target failed")
