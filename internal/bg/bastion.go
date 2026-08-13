@@ -406,6 +406,26 @@ elif have zypper; then pm="zypper"
 elif have apk; then pm="apk"
 fi
 
+# ----------- wait for cloud-init before any package activity -----------
+# Deliberately strict (no || true): a bastion whose boot did not complete
+# cleanly should fail bootstrap loudly rather than limp onward.
+if have cloud-init; then
+  echo "waiting for cloud-init to finish..."
+  cloud-init status --wait </dev/null
+fi
+
+# ----------- apt lock patience -----------
+# apt's default on a busy dpkg lock is to fail instantly (status 100). A
+# negative timeout makes every apt invocation on the box wait for the lock
+# instead - including the apt-get calls inside get.docker.com, which we
+# cannot wrap in apt_wait_lock.
+if [ "$pm" = "apt" ]; then
+  sudo mkdir -p /etc/apt/apt.conf.d
+  sudo tee /etc/apt/apt.conf.d/90autoglue-lock-timeout >/dev/null <<'EOF'
+DPkg::Lock::Timeout "-1";
+EOF
+fi
+
 pm_update_install() {
   case "$pm" in
     apt)
