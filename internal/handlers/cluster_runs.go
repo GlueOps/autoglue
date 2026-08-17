@@ -201,8 +201,13 @@ func RunClusterAction(db *gorm.DB, jobs *bg.Client) http.HandlerFunc {
 			ClusterID:      clusterID,
 			Action:         action.MakeTarget, // this is what you actually execute
 			Status:         models.ClusterRunStatusQueued,
-			Error:          "",
-			FinishedAt:     time.Time{},
+			// Stamped at creation rather than inferred later. JobID is only
+			// filled in after the River insert returns, so a run is briefly
+			// indistinguishable from an unclaimed one — long enough for a
+			// polling agent to claim a run River is about to execute.
+			Executor:   models.ClusterRunExecutorRiver,
+			Error:      "",
+			FinishedAt: time.Time{},
 		}
 
 		if err := db.Create(&run).Error; err != nil {

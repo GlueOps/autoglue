@@ -18,5 +18,6 @@ func mountServerRoutes(r chi.Router, db *gorm.DB, authOrg func(http.Handler) htt
 		s.Patch("/{id}", handlers.UpdateServer(db))
 		s.Delete("/{id}", handlers.DeleteServer(db))
 		s.Post("/{id}/reset-hostkey", handlers.ResetServerHostKey(db))
+		s.Post("/{id}/reprovision", handlers.ReprovisionServer(db))
 	})
 }

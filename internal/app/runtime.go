@@ -52,6 +52,12 @@ func NewRuntime() *Runtime {
 		&models.ClusterRun{},
 		&models.ClusterMetadata{},
 		&models.JobLog{},
+		&models.ClusterDesiredState{},
+		&models.DesiredResource{},
+		&models.Agent{},
+		&models.AgentEnrollmentTicket{},
+		&models.AgentTask{},
+		&models.AgentReconcileStatus{},
 	)
 
 	if err != nil {

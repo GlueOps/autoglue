@@ -720,13 +720,38 @@ func makeDBHostKeyCallback(db *gorm.DB, s *models.Server) ssh.HostKeyCallback {
 
 		// First-time connect: persist key (TOFU).
 		if s.SSHHostKey == "" {
-			if err := db.Model(&models.Server{}).
+			res := db.Model(&models.Server{}).
 				Where("id = ? AND (ssh_host_key IS NULL or ssh_host_key = '')", s.ID).
 				Updates(map[string]any{
 					"ssh_host_key":      enc,
 					"ssh_host_key_algo": algo,
-				}).Error; err != nil {
-				return fmt.Errorf("store new host key for %s (%s): %w", hostname, s.ID, err)
+				})
+			if res.Error != nil {
+				return fmt.Errorf("store new host key for %s (%s): %w", hostname, s.ID, res.Error)
+			}
+
+			// Zero rows means a concurrent first connect stored a key between
+			// this one reading the server and writing it. The guard stopped the
+			// overwrite, but returning nil here would accept whatever key *this*
+			// handshake presented without ever comparing it to what was stored —
+			// which is the one thing TOFU exists to prevent. Re-read and verify
+			// instead of trusting an in-memory value that is now stale.
+			if res.RowsAffected == 0 {
+				var stored models.Server
+				if err := db.Select("ssh_host_key", "ssh_host_key_algo").
+					Where("id = ?", s.ID).First(&stored).Error; err != nil {
+					return fmt.Errorf("re-read host key for %s (%s): %w", hostname, s.ID, err)
+				}
+				if stored.SSHHostKeyAlgo != algo || stored.SSHHostKey != enc {
+					return fmt.Errorf(
+						"host key mismatch for %s (server_id=%s, stored=%s/%s, got=%s/%s) - "+
+							"a concurrent first connect recorded a different key",
+						hostname, s.ID, stored.SSHHostKeyAlgo, stored.SSHHostKey, algo, enc,
+					)
+				}
+				s.SSHHostKey = stored.SSHHostKey
+				s.SSHHostKeyAlgo = stored.SSHHostKeyAlgo
+				return nil
 			}
 
 			s.SSHHostKey = enc

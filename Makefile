@@ -163,15 +163,31 @@ vet: ## go vet ./...
 # returns nothing and exits non-zero when any package fails to load.
 TEST_PKGS = $(shell $(GOCMD) list -e ./... | grep -vE '^github.com/glueops/autoglue$$|/cmd$$|/docs$$|/internal/api$$|/internal/web$$')
 
+# The bastion agent is a separate Go module (see test-agent below), so it is
+# absent from TEST_PKGS by construction rather than by exclusion.
+AGENT_DIR = agent
+AGENT_BIN = bin/autoglue-agent
+
 test-ui: ui-install ## Run the frontend unit tests (vitest)
 	@echo ">> Running UI tests in $(UI_DIR)..."
 	@cd $(UI_DIR) && yarn test
 
-test-all: test test-ui ## Run both the Go and the frontend test suites
+test-all: test test-agent test-ui ## Run the Go, agent and frontend test suites
 
 test: ## go test -race over packages that build without generated embeds
 	@test -n "$(TEST_PKGS)" || { echo ">> go list returned no packages"; exit 1; }
 	@$(GOCMD) test -race -count=1 $(TEST_PKGS)
+
+# The agent is its own module so the binary shipped to bastions does not carry
+# gorm, chi, River and the AWS SDK. That also means `go test ./...` from here
+# does not reach it, and a separate module nobody runs is a module that rots.
+test-agent: ## go test -race over the bastion agent module
+	@echo ">> Testing agent module in $(AGENT_DIR)..."
+	@cd "$(AGENT_DIR)" && $(GOCMD) test -race -count=1 ./...
+
+build-agent: ## Build the bastion agent binary
+	@echo ">> Building agent binary: $(AGENT_BIN)"
+	@cd "$(AGENT_DIR)" && $(GOCMD) build -trimpath -o "$(CURDIR)/$(AGENT_BIN)" ./cmd/agent
 
 tidy: ## go mod tidy
 	@$(GOCMD) mod tidy

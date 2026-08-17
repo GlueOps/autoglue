@@ -35,6 +35,9 @@ func mountAPIRoutes(r chi.Router, db *gorm.DB, cfg config.Config, jobs *bg.Clien
 			mountDNSRoutes(v1, db, authOrg)
 			mountLoadBalancerRoutes(v1, db, authOrg)
 			mountClusterRoutes(v1, db, cfg, jobs, authOrg)
+
+			// machine plane: cluster-scoped agent credentials, not authOrg
+			mountAgentRoutes(v1, db)
 		})
 	})
 }

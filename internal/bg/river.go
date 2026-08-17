@@ -58,6 +58,7 @@ func NewWorkerClient(pool *pgxpool.Pool, d Deps) (*Client, error) {
 	river.AddWorker(workers, &OrgKeySweeperWorker{db: d.DB})
 	river.AddWorker(workers, &TokensCleanupWorker{db: d.DB})
 	river.AddWorker(workers, &VacuumWorker{db: d.DB})
+	river.AddWorker(workers, &AgentTaskSweeperWorker{db: d.DB})
 
 	return river.NewClient(riverpgxv5.New(pool), &river.Config{
 		Logger:  newLogger(),
@@ -133,6 +134,17 @@ func periodicJobs() []*river.PeriodicJob {
 				return TokensCleanupArgs{}, nil
 			},
 			&river.PeriodicJobOpts{ID: "tokens_cleanup"},
+		),
+		// Frequent, because until this runs a stranded task holds its agent's
+		// only in-flight slot and its run reports neither success nor failure.
+		// The sweep is a cheap indexed query; the cost of missing one is that a
+		// cluster looks busy for as long as the interval.
+		river.NewPeriodicJob(
+			river.PeriodicInterval(interval("agent.sweep_interval_seconds", 5*time.Minute)),
+			func() (river.JobArgs, *river.InsertOpts) {
+				return AgentTaskSweeperArgs{}, &river.InsertOpts{UniqueOpts: tickUnique}
+			},
+			&river.PeriodicJobOpts{ID: "agent_task_sweeper", RunOnStart: true},
 		),
 		// First of the month, at an hour that clears the daily cleanups above:
 		// their bulk deletes are exactly what this is tidying up after, so

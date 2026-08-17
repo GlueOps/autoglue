@@ -13,6 +13,7 @@ import (
 	"github.com/glueops/autoglue/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 )
 
@@ -424,7 +425,117 @@ func ResetServerHostKey(db *gorm.DB) http.HandlerFunc {
 	}
 }
 
+// ReprovisionServer godoc
+//
+//	@ID				ReprovisionServer
+//	@Summary		Reprovision a rebuilt server (org scoped)
+//	@Description	Marks the server pending and clears its stored SSH host key in one transaction, so the bastion sweep re-bootstraps it and the next handshake re-learns the host key. Use this when the host has genuinely been rebuilt: it deliberately drops the trust-on-first-use anchor.
+//	@Tags			Servers
+//	@Produce		json
+//	@Param			X-Org-ID	header		string	false	"Organization UUID"
+//	@Param			id			path		string	true	"Server ID (UUID)"
+//	@Success		200			{object}	dto.ServerResponse
+//	@Failure		400			{string}	string	"invalid id"
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		403			{string}	string	"organization required"
+//	@Failure		404			{string}	string	"not found"
+//	@Failure		500			{string}	string	"reprovision failed"
+//	@Router			/servers/{id}/reprovision [post]
+//	@Security		BearerAuth
+//	@Security		OrgKeyAuth
+//	@Security		OrgSecretAuth
+//
+// The two effects belong together. Clearing the host key without marking the
+// server pending leaves it trusting whatever answers next with nothing queued
+// to reconnect; marking it pending without clearing the key leaves every
+// attempt failing on mismatch forever. Half of this is worse than neither, so
+// it is one statement in one transaction rather than two calls a caller can
+// interleave or abandon.
+//
+// It is also deliberately a human action. A host key mismatch means either the
+// host was rebuilt or something is impersonating it, and nothing in the
+// database distinguishes those — so this must never be wired into an automated
+// recovery sweep, which would reset the trust anchor precisely whenever
+// something went wrong. The log line below is the record of who decided the
+// rebuild was legitimate.
+//
+// Restricted to bastions, because on any other role both halves are no-ops.
+// autoglue only ever opens an SSH connection to a bastion — every other server
+// is reached *from* the bastion by the make targets, using the keys shipped in
+// the payload — so a worker's ssh_host_key is never populated and there is
+// nothing to clear. The sweep likewise claims only role='bastion', so pending
+// queues nothing. Succeeding at neither and returning 200 would tell a caller
+// their rebuilt host was requeued when it was not.
+func ReprovisionServer(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		orgID, ok := httpmiddleware.OrgIDFrom(r.Context())
+		if !ok {
+			utils.WriteError(w, http.StatusForbidden, "org_required", "specify X-Org-ID")
+			return
+		}
+
+		id, err := uuid.Parse(chi.URLParam(r, "id"))
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, "id_invalid", "invalid id")
+			return
+		}
+
+		var server models.Server
+		if err := db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Where("id = ? AND organization_id = ?", id, orgID).
+				First(&server).Error; err != nil {
+				return err
+			}
+			if !strings.EqualFold(server.Role, "bastion") {
+				return errNotABastion
+			}
+			return tx.Model(&models.Server{}).
+				Where("id = ? AND organization_id = ?", id, orgID).
+				Updates(map[string]any{
+					"status":            "pending",
+					"ssh_host_key":      "",
+					"ssh_host_key_algo": "",
+					"updated_at":        time.Now(),
+				}).Error
+		}); err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.WriteError(w, http.StatusNotFound, "server_not_found", "server not found")
+				return
+			}
+			if errors.Is(err, errNotABastion) {
+				utils.WriteError(w, http.StatusBadRequest, "not_a_bastion",
+					"only bastions can be reprovisioned; other servers are reached from the bastion and have no stored host key")
+				return
+			}
+			utils.WriteError(w, http.StatusInternalServerError, "db_error", "failed to reprovision server")
+			return
+		}
+
+		// Security-relevant and not otherwise recoverable: a raw UPDATE leaves
+		// no trace of who decided the host was legitimately rebuilt.
+		event := log.Warn().
+			Str("server_id", server.ID.String()).
+			Str("organization_id", orgID.String()).
+			Str("hostname", server.Hostname).
+			Str("previous_status", server.Status).
+			Bool("host_key_cleared", server.SSHHostKey != "")
+		if user, ok := httpmiddleware.UserFrom(r.Context()); ok && user != nil {
+			event = event.Str("actor_user_id", user.ID.String())
+		}
+		event.Msg("[servers] reprovision requested; host key trust anchor cleared")
+
+		server.Status = "pending"
+		server.SSHHostKey = ""
+		server.SSHHostKeyAlgo = ""
+		utils.WriteJSON(w, http.StatusOK, server)
+	}
+}
+
 // --- Helpers ---
+
+// errNotABastion is a sentinel rather than a response written inside the
+// transaction, so the rollback happens before anything is sent to the client.
+var errNotABastion = errors.New("server is not a bastion")
 
 func validStatus(status string) bool {
 	switch strings.ToLower(status) {

@@ -151,3 +151,6 @@ docs/openapi.json
 docs/openapi.yaml
 docs/security
 .dragon-buddy
+
+# Build output. `make build-agent` writes the bastion agent binary here.
+bin/
