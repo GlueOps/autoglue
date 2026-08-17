@@ -474,12 +474,46 @@ systemd_enable_now() {
   fi
 }
 
+# find_sshd locates the daemon binary. It lives in /usr/sbin, which is not on a
+# non-root user's PATH, so "command -v sshd" alone finds nothing on exactly the
+# hosts this script runs on.
+find_sshd() {
+  for p in /usr/sbin/sshd /sbin/sshd /usr/local/sbin/sshd; do
+    if sudo test -x "$p"; then printf '%s\n' "$p"; return 0; fi
+  done
+  p="$(command -v sshd 2>/dev/null || true)"
+  if [ -n "$p" ]; then printf '%s\n' "$p"; return 0; fi
+  return 1
+}
+
+# sshd_reload validates the config before applying it, and no longer swallows
+# the outcome. A systemctl reload against a config sshd rejects leaves the old
+# one running, so the previous "|| true" turned "hardening was rejected" into a
+# silent no-op that surfaced at the next reboot.
 sshd_reload() {
-  if have systemctl && systemctl is-enabled ssh >/dev/null 2>&1; then
-    sudo systemctl reload ssh || true
-  elif have systemctl && systemctl is-enabled sshd >/dev/null 2>&1; then
-    sudo systemctl reload sshd || true
+  sshd_bin="$(find_sshd || true)"
+  if [ -z "$sshd_bin" ]; then
+    echo "FATAL: cannot locate the sshd binary to validate its config" >&2
+    return 1
   fi
+  sudo "$sshd_bin" -t
+
+  if ! have systemctl; then
+    echo "FATAL: no systemctl available to reload sshd" >&2
+    return 1
+  fi
+  if sudo systemctl reload ssh 2>/dev/null || sudo systemctl reload sshd 2>/dev/null; then
+    return 0
+  fi
+  # Socket-activated sshd (Ubuntu 24.04+) has no long-running process to
+  # signal: each connection spawns its own sshd, which reads the config fresh.
+  # Nothing to reload is not the same as a failed reload.
+  if sudo systemctl is-active --quiet ssh.socket 2>/dev/null; then
+    echo "sshd is socket-activated; config applies to new connections without a reload"
+    return 0
+  fi
+  echo "FATAL: could not reload sshd, and it is not socket-activated" >&2
+  return 1
 }
 
 # ----------- baseline packages -----------
@@ -538,11 +572,26 @@ fi
 # ----------- SSH hardening (non-destructive: separate conf file) -----------
 if [ "$SSH_HARDEN" = "1" ]; then
   confd="/etc/ssh/sshd_config.d"
-  if [ -d "$confd" ] && [ -w "$confd" ]; then
-    sudo tee "$confd/10-bastion.conf" >/dev/null <<'EOF'
-# Bastion hardening
+
+  # "sudo test -d", not "[ -w ]". The write below runs under sudo, so the
+  # calling user's own permission on a root-owned 0755 directory says nothing
+  # about whether it will succeed -- and testing the wrong user is why every
+  # bastion with a non-root ssh_user reported a clean bootstrap while sshd kept
+  # the image defaults. The banner block below only ever tested -d, which is how
+  # that one landed on the same hosts where this one silently did not.
+  if ! sudo test -d "$confd"; then
+    echo "FATAL: $confd does not exist, so drop-in SSH hardening cannot apply." >&2
+    echo "       Refusing to report a bootstrapped bastion with sshd unhardened." >&2
+    exit 1
+  fi
+
+  # ChallengeResponseAuthentication is deliberately absent: it has been a
+  # deprecated alias for KbdInteractiveAuthentication since OpenSSH 8.7, and an
+  # sshd that rejects it would invalidate this whole file -- taking
+  # PasswordAuthentication with it.
+  sudo tee "$confd/10-bastion.conf" >/dev/null <<'EOF'
+# Bastion hardening. Managed by autoglue; local edits are overwritten.
 PasswordAuthentication no
-ChallengeResponseAuthentication no
 KbdInteractiveAuthentication no
 UsePAM yes
 PermitEmptyPasswords no
@@ -555,10 +604,29 @@ MaxSessions 10
 AllowAgentForwarding no
 X11Forwarding no
 EOF
-    sshd_reload
-  else
-    echo "Skipping SSH hardening: $confd not present or not writable" >&2
+  sudo chmod 0644 "$confd/10-bastion.conf"
+  sshd_reload
+
+  # Assert the effective config, rather than trusting the file just written.
+  # sshd takes the FIRST value it obtains across Include'd drop-ins, so an image
+  # shipping its own 00-*.conf beats 10-bastion.conf, and a main sshd_config
+  # carrying no Include at all reads none of them. Neither is visible from the
+  # file on disk, and both look exactly like success.
+  sshd_bin="$(find_sshd || true)"
+  if [ -z "$sshd_bin" ]; then
+    echo "FATAL: cannot locate sshd to verify the hardening took effect" >&2
+    exit 1
   fi
+  eff="$(sudo "$sshd_bin" -T)"
+  for want in "passwordauthentication no" "permitemptypasswords no" \
+              "kbdinteractiveauthentication no" "allowagentforwarding no"; do
+    if ! printf '%s\n' "$eff" | grep -qix "$want"; then
+      echo "FATAL: SSH hardening did not take effect; expected: $want" >&2
+      echo "       got: $(printf '%s\n' "$eff" | grep -i "^${want%% *} " || echo '<unset>')" >&2
+      exit 1
+    fi
+  done
+  echo "SSH hardening verified in effect: password auth and agent forwarding are off"
 
   # lock root password (no effect if already locked)
   if have passwd; then
