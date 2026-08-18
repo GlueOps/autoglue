@@ -601,7 +601,6 @@ ClientAliveCountMax 2
 LoginGraceTime 20
 MaxAuthTries 3
 MaxSessions 10
-AllowAgentForwarding no
 X11Forwarding no
 EOF
   sudo chmod 0644 "$confd/10-bastion.conf"
