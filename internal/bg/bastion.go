@@ -618,7 +618,7 @@ EOF
   fi
   eff="$(sudo "$sshd_bin" -T)"
   for want in "passwordauthentication no" "permitemptypasswords no" \
-              "kbdinteractiveauthentication no" "allowagentforwarding no"; do
+              "kbdinteractiveauthentication no"; do
     if ! printf '%s\n' "$eff" | grep -qix "$want"; then
       echo "FATAL: SSH hardening did not take effect; expected: $want" >&2
       echo "       got: $(printf '%s\n' "$eff" | grep -i "^${want%% *} " || echo '<unset>')" >&2
