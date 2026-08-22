@@ -4028,11 +4028,11 @@ __metadata:
   linkType: hard
 
 "baseline-browser-mapping@npm:^2.11.12":
-  version: 2.11.16
-  resolution: "baseline-browser-mapping@npm:2.11.16"
+  version: 2.11.17
+  resolution: "baseline-browser-mapping@npm:2.11.17"
   bin:
     baseline-browser-mapping: dist/cli.cjs
-  checksum: 10/8c961213e4f0744355c67930e20b6305e6bfb2672822e0545beebe161b5605f73798ff8d10a245697d528ba0fa08fd79e10d180dbceec72a9d179cc42ab58652
+  checksum: 10/db1871f3dc0fae6dacdbc70945508c761f09ff2c8f3add4acc6ce7939d323e36f74ebc5c3d5c42bf55789523f4c087d7c7e7399f2933e6df4ba0e2bc428dd420
   languageName: node
   linkType: hard
 
@@ -4684,9 +4684,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.402":
-  version: 1.5.411
-  resolution: "electron-to-chromium@npm:1.5.411"
-  checksum: 10/19e1d919323f3082a000405004d95e48f5ef8dd98be4250ffddbf151d18bff76b778a969a0473ac2f94d3efba8f13849eb051f71abc9ac3ee9ab88e28fb958e5
+  version: 1.5.412
+  resolution: "electron-to-chromium@npm:1.5.412"
+  checksum: 10/cfc71d676e88771fffbbc1541bc5cf1252ac7c9ed7cd7d969ed96867c3b668b957445cca86fe41e37cecbb36c3fac7f044d2d1684ca9f33e577cd9fa18eb5468
   languageName: node
   linkType: hard
 
