@@ -3408,11 +3408,11 @@ __metadata:
   linkType: hard
 
 "@types/d3-shape@npm:^3.1.0":
-  version: 3.1.8
-  resolution: "@types/d3-shape@npm:3.1.8"
+  version: 3.2.0
+  resolution: "@types/d3-shape@npm:3.2.0"
   dependencies:
     "@types/d3-path": "npm:*"
-  checksum: 10/ebc161d49101d84409829fea516ba7ec71ad51a1e97438ca0fafc1c30b56b3feae802d220375323632723a338dda7237c652e831e0b53527a6222ab0d1bb7809
+  checksum: 10/4b34712f1cddc98dfe63b83740dcf31c49dbb0ce5696c58c80195217f933315774ec1ffd0fe9293386ddd2080b0b654644b433eef87d330c965e2c05c9ce71cb
   languageName: node
   linkType: hard
 
@@ -5887,9 +5887,9 @@ __metadata:
   linkType: hard
 
 "jose@npm:^6.1.3":
-  version: 6.2.9
-  resolution: "jose@npm:6.2.9"
-  checksum: 10/297a644db9076337b70e497b16a602961d823928a9035917cd383148ef2b8b27879f41030bddbe8db4dc9c580bdf84df8a6cd3dadbe2f20d2a703c4e1a1ba8da
+  version: 6.2.10
+  resolution: "jose@npm:6.2.10"
+  checksum: 10/232fccd0d98105242fa5455b729a40048932e2dd697442d934c39d83f4d9b4e331b5f1905971fccdacb51c0d3594fc7864a38af8d02b23cf7182317d6f38e220
   languageName: node
   linkType: hard
 
@@ -7334,11 +7334,11 @@ __metadata:
   linkType: hard
 
 "react-hook-form@npm:^7.70.0":
-  version: 7.85.0
-  resolution: "react-hook-form@npm:7.85.0"
+  version: 7.86.0
+  resolution: "react-hook-form@npm:7.86.0"
   peerDependencies:
     react: ^16.8.0 || ^17 || ^18 || ^19
-  checksum: 10/ab3c695866c6f803cb56ac71385a103f12879a72ca353b979b7d159e92cc54de721c988af8ff52ce3bca6181b50bb80e085567aae7819c7a7db1fcb1bfb2565d
+  checksum: 10/b0ad65eb833c7df99dacc380b1fec31c67d9d05666c2b4e6d90dd923970140bb0602ebfcaa06a76c1f4686f3f47fa216b1e0d4a3415520b2d09932e262f4f4b3
   languageName: node
   linkType: hard
 
@@ -7539,10 +7539,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reselect@npm:5.2.0, reselect@npm:^5.1.0":
+"reselect@npm:5.2.0":
   version: 5.2.0
   resolution: "reselect@npm:5.2.0"
   checksum: 10/e53d37a35f84132682b0a819d942ff7debea90fe126f4bb5eef0f21b1f48f45dec89d27990f2ef5865f5e05d64bb88fb41e4341eb276674aee6f1f7f7362c3e8
+  languageName: node
+  linkType: hard
+
+"reselect@npm:^5.1.0":
+  version: 5.3.0
+  resolution: "reselect@npm:5.3.0"
+  checksum: 10/743d82c7012133d035e13343cb33e6b45c26cd0b0f95868d692ac9736973b1b8050f28938c1d36f51105926a1a947a0f56c4f52d6c66a61db4995535efb3837b
   languageName: node
   linkType: hard
 
