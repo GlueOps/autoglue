@@ -7815,9 +7815,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shadcn@npm:4.15.0":
-  version: 4.15.0
-  resolution: "shadcn@npm:4.15.0"
+"shadcn@npm:4.16.0":
+  version: 4.16.0
+  resolution: "shadcn@npm:4.16.0"
   dependencies:
     "@babel/core": "npm:^7.28.0"
     "@babel/parser": "npm:^7.28.0"
@@ -7853,7 +7853,7 @@ __metadata:
     zod-to-json-schema: "npm:^3.24.6"
   bin:
     shadcn: dist/index.js
-  checksum: 10/a44550f0474b2eab36f9c9eafc3090d2a54edc35cec786ea95fd4c177b3e29b7053825008e9651007e7d0726d0a89b24022fd8118101d139c8bcc481ce5d48b5
+  checksum: 10/38d3a6ec649ea718c456124942129a52ec09a5fdc2b8a8d4ec9cdd89f40a35eda50d4efcddbf1eb2471dc75b5e60e32570fc02566ef4493b2b03d983abdd662d
   languageName: node
   linkType: hard
 
@@ -8536,7 +8536,7 @@ __metadata:
     react-resizable-panels: "npm:4.12.2"
     react-router-dom: "npm:^7.11.0"
     recharts: "npm:3.10.1"
-    shadcn: "npm:4.15.0"
+    shadcn: "npm:4.16.0"
     sonner: "npm:^2.0.7"
     tailwind-merge: "npm:^3.4.0"
     tailwindcss: "npm:^4.1.18"
