@@ -859,9 +859,9 @@ __metadata:
   linkType: hard
 
 "@jridgewell/sourcemap-codec@npm:^1.4.14, @jridgewell/sourcemap-codec@npm:^1.5.0, @jridgewell/sourcemap-codec@npm:^1.5.5":
-  version: 1.5.5
-  resolution: "@jridgewell/sourcemap-codec@npm:1.5.5"
-  checksum: 10/5d9d207b462c11e322d71911e55e21a4e2772f71ffe8d6f1221b8eb5ae6774458c1d242f897fb0814e8714ca9a6b498abfa74dfe4f434493342902b1a48b33a5
+  version: 1.6.0
+  resolution: "@jridgewell/sourcemap-codec@npm:1.6.0"
+  checksum: 10/eb53fbf7eb4051302a599d6b91425f381168b2856f321336fb00852cea1e0c1904af2610c157b1535e94a61caa98f0bd068d1d0394dd46adf9e9c45c4e11af91
   languageName: node
   linkType: hard
 
@@ -4028,11 +4028,11 @@ __metadata:
   linkType: hard
 
 "baseline-browser-mapping@npm:^2.11.12":
-  version: 2.11.19
-  resolution: "baseline-browser-mapping@npm:2.11.19"
+  version: 2.11.20
+  resolution: "baseline-browser-mapping@npm:2.11.20"
   bin:
     baseline-browser-mapping: dist/cli.cjs
-  checksum: 10/98c8811572dca1a0b52d54ca9a5ecfaf9a95e4c73077ca28897b5088f9f6427c7eb50e098aecf0b11464391568be4ce2db60f7d07ba1f93e49dbbf13a0c7d9f1
+  checksum: 10/5263ac0e5f2d5cac5f48fe131a97a2e7a267487934403443282119c7a1a76670762fcb48e42a0eab4501dd1f2bb5021f4033e3fa07d96dddae4ebca6ae3bb24d
   languageName: node
   linkType: hard
 
@@ -4684,9 +4684,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.402":
-  version: 1.5.415
-  resolution: "electron-to-chromium@npm:1.5.415"
-  checksum: 10/d7ba3987d0f6d3487709ab0f2b83654e91cb813a0000dcdf98987ecbb8e3233547cc95c0c3ee6ddc122cfdbd70e065c271d8878da2ecb1fb32daebfedcde9681
+  version: 1.5.416
+  resolution: "electron-to-chromium@npm:1.5.416"
+  checksum: 10/500da467a02954b3da11167817bbe5b41e8b7ba1774bac7033b9c848768cfdc1bc600df5430d10be2fb4bf448289e1b48db5ecff3405e4dae8ca70fb78b95941
   languageName: node
   linkType: hard
 
@@ -4818,8 +4818,8 @@ __metadata:
   linkType: hard
 
 "es-toolkit@npm:^1.39.3":
-  version: 1.51.0
-  resolution: "es-toolkit@npm:1.51.0"
+  version: 1.52.0
+  resolution: "es-toolkit@npm:1.52.0"
   dependenciesMeta:
     "@trivago/prettier-plugin-sort-imports@4.3.0":
       unplugged: true
@@ -4827,7 +4827,7 @@ __metadata:
       unplugged: true
     vitepress-plugin-sandpack@1.1.4:
       unplugged: true
-  checksum: 10/95f6265e27eda6efd8f7fb63b53dd631c1b7904dc5285703a0f7ee2d028a9d76d134931f630944094719614440490a28a935f5a522422ea3ab78b692cb61b104
+  checksum: 10/d36768a16c17cedc3255c108176a8472d56b3b7e51d909c22905fb9ba163296d058ad17a82d6e65883d5aa65aedf8c268c1b31d7979353968e030c9d104b15c0
   languageName: node
   linkType: hard
 
@@ -5187,11 +5187,11 @@ __metadata:
   linkType: hard
 
 "fastq@npm:^1.6.0":
-  version: 1.20.1
-  resolution: "fastq@npm:1.20.1"
+  version: 1.20.2
+  resolution: "fastq@npm:1.20.2"
   dependencies:
     reusify: "npm:^1.0.4"
-  checksum: 10/ab2fe3a7a108112e7752cfe7fc11683c21e595913a6a593ad0b4415f31dddbfc283775ab66f2c8ccea6ab7cfc116157cbddcfae9798d9de98d08fe0a2c3e97b2
+  checksum: 10/12ea5ee97d21717afc1c18f9c22e0c5bab3ae985cf2dfd5cb6efc2e5485adc4c2738790a9bf3fa78ab6168e60a10d22d07fe088f7ed13a6deb629ca5aa760b77
   languageName: node
   linkType: hard
 
@@ -6389,11 +6389,11 @@ __metadata:
   linkType: hard
 
 "lucide-react@npm:^1.0.0":
-  version: 1.34.0
-  resolution: "lucide-react@npm:1.34.0"
+  version: 1.35.0
+  resolution: "lucide-react@npm:1.35.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/594cb9730cb53f097af556459bff2f278eb745ecd5b64bba0b1ee7e79a2b4d8da82c912bd67c3a1b74fb02de204980ce6333b235b7ebcc103a7930bb5bf2f9a7
+  checksum: 10/765f37715aecb9e584c77f7c840d235c84bad9657e5652ec9a9437a430314c2a20cd45babbfe77e91537950fb4fe616d36c22742e471b45fb6ccdcbed2e7b51b
   languageName: node
   linkType: hard
 
