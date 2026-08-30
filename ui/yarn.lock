@@ -4947,14 +4947,14 @@ __metadata:
   linkType: hard
 
 "express-rate-limit@npm:^8.2.1":
-  version: 8.6.2
-  resolution: "express-rate-limit@npm:8.6.2"
+  version: 8.7.0
+  resolution: "express-rate-limit@npm:8.7.0"
   dependencies:
     debug: "npm:^4.4.3"
     ip-address: "npm:^10.2.0"
   peerDependencies:
     express: ">= 4.11"
-  checksum: 10/cf9d2a286821a650890366ed14f3d582293175b6f540e3f64b5fd276201cacef6c1e218448dd54f4a1e860de48c395e3d8ddda4d4a032812266a19d8d947208a
+  checksum: 10/aff2995369d8a14380a46eefa9f7f720ef6c5d6c4478d09b20544f1e91d8fa21dfe442bf8ef5e652b226ee2dea110d3f8e57dc5cf44331d51106ecdef3d85470
   languageName: node
   linkType: hard
 
@@ -5043,11 +5043,11 @@ __metadata:
   linkType: hard
 
 "fastq@npm:^1.6.0":
-  version: 1.20.2
-  resolution: "fastq@npm:1.20.2"
+  version: 1.20.3
+  resolution: "fastq@npm:1.20.3"
   dependencies:
     reusify: "npm:^1.0.4"
-  checksum: 10/12ea5ee97d21717afc1c18f9c22e0c5bab3ae985cf2dfd5cb6efc2e5485adc4c2738790a9bf3fa78ab6168e60a10d22d07fe088f7ed13a6deb629ca5aa760b77
+  checksum: 10/952dfa14c62d6a6825baad9c836de6550ece1de4d5d6836203b0851f2c6432ce0aa8cf5fc53dda4560b3b62ce12ef53eeef3d7b9d66efc9a8ea78e5dfc78baf4
   languageName: node
   linkType: hard
 
@@ -5538,9 +5538,9 @@ __metadata:
   linkType: hard
 
 "ip-address@npm:^10.2.0":
-  version: 10.5.0
-  resolution: "ip-address@npm:10.5.0"
-  checksum: 10/239645a11ae56f1f8721df22fa852dec51039a0add5371a474ad858810a6b6a4924c9346e467821c4e614bc9b8c8947a58ba1fdfb155a7a30437a440072ffbf5
+  version: 10.7.0
+  resolution: "ip-address@npm:10.7.0"
+  checksum: 10/81d954eb5806e82460cb749b9651a2040630cadf4db9d53abc13122e60e4ae6f9ae8555282386c63a11093dd6380a62f64f7a22aba18abc6109ff316a6660b0a
   languageName: node
   linkType: hard
 
@@ -6245,11 +6245,11 @@ __metadata:
   linkType: hard
 
 "lucide-react@npm:^1.0.0":
-  version: 1.35.0
-  resolution: "lucide-react@npm:1.35.0"
+  version: 1.37.0
+  resolution: "lucide-react@npm:1.37.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/765f37715aecb9e584c77f7c840d235c84bad9657e5652ec9a9437a430314c2a20cd45babbfe77e91537950fb4fe616d36c22742e471b45fb6ccdcbed2e7b51b
+  checksum: 10/60770bee7c458e2cb039d023f089d1649626c589502373969aa1b86283563786ae0749f0939b2e7c45773c10ae8addf66932f15fcbcb71ec84eea690c7a7a7bb
   languageName: node
   linkType: hard
 
@@ -7972,11 +7972,11 @@ __metadata:
   linkType: hard
 
 "systeminformation@npm:^5.22.11":
-  version: 5.33.5
-  resolution: "systeminformation@npm:5.33.5"
+  version: 5.33.6
+  resolution: "systeminformation@npm:5.33.6"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10/87bb40b1ecfe7d0e8003064b72025188a5f2d9725060f1ba3906e149b7105425881babb9638ce72a08ade11b8e7ce3ab373932df5020f27f2a89bc106abeae24
+  checksum: 10/16020054e173033f40298209d66c4c4a4d23ec599bad39e0da54d36eae2ada33c465ebaf26ca951b6124a88249ff37cc1496f8489819d2e8905c01d02b3a3023
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
@@ -8918,8 +8918,8 @@ __metadata:
   linkType: hard
 
 "zod@npm:^3.25 || ^4.0, zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.2.1":
-  version: 4.5.1
-  resolution: "zod@npm:4.5.1"
-  checksum: 10/1b09738538d5befcf5ec1dbc670687a815fbc75c6a9a7b5ba41172b4bb41b0ff7a49379b0ccb2bb59aadc12b71bb8e926254cb3a3970c567d5fc59106099aa2e
+  version: 4.5.2
+  resolution: "zod@npm:4.5.2"
+  checksum: 10/7c650d571a952b37a076460540c640abbd54d9e8ed03935b0325d7e3303fe674f83ed60059332d88d668b0b07e2b7c600f9ab5159fa9a7cae0e706495f1a9e79
   languageName: node
   linkType: hard
