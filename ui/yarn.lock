@@ -420,14 +420,14 @@ __metadata:
   linkType: hard
 
 "@csstools/css-syntax-patches-for-csstree@npm:^1.1.7":
-  version: 1.1.11
-  resolution: "@csstools/css-syntax-patches-for-csstree@npm:1.1.11"
+  version: 1.1.12
+  resolution: "@csstools/css-syntax-patches-for-csstree@npm:1.1.12"
   peerDependencies:
     css-tree: ^3.2.1
   peerDependenciesMeta:
     css-tree:
       optional: true
-  checksum: 10/4c3f456487155298dfe4d2d83d29f697b88a778119201e7ccff2214cc104012731442cbd8590cdf81a452ca39e5cb32a20cde50600154de0be4e7db46962250a
+  checksum: 10/ae30bf06b20b81b54165c9dda6c5d0ed1ec91ceef6d497c0a2d33c896c1bde0998ec9d8587672892ebdf157dae5ca9117f603526b298559e69cc4bf1a01e0b59
   languageName: node
   linkType: hard
 
@@ -4540,9 +4540,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.402":
-  version: 1.5.417
-  resolution: "electron-to-chromium@npm:1.5.417"
-  checksum: 10/a989de73e16d7388d9f742b434594a8b382e83f51dcdc7ffdf3bd119d279e7368fbe2575db94a71c18c9a1bd10edea7ede1bd7dd4063f2a5e59abef198e291fa
+  version: 1.5.419
+  resolution: "electron-to-chromium@npm:1.5.419"
+  checksum: 10/9c75c034c18e3e90880a4416584f482346faf9127075d4727c1a5210801604a287daed3f8e71bde133ea68515bb898c1e168b40b30d5a1812e43ef28c31470e9
   languageName: node
   linkType: hard
 
@@ -6245,11 +6245,11 @@ __metadata:
   linkType: hard
 
 "lucide-react@npm:^1.0.0":
-  version: 1.38.0
-  resolution: "lucide-react@npm:1.38.0"
+  version: 1.39.0
+  resolution: "lucide-react@npm:1.39.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/6e9cd59213ac9b156be9a378844935013c8ed2355af840eb523887dffbf852b40f8cadb8eefc9798541ed4f7c8da26e0f180a7f16517b8cb6ede4e41a5948f04
+  checksum: 10/e565ddd6dcc30c55dc53fc0a9ba511f9c55bf589d28ed4cf134b6d03fa176d605a06b3746dc9f5c193521f125a1c0dd2baf65a865f7364408e8d94236745fccf
   languageName: node
   linkType: hard
 
@@ -7972,11 +7972,11 @@ __metadata:
   linkType: hard
 
 "systeminformation@npm:^5.22.11":
-  version: 5.33.6
-  resolution: "systeminformation@npm:5.33.6"
+  version: 5.33.7
+  resolution: "systeminformation@npm:5.33.7"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10/16020054e173033f40298209d66c4c4a4d23ec599bad39e0da54d36eae2ada33c465ebaf26ca951b6124a88249ff37cc1496f8489819d2e8905c01d02b3a3023
+  checksum: 10/8b03e24bcd953a18aba2cbac7061d3a46f2b6deec58e5db54dc2e0d57083e930039a224353d646a4fceb365a93fc6cc0840ee1d7c9ed5e16ded5c38f4dd90e2e
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
