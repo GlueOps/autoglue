@@ -5537,7 +5537,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ip-address@npm:^10.2.0":
+"ip-address@npm:^10.1.1, ip-address@npm:^10.2.0":
   version: 10.7.0
   resolution: "ip-address@npm:10.7.0"
   checksum: 10/81d954eb5806e82460cb749b9651a2040630cadf4db9d53abc13122e60e4ae6f9ae8555282386c63a11093dd6380a62f64f7a22aba18abc6109ff316a6660b0a
@@ -7613,9 +7613,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shadcn@npm:4.16.1":
-  version: 4.16.1
-  resolution: "shadcn@npm:4.16.1"
+"shadcn@npm:4.17.0":
+  version: 4.17.0
+  resolution: "shadcn@npm:4.17.0"
   dependencies:
     "@babel/core": "npm:^7.28.0"
     "@babel/parser": "npm:^7.28.0"
@@ -7641,6 +7641,7 @@ __metadata:
     postcss-selector-parser: "npm:^7.1.0"
     prompts: "npm:^2.4.2"
     recast: "npm:^0.23.11"
+    socks: "npm:^2.8.8"
     stringify-object: "npm:^5.0.0"
     tailwind-merge: "npm:^3.0.1"
     ts-morph: "npm:^26.0.0"
@@ -7651,7 +7652,7 @@ __metadata:
     zod-to-json-schema: "npm:^3.24.6"
   bin:
     shadcn: dist/index.js
-  checksum: 10/e6c351630ac44090f559f06711b766e59787d66b26106037e2be8af5d6a884c574febecd59739435a043fc6de7f0625a09f59af14738c7c81ab9d43de40726a7
+  checksum: 10/17c05aa7067adb2393e796da1b871755ce85b28a8eca63609a52795cf0dfda26313ab49ebfc9765ca2cff06bfb89ee79657b08ab2eefdeb6f28b544577922131
   languageName: node
   linkType: hard
 
@@ -7754,6 +7755,23 @@ __metadata:
   version: 1.0.5
   resolution: "sisteransi@npm:1.0.5"
   checksum: 10/aba6438f46d2bfcef94cf112c835ab395172c75f67453fe05c340c770d3c402363018ae1ab4172a1026a90c47eaccf3af7b6ff6fa749a680c2929bd7fa2b37a4
+  languageName: node
+  linkType: hard
+
+"smart-buffer@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "smart-buffer@npm:4.2.0"
+  checksum: 10/927484aa0b1640fd9473cee3e0a0bcad6fce93fd7bbc18bac9ad0c33686f5d2e2c422fba24b5899c184524af01e11dd2bd051c2bf2b07e47aff8ca72cbfc60d2
+  languageName: node
+  linkType: hard
+
+"socks@npm:^2.8.8":
+  version: 2.8.10
+  resolution: "socks@npm:2.8.10"
+  dependencies:
+    ip-address: "npm:^10.1.1"
+    smart-buffer: "npm:^4.2.0"
+  checksum: 10/05ea32c55a4428babaab97f5419e130d2aec4836bc36a1505cd2d5c36ecf447609f5bbe95243b5e0cba46b4b2fea9d8d2b5031cc13005b3146da53f86b5e1128
   languageName: node
   linkType: hard
 
@@ -8334,7 +8352,7 @@ __metadata:
     react-resizable-panels: "npm:4.12.2"
     react-router-dom: "npm:^7.11.0"
     recharts: "npm:3.10.1"
-    shadcn: "npm:4.16.1"
+    shadcn: "npm:4.17.0"
     sonner: "npm:^2.0.7"
     tailwind-merge: "npm:^3.4.0"
     tailwindcss: "npm:^4.1.18"
