@@ -4079,6 +4079,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cn@npm:^0.2.4":
+  version: 0.2.6
+  resolution: "cn@npm:0.2.6"
+  bin:
+    cn: bin/cn.mjs
+  checksum: 10/ce986fe3625016b49e3cdb217217831ee2e7962b2e007b4b6d908562626f830aaf2b8446fcbcad14fbe7ddff66a9c9b1cd995168b1d83c268093b2b3fde667b9
+  languageName: node
+  linkType: hard
+
 "code-block-writer@npm:^13.0.3":
   version: 13.0.3
   resolution: "code-block-writer@npm:13.0.3"
@@ -5534,6 +5543,13 @@ __metadata:
   version: 2.0.3
   resolution: "internmap@npm:2.0.3"
   checksum: 10/873e0e7fcfe32f999aa0997a0b648b1244508e56e3ea6b8259b5245b50b5eeb3853fba221f96692bd6d1def501da76c32d64a5cb22a0b26cdd9b445664f805e0
+  languageName: node
+  linkType: hard
+
+"ip-address@npm:^10.1.1":
+  version: 10.7.3
+  resolution: "ip-address@npm:10.7.3"
+  checksum: 10/04655aa25ad682bb26ecb82281c9d3ecd99da8ecde9c95146f0a96685de90a359432d905bf6c53b5732fed0bfb1f93763cd3c91c3f266eec96cc41bfea987197
   languageName: node
   linkType: hard
 
@@ -7613,9 +7629,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shadcn@npm:4.16.1":
-  version: 4.16.1
-  resolution: "shadcn@npm:4.16.1"
+"shadcn@npm:4.21.0":
+  version: 4.21.0
+  resolution: "shadcn@npm:4.21.0"
   dependencies:
     "@babel/core": "npm:^7.28.0"
     "@babel/parser": "npm:^7.28.0"
@@ -7625,6 +7641,7 @@ __metadata:
     "@modelcontextprotocol/sdk": "npm:^1.26.0"
     "@types/validate-npm-package-name": "npm:^4.0.2"
     browserslist: "npm:^4.26.2"
+    cn: "npm:^0.2.4"
     commander: "npm:^14.0.0"
     cosmiconfig: "npm:^9.0.0"
     dedent: "npm:^1.6.0"
@@ -7641,8 +7658,8 @@ __metadata:
     postcss-selector-parser: "npm:^7.1.0"
     prompts: "npm:^2.4.2"
     recast: "npm:^0.23.11"
+    socks: "npm:^2.8.8"
     stringify-object: "npm:^5.0.0"
-    tailwind-merge: "npm:^3.0.1"
     ts-morph: "npm:^26.0.0"
     tsconfig-paths: "npm:^4.2.0"
     undici: "npm:^7.27.2"
@@ -7651,7 +7668,7 @@ __metadata:
     zod-to-json-schema: "npm:^3.24.6"
   bin:
     shadcn: dist/index.js
-  checksum: 10/e6c351630ac44090f559f06711b766e59787d66b26106037e2be8af5d6a884c574febecd59739435a043fc6de7f0625a09f59af14738c7c81ab9d43de40726a7
+  checksum: 10/3320b12e0af27e612a4fa5b40d55ee0ea87000bafc12d98073bc6767e6de8f3b50eef15a5296ae520db39688627338b50073c86198d76fbcf9a6cafbecb2242b
   languageName: node
   linkType: hard
 
@@ -7754,6 +7771,23 @@ __metadata:
   version: 1.0.5
   resolution: "sisteransi@npm:1.0.5"
   checksum: 10/aba6438f46d2bfcef94cf112c835ab395172c75f67453fe05c340c770d3c402363018ae1ab4172a1026a90c47eaccf3af7b6ff6fa749a680c2929bd7fa2b37a4
+  languageName: node
+  linkType: hard
+
+"smart-buffer@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "smart-buffer@npm:4.2.0"
+  checksum: 10/927484aa0b1640fd9473cee3e0a0bcad6fce93fd7bbc18bac9ad0c33686f5d2e2c422fba24b5899c184524af01e11dd2bd051c2bf2b07e47aff8ca72cbfc60d2
+  languageName: node
+  linkType: hard
+
+"socks@npm:^2.8.8":
+  version: 2.8.10
+  resolution: "socks@npm:2.8.10"
+  dependencies:
+    ip-address: "npm:^10.1.1"
+    smart-buffer: "npm:^4.2.0"
+  checksum: 10/05ea32c55a4428babaab97f5419e130d2aec4836bc36a1505cd2d5c36ecf447609f5bbe95243b5e0cba46b4b2fea9d8d2b5031cc13005b3146da53f86b5e1128
   languageName: node
   linkType: hard
 
@@ -7981,7 +8015,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwind-merge@npm:^3.0.1, tailwind-merge@npm:^3.4.0":
+"tailwind-merge@npm:^3.4.0":
   version: 3.6.0
   resolution: "tailwind-merge@npm:3.6.0"
   checksum: 10/1da88698b6d878c391ab83064346e4b5b038d1b519d90825044df4b096971522c12253c7d6ab586c9da04e2039ba46573696138ea3d19c685d3c236f1f892899
@@ -8334,7 +8368,7 @@ __metadata:
     react-resizable-panels: "npm:4.12.2"
     react-router-dom: "npm:^7.11.0"
     recharts: "npm:3.10.1"
-    shadcn: "npm:4.16.1"
+    shadcn: "npm:4.21.0"
     sonner: "npm:^2.0.7"
     tailwind-merge: "npm:^3.4.0"
     tailwindcss: "npm:^4.1.18"
