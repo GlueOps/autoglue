@@ -73,12 +73,11 @@ func TestIsHostNotReady(t *testing.T) {
 }
 
 func TestBastionRetryDelay(t *testing.T) {
-	l := bastionRetryLimits{window: 10 * time.Minute, authGrace: 3 * time.Minute, sessionLostMax: 3}
+	window, sessionLostMax := 10*time.Minute, 3
 	authErr := &sshConnectError{errors.New("ssh: handshake failed: ssh: unable to authenticate")}
 	lost := &sshSessionError{&ssh.ExitMissingError{}}
-	known, fresh := true, false
-	m := func(snoozes, sessionLost int, knownHost *bool) bastionJobMeta {
-		return bastionJobMeta{Snoozes: snoozes, SessionLost: sessionLost, KnownHost: knownHost}
+	m := func(snoozes, sessionLost int) bastionJobMeta {
+		return bastionJobMeta{Snoozes: snoozes, SessionLost: sessionLost}
 	}
 	cases := []struct {
 		name      string
@@ -88,59 +87,24 @@ func TestBastionRetryDelay(t *testing.T) {
 		wantDelay time.Duration
 		wantRetry bool
 	}{
-		{"first refusal", refusedDialErr(), 2 * time.Second, m(0, 0, &fresh), 5 * time.Second, true},
-		{"backs off", refusedDialErr(), time.Minute, m(2, 0, &fresh), 20 * time.Second, true},
-		{"capped", refusedDialErr(), 5 * time.Minute, m(4, 0, &fresh), time.Minute, true},
-		{"capped with large count", refusedDialErr(), 9 * time.Minute, m(1000, 0, &fresh), time.Minute, true},
-		{"window exceeded", refusedDialErr(), l.window, m(3, 0, &fresh), 0, false},
-		{"auth rejected inside grace", authErr, time.Second, m(0, 0, &fresh), 5 * time.Second, true},
-		{"auth rejected, known host unset", authErr, time.Second, m(0, 0, nil), 5 * time.Second, true},
-		{"auth rejected backs off", authErr, time.Minute, m(3, 0, &fresh), 40 * time.Second, true},
-		{"auth rejected past grace", authErr, l.authGrace, m(0, 0, &fresh), 0, false},
-		// A host reached before has finished booting; retrying a wrong key
-		// there only feeds fail2ban.
-		{"auth rejected on known host", authErr, time.Second, m(0, 0, &known), 0, false},
-		{"host key mismatch inside grace", &sshConnectError{errors.New("ssh: handshake failed: host key mismatch for x - POSSIBLE MITM or host reinstalled")}, time.Second, m(0, 0, &fresh), 0, false},
-		{"key parse error inside grace", fmt.Errorf("parse private key: %w", errors.New("ssh: no key found")), time.Second, m(0, 0, &fresh), 0, false},
-		{"script failure in window", errors.New("remote run: exit status 1"), time.Second, m(0, 0, &fresh), 0, false},
-		{"session lost in window", lost, 4 * time.Minute, m(1, 0, &fresh), 10 * time.Second, true},
+		{"first refusal", refusedDialErr(), 2 * time.Second, m(0, 0), 5 * time.Second, true},
+		{"backs off", refusedDialErr(), time.Minute, m(2, 0), 20 * time.Second, true},
+		{"capped", refusedDialErr(), 5 * time.Minute, m(4, 0), time.Minute, true},
+		{"capped with large count", refusedDialErr(), 9 * time.Minute, m(1000, 0), time.Minute, true},
+		{"window exceeded", refusedDialErr(), window, m(3, 0), 0, false},
+		{"auth failure in window", authErr, time.Second, m(0, 0), 0, false},
+		{"script failure in window", errors.New("remote run: exit status 1"), time.Second, m(0, 0), 0, false},
+		{"session lost in window", lost, 4 * time.Minute, m(1, 0), 10 * time.Second, true},
 		// The reboot after cloud-init's package upgrade lands late.
-		{"session lost at minute 11", lost, 11 * time.Minute, m(1, 0, &fresh), 10 * time.Second, true},
-		{"session lost on known host", lost, time.Minute, m(0, 0, &known), 5 * time.Second, true},
-		{"third session loss", lost, time.Minute, m(2, 2, &fresh), 20 * time.Second, true},
-		{"fourth session loss", lost, time.Minute, m(3, 3, &fresh), 0, false},
+		{"session lost at minute 11", lost, 11 * time.Minute, m(1, 0), 10 * time.Second, true},
+		{"third session loss", lost, time.Minute, m(2, 2), 20 * time.Second, true},
+		{"fourth session loss", lost, time.Minute, m(3, 3), 0, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			delay, why, retry := bastionRetryDelay(tc.err, tc.waited, tc.meta, l)
+			delay, retry := bastionRetryDelay(tc.err, tc.waited, tc.meta, window, sessionLostMax)
 			if retry != tc.wantRetry || delay != tc.wantDelay {
 				t.Errorf("bastionRetryDelay = (%s, %v), want (%s, %v)", delay, retry, tc.wantDelay, tc.wantRetry)
-			}
-			if retry == (why == "") {
-				t.Errorf("why = %q with retry = %v", why, retry)
-			}
-		})
-	}
-}
-
-func TestIsAuthRejected(t *testing.T) {
-	cases := []struct {
-		name string
-		err  error
-		want bool
-	}{
-		{"nil", nil, false},
-		{"handshake auth failure", &sshConnectError{fmt.Errorf("ssh handshake: %w", errors.New("ssh: handshake failed: ssh: unable to authenticate, attempted methods [none publickey], no supported methods remain"))}, true},
-		{"refused", refusedDialErr(), false},
-		{"host key mismatch", &sshConnectError{errors.New("ssh: handshake failed: host key mismatch for x - POSSIBLE MITM or host reinstalled")}, false},
-		// Only the connect phase counts; the remote script printing the
-		// phrase must not buy it a retry.
-		{"remote output", errors.New("remote run: ssh: unable to authenticate"), false},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if got := isAuthRejected(tc.err); got != tc.want {
-				t.Errorf("isAuthRejected(%v) = %v, want %v", tc.err, got, tc.want)
 			}
 		})
 	}
@@ -174,20 +138,18 @@ func TestIsSessionLost(t *testing.T) {
 }
 
 func TestParseBastionMeta(t *testing.T) {
-	yes := true
 	cases := map[string]bastionJobMeta{
 		``:              {},
 		`{}`:            {},
 		`{"snoozes":3}`: {Snoozes: 3},
-		`{"snoozes":2,"other":"x","bastion_session_lost":1,"bastion_session_lost_at":42,"bastion_known_host":true}`: {
-			Snoozes: 2, SessionLost: 1, SessionLostAt: 42, KnownHost: &yes,
+		`{"snoozes":2,"other":"x","bastion_session_lost":1,"bastion_session_lost_at":42}`: {
+			Snoozes: 2, SessionLost: 1, SessionLostAt: 42,
 		},
 		`not json`: {},
 	}
 	for in, want := range cases {
 		got := parseBastionMeta([]byte(in))
-		if got.Snoozes != want.Snoozes || got.SessionLost != want.SessionLost || got.SessionLostAt != want.SessionLostAt ||
-			(got.KnownHost == nil) != (want.KnownHost == nil) || (got.KnownHost != nil && *got.KnownHost != *want.KnownHost) {
+		if got != want {
 			t.Errorf("parseBastionMeta(%q) = %+v, want %+v", in, got, want)
 		}
 	}
@@ -199,10 +161,8 @@ func TestParseBastionMeta(t *testing.T) {
 const (
 	execOK     = "ok"     // exit-status 0
 	execExit1  = "exit1"  // exit-status 1: the script ran and failed
-	execTERM   = "term"   // exit-signal TERM: killed by a shutdown
 	execDrop   = "drop"   // close the TCP connection: the host went away
 	execNoExit = "noexit" // close the channel with no exit-status
-	execHang   = "hang"   // never finish, and stop answering keepalives
 )
 
 // fakeSSHD accepts keys for which accept returns true, runs nothing, and ends
@@ -241,21 +201,11 @@ func onlyKey(want ssh.PublicKey) func(ssh.PublicKey) bool {
 
 func serveFakeSSH(c net.Conn, cfg *ssh.ServerConfig, exit func() string) {
 	defer func() { _ = c.Close() }()
-	gone := make(chan struct{})
-	defer close(gone)
 	_, chans, reqs, err := ssh.NewServerConn(c, cfg)
 	if err != nil {
 		return
 	}
-	var hung atomic.Bool
-	go func() {
-		for r := range reqs {
-			if hung.Load() {
-				continue // a host that is gone answers nothing
-			}
-			_ = r.Reply(false, nil)
-		}
-	}()
+	go ssh.DiscardRequests(reqs)
 	for nc := range chans {
 		ch, creqs, err := nc.Accept()
 		if err != nil {
@@ -274,20 +224,9 @@ func serveFakeSSH(c net.Conn, cfg *ssh.ServerConfig, exit func() string) {
 					mode = exit()
 				}
 				switch mode {
-				case execHang:
-					hung.Store(true)
-					<-gone // until the client gives up and closes
-					return
 				case execDrop:
 					_ = c.Close()
 				case execNoExit:
-				case execTERM:
-					_, _ = ch.SendRequest("exit-signal", false, ssh.Marshal(struct {
-						Signal     string
-						CoreDumped bool
-						Error      string
-						Lang       string
-					}{Signal: "TERM"}))
 				default:
 					status := make([]byte, 4)
 					if mode == execExit1 {
@@ -366,15 +305,13 @@ func newBastionFixture(t *testing.T) bastionFixture {
 	return bastionFixture{db: db, server: s, pub: pub}
 }
 
-// work runs one attempt directly, with snoozes as the job's River metadata
-// and the host recorded as never reached before this job.
+// work runs one attempt directly, with snoozes as the job's River metadata.
 func (f bastionFixture) work(t *testing.T, createdAt time.Time, snoozes int) error {
 	t.Helper()
-	return f.workMeta(t, context.Background(), createdAt,
-		fmt.Sprintf(`{"snoozes":%d,"bastion_known_host":false}`, snoozes))
+	return f.workMeta(t, createdAt, fmt.Sprintf(`{"snoozes":%d}`, snoozes))
 }
 
-func (f bastionFixture) workMeta(t *testing.T, ctx context.Context, createdAt time.Time, meta string) error {
+func (f bastionFixture) workMeta(t *testing.T, createdAt time.Time, meta string) error {
 	t.Helper()
 	w := &BastionBootstrapWorker{db: f.db}
 	j := &river.Job[BastionBootstrapArgs]{
@@ -385,7 +322,7 @@ func (f bastionFixture) workMeta(t *testing.T, ctx context.Context, createdAt ti
 		},
 		Args: BastionBootstrapArgs{ServerID: f.server.ID},
 	}
-	return w.Work(ctx, j)
+	return w.Work(context.Background(), j)
 }
 
 func (f bastionFixture) status(t *testing.T) string {
@@ -470,35 +407,13 @@ func listenFakeSSHD(t *testing.T, accept func(ssh.PublicKey) bool, exit func() s
 	usePort(t, strconv.Itoa(ln.Addr().(*net.TCPAddr).Port))
 }
 
-// sshd is up but refuses the key, as it does under pam_nologin or before
-// late user-data has written authorized_keys, then lets it in.
-func TestBastionBootstrapRetriesAuthRejectedWhileBooting(t *testing.T) {
-	f := newBastionFixture(t)
-	var booted atomic.Bool
-	listenFakeSSHD(t, func(k ssh.PublicKey) bool { return booted.Load() && onlyKey(f.pub)(k) }, nil)
-	created := time.Now()
-
-	wantSnooze(t, f.work(t, created, 0))
-	if got := f.status(t); got != "provisioning" {
-		t.Fatalf("status after rejected auth = %q, want provisioning", got)
-	}
-
-	booted.Store(true)
-	if err := f.work(t, created, 1); err != nil {
-		t.Fatalf("Work once auth is accepted = %v, want nil", err)
-	}
-	if got := f.status(t); got != "ready" {
-		t.Fatalf("status = %q, want ready", got)
-	}
-}
-
-func TestBastionBootstrapAuthRejectedPastGraceFails(t *testing.T) {
+func TestBastionBootstrapAuthFailureFailsImmediately(t *testing.T) {
 	f := newBastionFixture(t)
 	other, _, _ := ed25519.GenerateKey(rand.Reader)
 	otherPub, _ := ssh.NewPublicKey(other)
-	listenFakeSSHD(t, onlyKey(otherPub), nil) // our key is never authorized
+	listenFakeSSHD(t, onlyKey(otherPub), nil) // sshd up, but our key is not authorized
 
-	if err := f.work(t, time.Now().Add(-bastionAuthGrace()-time.Second), 5); err != nil {
+	if err := f.work(t, time.Now(), 0); err != nil {
 		t.Fatalf("Work = %v, want nil (failure recorded on the server, not retried)", err)
 	}
 	if got := f.status(t); got != "failed" {
@@ -546,7 +461,6 @@ func TestIsSessionLostAgainstRealExits(t *testing.T) {
 		want bool
 	}{
 		{execExit1, false},
-		{execTERM, true},
 		{execDrop, true},
 		{execNoExit, true},
 	}
@@ -625,125 +539,9 @@ func TestBastionBootstrapFourthSessionLossFails(t *testing.T) {
 	f := newBastionFixture(t)
 	listenFakeSSHD(t, onlyKey(f.pub), func() string { return execDrop })
 
-	err := f.workMeta(t, context.Background(), time.Now(),
-		`{"snoozes":3,"bastion_session_lost":3,"bastion_known_host":false}`)
+	err := f.workMeta(t, time.Now(), `{"snoozes":3,"bastion_session_lost":3}`)
 	if err != nil {
 		t.Fatalf("Work = %v, want nil (failure recorded on the server, not retried)", err)
-	}
-	if got := f.status(t); got != "failed" {
-		t.Fatalf("status = %q, want failed", got)
-	}
-}
-
-// Re-bootstrapping a bastion that was reached before (PATCH back to pending)
-// gets no auth grace: it has booted, so a rejected key is the wrong key, and
-// retrying it would only get AutoGlue banned by fail2ban.
-func TestBastionBootstrapNoAuthGraceForKnownHost(t *testing.T) {
-	f := newBastionFixture(t)
-	var authorized atomic.Bool
-	authorized.Store(true)
-	listenFakeSSHD(t, func(k ssh.PublicKey) bool { return authorized.Load() && onlyKey(f.pub)(k) }, nil)
-
-	// First bootstrap succeeds and records the host key.
-	if err := f.work(t, time.Now(), 0); err != nil {
-		t.Fatalf("first bootstrap = %v", err)
-	}
-	if err := setServerStatus(f.db, f.server.ID, "provisioning"); err != nil {
-		t.Fatalf("reset status: %v", err)
-	}
-
-	// A new job, no metadata yet: known-host is decided from the server row.
-	authorized.Store(false)
-	if err := f.workMeta(t, context.Background(), time.Now(), `{}`); err != nil {
-		t.Fatalf("Work = %v, want nil (failed without a snooze)", err)
-	}
-	if got := f.status(t); got != "failed" {
-		t.Fatalf("status = %q, want failed", got)
-	}
-}
-
-func shrinkKeepalive(t *testing.T, every time.Duration, misses int) {
-	oldEvery, oldMisses := sshKeepaliveEvery, sshKeepaliveMisses
-	sshKeepaliveEvery, sshKeepaliveMisses = every, misses
-	t.Cleanup(func() { sshKeepaliveEvery, sshKeepaliveMisses = oldEvery, oldMisses })
-}
-
-// A host that vanishes without a FIN must not block the bootstrap until TCP
-// gives up: missed keepalives close the connection and count as a lost
-// session.
-func TestBastionBootstrapKeepaliveDetectsDeadHost(t *testing.T) {
-	f := newBastionFixture(t)
-	shrinkKeepalive(t, 50*time.Millisecond, 3)
-	listenFakeSSHD(t, onlyKey(f.pub), func() string { return execHang })
-
-	done := make(chan error, 1)
-	go func() { done <- f.work(t, time.Now(), 0) }()
-	select {
-	case err := <-done:
-		wantSnooze(t, err)
-	case <-time.After(10 * time.Second):
-		t.Fatal("bootstrap still blocked on a dead host after 10s")
-	}
-	if got := f.status(t); got != "provisioning" {
-		t.Fatalf("status = %q, want provisioning", got)
-	}
-}
-
-func TestSessionErrFromKeepaliveIsSessionLost(t *testing.T) {
-	err := sessionErr(errKeepaliveLost, &ssh.ExitMissingError{})
-	if !isSessionLost(err) {
-		t.Errorf("isSessionLost(%v) = false, want true", err)
-	}
-	for _, cause := range []error{context.Canceled, context.DeadlineExceeded} {
-		err := sessionErr(cause, &ssh.ExitMissingError{})
-		if isSessionLost(err) || !errors.Is(err, cause) {
-			t.Errorf("sessionErr(%v) = %v: want untagged and wrapping the cause", cause, err)
-		}
-	}
-}
-
-// A worker shutting down cancels the job context. The script is closed off
-// remotely and the job handed back to run again, not failed.
-func TestBastionBootstrapShutdownSnoozesForRestart(t *testing.T) {
-	f := newBastionFixture(t)
-	shrinkKeepalive(t, time.Hour, 3)
-	listenFakeSSHD(t, onlyKey(f.pub), func() string { return execHang })
-
-	ctx, cancel := context.WithCancel(context.Background())
-	time.AfterFunc(200*time.Millisecond, cancel)
-	done := make(chan error, 1)
-	go func() { done <- f.workMeta(t, ctx, time.Now(), `{"bastion_known_host":false}`) }()
-	select {
-	case err := <-done:
-		if d := wantSnooze(t, err); d != 0 {
-			t.Errorf("snooze = %s, want 0 (run again as soon as a worker is up)", d)
-		}
-	case <-time.After(10 * time.Second):
-		t.Fatal("bootstrap ignored context cancellation")
-	}
-	if got := f.status(t); got != "provisioning" {
-		t.Fatalf("status = %q, want provisioning", got)
-	}
-}
-
-// A job cancelled on purpose (River UI, JobCancel) must not resurrect itself
-// the way a shutdown does.
-func TestBastionBootstrapRemoteCancelFails(t *testing.T) {
-	f := newBastionFixture(t)
-	shrinkKeepalive(t, time.Hour, 3)
-	listenFakeSSHD(t, onlyKey(f.pub), func() string { return execHang })
-
-	ctx, cancel := context.WithCancelCause(context.Background())
-	time.AfterFunc(200*time.Millisecond, func() { cancel(river.ErrJobCancelledRemotely) })
-	done := make(chan error, 1)
-	go func() { done <- f.workMeta(t, ctx, time.Now(), `{"bastion_known_host":false}`) }()
-	select {
-	case err := <-done:
-		if err != nil {
-			t.Fatalf("Work = %v, want nil (failure recorded on the server)", err)
-		}
-	case <-time.After(10 * time.Second):
-		t.Fatal("bootstrap ignored cancellation")
 	}
 	if got := f.status(t); got != "failed" {
 		t.Fatalf("status = %q, want failed", got)
