@@ -94,6 +94,8 @@ func TestBastionRetryDelay(t *testing.T) {
 		{"host key mismatch inside grace", &sshConnectError{errors.New("ssh: handshake failed: host key mismatch for x - POSSIBLE MITM or host reinstalled")}, time.Second, 0, 0, false},
 		{"key parse error inside grace", fmt.Errorf("parse private key: %w", errors.New("ssh: no key found")), time.Second, 0, 0, false},
 		{"script failure in window", errors.New("remote run: exit status 1"), time.Second, 0, 0, false},
+		{"session lost in window", &sshSessionError{&ssh.ExitMissingError{}}, 4 * time.Minute, 1, 10 * time.Second, true},
+		{"session lost past window", &sshSessionError{&ssh.ExitMissingError{}}, window, 1, 0, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -128,6 +130,33 @@ func TestIsAuthRejected(t *testing.T) {
 	}
 }
 
+func TestIsSessionLost(t *testing.T) {
+	sess := func(err error) error { return &sshSessionError{fmt.Errorf("remote run: %w", err)} }
+	cases := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{"nil", nil, false},
+		{"exit status missing", sess(&ssh.ExitMissingError{}), true},
+		{"session EOF", &sshSessionError{fmt.Errorf("session: %w", io.EOF)}, true},
+		{"unexpected EOF", sess(io.ErrUnexpectedEOF), true},
+		{"connection reset", sess(&net.OpError{Op: "read", Err: &os.SyscallError{Syscall: "read", Err: syscall.ECONNRESET}}), true},
+		{"broken pipe", sess(syscall.EPIPE), true},
+		{"other run error", sess(errors.New("start remote command: boom")), false},
+		// Missing exit status is only a lost session after the handshake.
+		{"connect-phase EOF", &sshConnectError{io.EOF}, false},
+		{"untagged", &ssh.ExitMissingError{}, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := isSessionLost(tc.err); got != tc.want {
+				t.Errorf("isSessionLost(%v) = %v, want %v", tc.err, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestBastionSnoozes(t *testing.T) {
 	cases := map[string]int{
 		``:                          0,
@@ -145,9 +174,18 @@ func TestBastionSnoozes(t *testing.T) {
 
 // ----- end to end against a fake sshd -----
 
-// fakeSSHD accepts keys for which accept returns true, runs nothing, and
-// exits 0 for any exec.
-func fakeSSHD(t *testing.T, ln net.Listener, accept func(ssh.PublicKey) bool) {
+// How a fake sshd ends an exec once it has read the script.
+const (
+	execOK     = "ok"     // exit-status 0
+	execExit1  = "exit1"  // exit-status 1: the script ran and failed
+	execTERM   = "term"   // exit-signal TERM: killed by a shutdown
+	execDrop   = "drop"   // close the TCP connection: the host went away
+	execNoExit = "noexit" // close the channel with no exit-status
+)
+
+// fakeSSHD accepts keys for which accept returns true, runs nothing, and ends
+// each exec as exit says (nil means execOK).
+func fakeSSHD(t *testing.T, ln net.Listener, accept func(ssh.PublicKey) bool, exit func() string) {
 	t.Helper()
 	_, hostPriv, _ := ed25519.GenerateKey(rand.Reader)
 	hostSigner, err := ssh.NewSignerFromKey(hostPriv)
@@ -170,7 +208,7 @@ func fakeSSHD(t *testing.T, ln net.Listener, accept func(ssh.PublicKey) bool) {
 			if err != nil {
 				return
 			}
-			go serveFakeSSH(c, cfg)
+			go serveFakeSSH(c, cfg, exit)
 		}
 	}()
 }
@@ -179,7 +217,7 @@ func onlyKey(want ssh.PublicKey) func(ssh.PublicKey) bool {
 	return func(k ssh.PublicKey) bool { return string(k.Marshal()) == string(want.Marshal()) }
 }
 
-func serveFakeSSH(c net.Conn, cfg *ssh.ServerConfig) {
+func serveFakeSSH(c net.Conn, cfg *ssh.ServerConfig, exit func() string) {
 	defer func() { _ = c.Close() }()
 	_, chans, reqs, err := ssh.NewServerConn(c, cfg)
 	if err != nil {
@@ -199,9 +237,28 @@ func serveFakeSSH(c net.Conn, cfg *ssh.ServerConfig) {
 					continue
 				}
 				_, _ = io.Copy(io.Discard, ch) // the script, until stdin closes
-				status := make([]byte, 4)
-				binary.BigEndian.PutUint32(status, 0)
-				_, _ = ch.SendRequest("exit-status", false, status)
+				mode := execOK
+				if exit != nil {
+					mode = exit()
+				}
+				switch mode {
+				case execDrop:
+					_ = c.Close()
+				case execNoExit:
+				case execTERM:
+					_, _ = ch.SendRequest("exit-signal", false, ssh.Marshal(struct {
+						Signal     string
+						CoreDumped bool
+						Error      string
+						Lang       string
+					}{Signal: "TERM"}))
+				default:
+					status := make([]byte, 4)
+					if mode == execExit1 {
+						binary.BigEndian.PutUint32(status, 1)
+					}
+					_, _ = ch.SendRequest("exit-status", false, status)
+				}
 				return
 			}
 		}()
@@ -346,7 +403,7 @@ func TestBastionBootstrapWaitsForSSHThenSucceeds(t *testing.T) {
 		t.Fatalf("listen on %s: %v", port, err)
 	}
 	t.Cleanup(func() { _ = ln.Close() })
-	fakeSSHD(t, ln, onlyKey(f.pub))
+	fakeSSHD(t, ln, onlyKey(f.pub), nil)
 
 	if err := f.work(t, created, 2); err != nil {
 		t.Fatalf("Work once sshd is up = %v, want nil", err)
@@ -358,14 +415,14 @@ func TestBastionBootstrapWaitsForSSHThenSucceeds(t *testing.T) {
 
 // listenFakeSSHD starts a fake sshd on a free port and points the bootstrap
 // at it.
-func listenFakeSSHD(t *testing.T, accept func(ssh.PublicKey) bool) {
+func listenFakeSSHD(t *testing.T, accept func(ssh.PublicKey) bool, exit func() string) {
 	t.Helper()
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
 	t.Cleanup(func() { _ = ln.Close() })
-	fakeSSHD(t, ln, accept)
+	fakeSSHD(t, ln, accept, exit)
 	usePort(t, strconv.Itoa(ln.Addr().(*net.TCPAddr).Port))
 }
 
@@ -374,7 +431,7 @@ func listenFakeSSHD(t *testing.T, accept func(ssh.PublicKey) bool) {
 func TestBastionBootstrapRetriesAuthRejectedWhileBooting(t *testing.T) {
 	f := newBastionFixture(t)
 	var booted atomic.Bool
-	listenFakeSSHD(t, func(k ssh.PublicKey) bool { return booted.Load() && onlyKey(f.pub)(k) })
+	listenFakeSSHD(t, func(k ssh.PublicKey) bool { return booted.Load() && onlyKey(f.pub)(k) }, nil)
 	created := time.Now()
 
 	wantSnooze(t, f.work(t, created, 0))
@@ -395,7 +452,7 @@ func TestBastionBootstrapAuthRejectedPastGraceFails(t *testing.T) {
 	f := newBastionFixture(t)
 	other, _, _ := ed25519.GenerateKey(rand.Reader)
 	otherPub, _ := ssh.NewPublicKey(other)
-	listenFakeSSHD(t, onlyKey(otherPub)) // our key is never authorized
+	listenFakeSSHD(t, onlyKey(otherPub), nil) // our key is never authorized
 
 	if err := f.work(t, time.Now().Add(-bastionAuthGrace()-time.Second), 5); err != nil {
 		t.Fatalf("Work = %v, want nil (failure recorded on the server, not retried)", err)
@@ -410,6 +467,96 @@ func TestBastionBootstrapFailsAfterWindow(t *testing.T) {
 	usePort(t, freePort(t))
 
 	if err := f.work(t, time.Now().Add(-bastionSSHWait()-time.Second), 7); err != nil {
+		t.Fatalf("Work = %v, want nil (failure recorded on the server, not retried)", err)
+	}
+	if got := f.status(t); got != "failed" {
+		t.Fatalf("status = %q, want failed", got)
+	}
+}
+
+// TestIsSessionLostAgainstRealExits checks the classification against what
+// x/crypto really returns for each way a session can end, rather than against
+// hand-built errors. One fake sshd serves every case so the host key stays the
+// one TOFU recorded first.
+func TestIsSessionLostAgainstRealExits(t *testing.T) {
+	f := newBastionFixture(t)
+	var mode atomic.Value
+	listenFakeSSHD(t, onlyKey(f.pub), func() string { return mode.Load().(string) })
+
+	var s models.Server
+	if err := f.db.Preload("SshKey").First(&s, "id = ?", f.server.ID).Error; err != nil {
+		t.Fatalf("load server: %v", err)
+	}
+	priv, err := utils.DecryptForOrg(s.OrganizationID, s.SshKey.EncryptedPrivateKey, s.SshKey.PrivateIV, s.SshKey.PrivateTag, f.db)
+	if err != nil {
+		t.Fatalf("decrypt: %v", err)
+	}
+	run := func() error {
+		_, err := sshInstallDockerWithOutput(context.Background(), f.db, &s,
+			net.JoinHostPort("127.0.0.1", bastionSSHPort), s.SSHUser, []byte(priv), nil)
+		return err
+	}
+
+	cases := []struct {
+		mode string
+		want bool
+	}{
+		{execExit1, false},
+		{execTERM, true},
+		{execDrop, true},
+		{execNoExit, true},
+	}
+	mode.Store(execOK)
+	if err := run(); err != nil {
+		t.Fatalf("clean exit returned %v", err)
+	}
+	for _, tc := range cases {
+		t.Run(tc.mode, func(t *testing.T) {
+			mode.Store(tc.mode)
+			err := run()
+			var se *sshSessionError
+			if !errors.As(err, &se) {
+				t.Fatalf("mode %s returned %v, want a session error", tc.mode, err)
+			}
+			if got := isSessionLost(err); got != tc.want {
+				t.Errorf("isSessionLost(%v) = %v, want %v", err, got, tc.want)
+			}
+		})
+	}
+}
+
+// The host reboots under the script (cloud-init's package_reboot_if_required
+// while it sits in "cloud-init status --wait"); the next attempt finds it back.
+func TestBastionBootstrapRetriesAfterConnectionLost(t *testing.T) {
+	f := newBastionFixture(t)
+	var rebooted atomic.Bool
+	listenFakeSSHD(t, onlyKey(f.pub), func() string {
+		if rebooted.CompareAndSwap(false, true) {
+			return execDrop
+		}
+		return execOK
+	})
+	created := time.Now()
+
+	wantSnooze(t, f.work(t, created, 0))
+	if got := f.status(t); got != "provisioning" {
+		t.Fatalf("status after lost connection = %q, want provisioning", got)
+	}
+
+	if err := f.work(t, created, 1); err != nil {
+		t.Fatalf("Work after reboot = %v, want nil", err)
+	}
+	if got := f.status(t); got != "ready" {
+		t.Fatalf("status = %q, want ready", got)
+	}
+}
+
+// A script that ran and exited non-zero is a real failure, not a reboot.
+func TestBastionBootstrapScriptFailureFailsImmediately(t *testing.T) {
+	f := newBastionFixture(t)
+	listenFakeSSHD(t, onlyKey(f.pub), func() string { return execExit1 })
+
+	if err := f.work(t, time.Now(), 0); err != nil {
 		t.Fatalf("Work = %v, want nil (failure recorded on the server, not retried)", err)
 	}
 	if got := f.status(t); got != "failed" {
