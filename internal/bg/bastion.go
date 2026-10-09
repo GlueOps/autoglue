@@ -247,15 +247,20 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 	out, err := sshInstallDockerWithOutput(ctx, db, &s, host, s.SSHUser, []byte(privKey), sink)
 	if err != nil {
 		// A bastion is usually claimed seconds after its VM was created, well
-		// before sshd is listening. Snooze rather than fail so the server stays
-		// in provisioning and the bootstrap picks up once the host has booted.
-		// Measured from the job's creation, which snoozing does not reset.
+		// before sshd is listening, and cloud-init may reboot it once more
+		// while the script waits on it. Snooze rather than fail so the server
+		// stays in provisioning and the bootstrap picks up once the host has
+		// booted. Measured from the job's creation, which snoozing does not
+		// reset.
 		waited := time.Since(j.CreatedAt)
 		window := bastionSSHWait()
 		if delay, ok := bastionRetryDelay(err, waited, bastionSnoozes(j.Metadata), window, bastionAuthGrace()); ok {
 			why := "host not reachable yet"
-			if isAuthRejected(err) {
+			switch {
+			case isAuthRejected(err):
 				why = "auth rejected, host may still be booting"
+			case isSessionLost(err):
+				why = "connection lost, host may be rebooting"
 			}
 			sink.System(fmt.Sprintf("%s (%v); retrying in %s (waited %s of %s)",
 				why, err, delay, waited.Round(time.Second), window))
@@ -268,6 +273,8 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 			err = fmt.Errorf("host still unreachable after %s: %w", waited.Round(time.Second), err)
 		case isAuthRejected(err):
 			err = fmt.Errorf("auth still rejected after %s: %w", waited.Round(time.Second), err)
+		case isSessionLost(err):
+			err = fmt.Errorf("connection lost after %s, past the wait window: %w", waited.Round(time.Second), err)
 		}
 		tail := out
 		if len(tail) > 800 {
@@ -324,15 +331,17 @@ func bastionAuthGrace() time.Duration {
 }
 
 // bastionRetryDelay decides whether a failed bootstrap should be snoozed and
-// for how long. "Host not up yet" errors are retried inside window, and a
-// rejected key inside authGrace; everything else (bad key, host key mismatch,
-// the remote script itself) fails immediately, since waiting would not change
-// the outcome.
+// for how long. "Host not up yet" and "connection lost mid-run" errors are
+// retried inside window, and a rejected key inside authGrace; everything else
+// (bad key, host key mismatch, the remote script exiting non-zero) fails
+// immediately, since waiting would not change the outcome.
 func bastionRetryDelay(err error, waited time.Duration, snoozes int, window, authGrace time.Duration) (time.Duration, bool) {
 	if waited >= window {
 		return 0, false
 	}
-	if !isHostNotReady(err) && (!isAuthRejected(err) || waited >= authGrace) {
+	retryable := isHostNotReady(err) || isSessionLost(err) ||
+		(isAuthRejected(err) && waited < authGrace)
+	if !retryable {
 		return 0, false
 	}
 	delay := bastionRetryInitial
@@ -390,6 +399,47 @@ func isHostNotReady(err error) bool {
 func isAuthRejected(err error) bool {
 	var ce *sshConnectError
 	return errors.As(err, &ce) && strings.Contains(err.Error(), "ssh: unable to authenticate")
+}
+
+// sshSessionError marks a failure after the handshake: opening the session or
+// running the remote script.
+type sshSessionError struct{ err error }
+
+func (e *sshSessionError) Error() string { return e.err.Error() }
+func (e *sshSessionError) Unwrap() error { return e.err }
+
+// isSessionLost reports whether the remote script was cut off by the
+// connection going away rather than finishing. The usual cause is the host
+// rebooting under it (cloud-init's package_reboot_if_required lands while the
+// script sits in "cloud-init status --wait"), and the script is safe to re-run
+// from the top: every step is guarded or overwrites its own file.
+//
+// A script that ran to completion and exited non-zero is not this, and is
+// never retried. A script killed by TERM, HUP or KILL is: that is what a
+// shutdown does to the session before the connection drops.
+func isSessionLost(err error) bool {
+	var se *sshSessionError
+	if !errors.As(err, &se) {
+		return false
+	}
+	var missing *ssh.ExitMissingError
+	if errors.As(err, &missing) {
+		return true
+	}
+	var exit *ssh.ExitError
+	if errors.As(err, &exit) {
+		switch exit.Signal() {
+		case "TERM", "HUP", "KILL":
+			return true
+		}
+		return false
+	}
+	for _, errno := range []syscall.Errno{syscall.ECONNRESET, syscall.ECONNABORTED, syscall.EPIPE} {
+		if errors.Is(err, errno) {
+			return true
+		}
+	}
+	return errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
 }
 
 func setServerStatus(db *gorm.DB, id uuid.UUID, status string) error {
@@ -473,7 +523,7 @@ func sshInstallDockerWithOutput(
 
 	sess, err := client.NewSession()
 	if err != nil {
-		return "", fmt.Errorf("session: %w", err)
+		return "", &sshSessionError{fmt.Errorf("session: %w", err)}
 	}
 	defer sess.Close()
 
@@ -879,7 +929,10 @@ echo "Bootstrap complete. If you were added to the docker group, log out and bac
 	}
 
 	runErr := runSSHStreaming(sess, "bash -s", w)
-	return tail.String(), wrapSSHError(runErr, tail.String())
+	if runErr != nil {
+		return tail.String(), &sshSessionError{wrapSSHError(runErr, tail.String())}
+	}
+	return tail.String(), nil
 }
 
 // annotate common SSH/remote failure modes to speed triage
