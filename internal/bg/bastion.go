@@ -3,12 +3,14 @@ package bg
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/glueops/autoglue/internal/models"
@@ -231,11 +233,44 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 	// 3) SSH + install docker. Output streams into job_logs under this server,
 	// so a failed bootstrap can be read back from the API instead of hunting
 	// through worker pod stdout for a truncated tail.
-	host := net.JoinHostPort(*s.PublicIPAddress, "22")
+	host := net.JoinHostPort(*s.PublicIPAddress, bastionSSHPort)
 	sink.System(fmt.Sprintf("connecting to %s as %s", host, s.SSHUser))
 
 	out, err := sshInstallDockerWithOutput(ctx, db, &s, host, s.SSHUser, []byte(privKey), sink)
 	if err != nil {
+		// A bastion is claimed seconds after its VM is created, before sshd is
+		// up, and cloud-init may reboot it mid-script. Snooze so the server
+		// stays in provisioning. The wait runs from job creation (snoozing
+		// does not reset it) or from the last lost connection, since a reboot
+		// starts the boot over.
+		meta := parseBastionMeta(j.Metadata)
+		since := j.CreatedAt
+		if meta.SessionLostAt > 0 {
+			if t := time.Unix(meta.SessionLostAt, 0); t.After(since) {
+				since = t
+			}
+		}
+		waited := time.Since(since)
+		window := bastionSSHWait
+		if delay, ok := bastionRetryDelay(err, waited, meta, window, bastionSessionLostMax); ok {
+			why := "host not reachable yet"
+			if isSessionLost(err) {
+				why = "connection lost, host may be rebooting"
+				_ = river.MetadataSet(ctx, bastionMetaSessionLost, meta.SessionLost+1)
+				_ = river.MetadataSet(ctx, bastionMetaSessionLostAt, time.Now().Unix())
+			}
+			sink.System(fmt.Sprintf("%s (%v); retrying in %s (waited %s of %s)",
+				why, err, delay, waited.Round(time.Second), window))
+			logHostInfo(jobID, &s, "ssh_wait", why+", snoozing",
+				"delay", delay, "waited", waited.Round(time.Second), "reason", err.Error())
+			return river.JobSnooze(delay)
+		}
+		switch {
+		case isSessionLost(err):
+			err = fmt.Errorf("connection lost %d times, giving up: %w", meta.SessionLost+1, err)
+		case isHostNotReady(err):
+			err = fmt.Errorf("host still unreachable after %s: %w", waited.Round(time.Second), err)
+		}
 		tail := out
 		if len(tail) > 800 {
 			tail = tail[len(tail)-800:]
@@ -265,6 +300,125 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 }
 
 // ----- Helpers -----
+
+// bastionSSHPort is a var only so tests can point the bootstrap at a local
+// fake sshd.
+var bastionSSHPort = "22"
+
+const (
+	bastionRetryInitial = 5 * time.Second
+	bastionRetryMax     = time.Minute
+
+	// bastionSSHWait is how long a fresh host gets to start accepting SSH.
+	bastionSSHWait = 10 * time.Minute
+
+	// bastionSessionLostMax caps restarts after the connection drops
+	// mid-script. Counted rather than timed because cloud-init's post-upgrade
+	// reboot routinely lands after bastionSSHWait has passed.
+	bastionSessionLostMax = 3
+)
+
+// Job metadata keys a bootstrap carries across snoozes.
+const (
+	bastionMetaSessionLost   = "bastion_session_lost"
+	bastionMetaSessionLostAt = "bastion_session_lost_at"
+)
+
+// bastionJobMeta is the job metadata read back on each attempt. Snoozes is
+// River's own counter, used for backoff because snoozing does not advance
+// Attempt.
+type bastionJobMeta struct {
+	Snoozes       int   `json:"snoozes"`
+	SessionLost   int   `json:"bastion_session_lost"`
+	SessionLostAt int64 `json:"bastion_session_lost_at"`
+}
+
+func parseBastionMeta(metadata []byte) bastionJobMeta {
+	var m bastionJobMeta
+	_ = json.Unmarshal(metadata, &m)
+	return m
+}
+
+// bastionRetryDelay reports whether to snooze a failed bootstrap and for how
+// long. Host-not-up errors retry inside window, lost sessions up to
+// sessionLostMax times; anything else (auth, host key, script exit status)
+// fails, since waiting would not change the outcome.
+func bastionRetryDelay(err error, waited time.Duration, meta bastionJobMeta, window time.Duration, sessionLostMax int) (time.Duration, bool) {
+	switch {
+	case isSessionLost(err):
+		if meta.SessionLost >= sessionLostMax {
+			return 0, false
+		}
+	case !isHostNotReady(err) || waited >= window:
+		return 0, false
+	}
+	delay := bastionRetryInitial
+	for i := 0; i < meta.Snoozes && delay < bastionRetryMax; i++ {
+		delay *= 2
+	}
+	if delay > bastionRetryMax {
+		delay = bastionRetryMax
+	}
+	return delay, true
+}
+
+// sshConnectError marks a failure to reach sshd at all (dial or handshake),
+// as opposed to a failure of the remote script once connected.
+type sshConnectError struct{ err error }
+
+func (e *sshConnectError) Error() string { return e.err.Error() }
+func (e *sshConnectError) Unwrap() error { return e.err }
+
+// isHostNotReady reports whether a connect error looks like a host still
+// booting: nothing listening, no route yet, or sshd dropping the connection
+// before the handshake completes.
+func isHostNotReady(err error) bool {
+	var ce *sshConnectError
+	if !errors.As(err, &ce) {
+		return false
+	}
+	for _, errno := range []syscall.Errno{
+		syscall.ECONNREFUSED, syscall.EHOSTUNREACH, syscall.ENETUNREACH,
+		syscall.ETIMEDOUT, syscall.ECONNRESET, syscall.ECONNABORTED,
+	} {
+		if errors.Is(err, errno) {
+			return true
+		}
+	}
+	var ne net.Error
+	if errors.As(err, &ne) && ne.Timeout() {
+		return true
+	}
+	return errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
+}
+
+// sshSessionError marks a failure after the handshake: opening the session or
+// running the remote script.
+type sshSessionError struct{ err error }
+
+func (e *sshSessionError) Error() string { return e.err.Error() }
+func (e *sshSessionError) Unwrap() error { return e.err }
+
+// isSessionLost reports whether the remote script was cut off by the
+// connection going away (usually cloud-init's package_reboot_if_required
+// firing during "cloud-init status --wait") rather than exiting. The script is
+// safe to re-run from the top.
+func isSessionLost(err error) bool {
+	var se *sshSessionError
+	if !errors.As(err, &se) {
+		return false
+	}
+	var missing *ssh.ExitMissingError
+	if errors.As(err, &missing) {
+		return true
+	}
+	for _, errno := range []syscall.Errno{syscall.ECONNRESET, syscall.ECONNABORTED, syscall.EPIPE} {
+		if errors.Is(err, errno) {
+			return true
+		}
+	}
+	return errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
+}
 
 func setServerStatus(db *gorm.DB, id uuid.UUID, status string) error {
 	return db.Model(&models.Server{}).
@@ -326,24 +480,27 @@ func sshInstallDockerWithOutput(
 		Timeout:         30 * time.Second,
 	}
 
-	// context-aware dial
-	dialer := &net.Dialer{}
+	// config.Timeout only applies to ssh.Dial, so bound the dial and handshake
+	// here: a booting host can accept TCP and then never speak.
+	dialer := &net.Dialer{Timeout: config.Timeout}
 	conn, err := dialer.DialContext(ctx, "tcp", host)
 	if err != nil {
-		return "", fmt.Errorf("dial: %w", err)
+		return "", &sshConnectError{fmt.Errorf("dial: %w", err)}
 	}
 	defer conn.Close()
 
+	_ = conn.SetDeadline(time.Now().Add(config.Timeout))
 	c, chans, reqs, err := ssh.NewClientConn(conn, host, config)
 	if err != nil {
-		return "", fmt.Errorf("ssh handshake: %w", err)
+		return "", &sshConnectError{fmt.Errorf("ssh handshake: %w", err)}
 	}
+	_ = conn.SetDeadline(time.Time{})
 	client := ssh.NewClient(c, chans, reqs)
 	defer client.Close()
 
 	sess, err := client.NewSession()
 	if err != nil {
-		return "", fmt.Errorf("session: %w", err)
+		return "", &sshSessionError{fmt.Errorf("session: %w", err)}
 	}
 	defer sess.Close()
 
@@ -364,6 +521,7 @@ set -euxo pipefail
 
 # ----------- helpers -----------
 have() { command -v "$1" >/dev/null 2>&1; }
+docker_works() { have docker && sudo docker info >/dev/null 2>&1; }
 
 # Wait for dpkg/apt locks to be released (handles cloud-init, unattended-upgrades, etc.)
 apt_wait_lock() {
@@ -448,6 +606,11 @@ if [ "$pm" = "apt" ]; then
   sudo mkdir -p /etc/apt/apt.conf.d
   printf 'DPkg::Lock::Timeout "%s";\n' "$APT_LOCK_WAIT_SECS" \
     | sudo tee /etc/apt/apt.conf.d/90autoglue-lock-timeout >/dev/null
+
+  # A reboot mid-install leaves packages unconfigured and apt refuses to work
+  # until that is finished; this script is re-run from the top after one.
+  apt_wait_lock
+  sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a || true
 fi
 
 pm_update_install() {
@@ -530,14 +693,14 @@ fi
 
 # ----------- docker & compose v2 -----------
 if [ "$INSTALL_DOCKER" = "1" ]; then
-  if ! have docker; then
+  # A reboot during get.docker.com can leave the CLI without a working daemon.
+  if ! docker_works; then
     if [ "$pm" = "apt" ]; then apt_wait_lock; fi
     curl -fsSL https://get.docker.com | sh
   fi
 
-  # try to enable/start (handles distros with systemd)
   if have systemctl; then
-    sudo systemctl enable --now docker || true
+    sudo systemctl enable --now docker
   fi
 
   # add current ssh user to docker group if exists
@@ -734,6 +897,12 @@ EOF
   fi
 fi
 
+# Never report a bastion bootstrapped with docker broken.
+if [ "$INSTALL_DOCKER" = "1" ] && ! docker_works; then
+  echo "FATAL: docker is installed but not working (sudo docker info failed)" >&2
+  exit 1
+fi
+
 echo "Bootstrap complete. If you were added to the docker group, log out and back in to apply."
 `
 
@@ -749,7 +918,10 @@ echo "Bootstrap complete. If you were added to the docker group, log out and bac
 	}
 
 	runErr := runSSHStreaming(sess, "bash -s", w)
-	return tail.String(), wrapSSHError(runErr, tail.String())
+	if runErr != nil {
+		return tail.String(), &sshSessionError{wrapSSHError(runErr, tail.String())}
+	}
+	return tail.String(), nil
 }
 
 // annotate common SSH/remote failure modes to speed triage
