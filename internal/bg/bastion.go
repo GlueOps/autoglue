@@ -3,12 +3,14 @@ package bg
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/glueops/autoglue/internal/models"
@@ -231,11 +233,27 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 	// 3) SSH + install docker. Output streams into job_logs under this server,
 	// so a failed bootstrap can be read back from the API instead of hunting
 	// through worker pod stdout for a truncated tail.
-	host := net.JoinHostPort(*s.PublicIPAddress, "22")
+	host := net.JoinHostPort(*s.PublicIPAddress, bastionSSHPort)
 	sink.System(fmt.Sprintf("connecting to %s as %s", host, s.SSHUser))
 
 	out, err := sshInstallDockerWithOutput(ctx, db, &s, host, s.SSHUser, []byte(privKey), sink)
 	if err != nil {
+		// A bastion is usually claimed seconds after its VM was created, well
+		// before sshd is listening. Snooze rather than fail so the server stays
+		// in provisioning and the bootstrap picks up once the host has booted.
+		// Measured from the job's creation, which snoozing does not reset.
+		waited := time.Since(j.CreatedAt)
+		window := bastionSSHWait()
+		if delay, ok := bastionRetryDelay(err, waited, bastionSnoozes(j.Metadata), window); ok {
+			sink.System(fmt.Sprintf("host not reachable yet (%v); retrying in %s (waited %s of %s)",
+				err, delay, waited.Round(time.Second), window))
+			logHostInfo(jobID, &s, "ssh_wait", "host not reachable yet, snoozing",
+				"delay", delay, "waited", waited.Round(time.Second), "reason", err.Error())
+			return river.JobSnooze(delay)
+		}
+		if isHostNotReady(err) {
+			err = fmt.Errorf("host still unreachable after %s: %w", waited.Round(time.Second), err)
+		}
 		tail := out
 		if len(tail) > 800 {
 			tail = tail[len(tail)-800:]
@@ -265,6 +283,79 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 }
 
 // ----- Helpers -----
+
+// bastionSSHPort is a var only so tests can point the bootstrap at a local
+// fake sshd.
+var bastionSSHPort = "22"
+
+const (
+	bastionRetryInitial = 5 * time.Second
+	bastionRetryMax     = time.Minute
+)
+
+// bastionSSHWait is how long a bootstrap keeps waiting for a freshly created
+// host to start accepting SSH before giving up and marking it failed.
+func bastionSSHWait() time.Duration {
+	return interval("bastion.ssh_wait_seconds", 10*time.Minute)
+}
+
+// bastionRetryDelay decides whether a failed bootstrap should be snoozed and
+// for how long. Only "host not up yet" errors are retried, and only inside the
+// window; everything else (bad key, auth, host key mismatch, the remote script
+// itself) fails immediately, since waiting would not change the outcome.
+func bastionRetryDelay(err error, waited time.Duration, snoozes int, window time.Duration) (time.Duration, bool) {
+	if !isHostNotReady(err) || waited >= window {
+		return 0, false
+	}
+	delay := bastionRetryInitial
+	for i := 0; i < snoozes && delay < bastionRetryMax; i++ {
+		delay *= 2
+	}
+	if delay > bastionRetryMax {
+		delay = bastionRetryMax
+	}
+	return delay, true
+}
+
+// bastionSnoozes reads the snooze count River keeps in job metadata. Snoozing
+// does not advance Attempt, so this is the only counter that moves.
+func bastionSnoozes(metadata []byte) int {
+	var m struct {
+		Snoozes int `json:"snoozes"`
+	}
+	_ = json.Unmarshal(metadata, &m)
+	return m.Snoozes
+}
+
+// sshConnectError marks a failure to reach sshd at all (dial or handshake),
+// as opposed to a failure of the remote script once connected.
+type sshConnectError struct{ err error }
+
+func (e *sshConnectError) Error() string { return e.err.Error() }
+func (e *sshConnectError) Unwrap() error { return e.err }
+
+// isHostNotReady reports whether err looks like a host that is still booting:
+// nothing listening on 22 yet, no route while the network comes up, or sshd
+// dropping the connection before the handshake completes.
+func isHostNotReady(err error) bool {
+	var ce *sshConnectError
+	if !errors.As(err, &ce) {
+		return false
+	}
+	for _, errno := range []syscall.Errno{
+		syscall.ECONNREFUSED, syscall.EHOSTUNREACH, syscall.ENETUNREACH,
+		syscall.ETIMEDOUT, syscall.ECONNRESET, syscall.ECONNABORTED,
+	} {
+		if errors.Is(err, errno) {
+			return true
+		}
+	}
+	var ne net.Error
+	if errors.As(err, &ne) && ne.Timeout() {
+		return true
+	}
+	return errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
+}
 
 func setServerStatus(db *gorm.DB, id uuid.UUID, status string) error {
 	return db.Model(&models.Server{}).
@@ -326,18 +417,22 @@ func sshInstallDockerWithOutput(
 		Timeout:         30 * time.Second,
 	}
 
-	// context-aware dial
-	dialer := &net.Dialer{}
+	// context-aware dial. config.Timeout only applies to ssh.Dial, so bound
+	// the dial and the handshake here: a host that is still booting can accept
+	// the TCP connection and then never speak.
+	dialer := &net.Dialer{Timeout: config.Timeout}
 	conn, err := dialer.DialContext(ctx, "tcp", host)
 	if err != nil {
-		return "", fmt.Errorf("dial: %w", err)
+		return "", &sshConnectError{fmt.Errorf("dial: %w", err)}
 	}
 	defer conn.Close()
 
+	_ = conn.SetDeadline(time.Now().Add(config.Timeout))
 	c, chans, reqs, err := ssh.NewClientConn(conn, host, config)
 	if err != nil {
-		return "", fmt.Errorf("ssh handshake: %w", err)
+		return "", &sshConnectError{fmt.Errorf("ssh handshake: %w", err)}
 	}
+	_ = conn.SetDeadline(time.Time{})
 	client := ssh.NewClient(c, chans, reqs)
 	defer client.Close()
 
