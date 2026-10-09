@@ -13,6 +13,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -72,7 +73,7 @@ func TestIsHostNotReady(t *testing.T) {
 }
 
 func TestBastionRetryDelay(t *testing.T) {
-	window := 10 * time.Minute
+	window, grace := 10*time.Minute, 3*time.Minute
 	authErr := &sshConnectError{errors.New("ssh: handshake failed: ssh: unable to authenticate")}
 	cases := []struct {
 		name      string
@@ -87,14 +88,41 @@ func TestBastionRetryDelay(t *testing.T) {
 		{"capped", refusedDialErr(), 5 * time.Minute, 4, time.Minute, true},
 		{"capped with large count", refusedDialErr(), 9 * time.Minute, 1000, time.Minute, true},
 		{"window exceeded", refusedDialErr(), window, 3, 0, false},
-		{"auth failure in window", authErr, time.Second, 0, 0, false},
+		{"auth rejected inside grace", authErr, time.Second, 0, 5 * time.Second, true},
+		{"auth rejected backs off", authErr, time.Minute, 3, 40 * time.Second, true},
+		{"auth rejected past grace", authErr, grace, 0, 0, false},
+		{"host key mismatch inside grace", &sshConnectError{errors.New("ssh: handshake failed: host key mismatch for x - POSSIBLE MITM or host reinstalled")}, time.Second, 0, 0, false},
+		{"key parse error inside grace", fmt.Errorf("parse private key: %w", errors.New("ssh: no key found")), time.Second, 0, 0, false},
 		{"script failure in window", errors.New("remote run: exit status 1"), time.Second, 0, 0, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			delay, retry := bastionRetryDelay(tc.err, tc.waited, tc.snoozes, window)
+			delay, retry := bastionRetryDelay(tc.err, tc.waited, tc.snoozes, window, grace)
 			if retry != tc.wantRetry || delay != tc.wantDelay {
 				t.Errorf("bastionRetryDelay = (%s, %v), want (%s, %v)", delay, retry, tc.wantDelay, tc.wantRetry)
+			}
+		})
+	}
+}
+
+func TestIsAuthRejected(t *testing.T) {
+	cases := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{"nil", nil, false},
+		{"handshake auth failure", &sshConnectError{fmt.Errorf("ssh handshake: %w", errors.New("ssh: handshake failed: ssh: unable to authenticate, attempted methods [none publickey], no supported methods remain"))}, true},
+		{"refused", refusedDialErr(), false},
+		{"host key mismatch", &sshConnectError{errors.New("ssh: handshake failed: host key mismatch for x - POSSIBLE MITM or host reinstalled")}, false},
+		// Only the connect phase counts; the remote script printing the
+		// phrase must not buy it a retry.
+		{"remote output", errors.New("remote run: ssh: unable to authenticate"), false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := isAuthRejected(tc.err); got != tc.want {
+				t.Errorf("isAuthRejected(%v) = %v, want %v", tc.err, got, tc.want)
 			}
 		})
 	}
@@ -117,8 +145,9 @@ func TestBastionSnoozes(t *testing.T) {
 
 // ----- end to end against a fake sshd -----
 
-// fakeSSHD accepts only authorized, runs nothing, and exits 0 for any exec.
-func fakeSSHD(t *testing.T, ln net.Listener, authorized ssh.PublicKey) {
+// fakeSSHD accepts keys for which accept returns true, runs nothing, and
+// exits 0 for any exec.
+func fakeSSHD(t *testing.T, ln net.Listener, accept func(ssh.PublicKey) bool) {
 	t.Helper()
 	_, hostPriv, _ := ed25519.GenerateKey(rand.Reader)
 	hostSigner, err := ssh.NewSignerFromKey(hostPriv)
@@ -127,7 +156,7 @@ func fakeSSHD(t *testing.T, ln net.Listener, authorized ssh.PublicKey) {
 	}
 	cfg := &ssh.ServerConfig{
 		PublicKeyCallback: func(_ ssh.ConnMetadata, k ssh.PublicKey) (*ssh.Permissions, error) {
-			if string(k.Marshal()) == string(authorized.Marshal()) {
+			if accept(k) {
 				return nil, nil
 			}
 			return nil, errors.New("unauthorized")
@@ -144,6 +173,10 @@ func fakeSSHD(t *testing.T, ln net.Listener, authorized ssh.PublicKey) {
 			go serveFakeSSH(c, cfg)
 		}
 	}()
+}
+
+func onlyKey(want ssh.PublicKey) func(ssh.PublicKey) bool {
+	return func(k ssh.PublicKey) bool { return string(k.Marshal()) == string(want.Marshal()) }
 }
 
 func serveFakeSSH(c net.Conn, cfg *ssh.ServerConfig) {
@@ -313,7 +346,7 @@ func TestBastionBootstrapWaitsForSSHThenSucceeds(t *testing.T) {
 		t.Fatalf("listen on %s: %v", port, err)
 	}
 	t.Cleanup(func() { _ = ln.Close() })
-	fakeSSHD(t, ln, f.pub)
+	fakeSSHD(t, ln, onlyKey(f.pub))
 
 	if err := f.work(t, created, 2); err != nil {
 		t.Fatalf("Work once sshd is up = %v, want nil", err)
@@ -323,19 +356,48 @@ func TestBastionBootstrapWaitsForSSHThenSucceeds(t *testing.T) {
 	}
 }
 
-func TestBastionBootstrapAuthFailureFailsImmediately(t *testing.T) {
-	f := newBastionFixture(t)
+// listenFakeSSHD starts a fake sshd on a free port and points the bootstrap
+// at it.
+func listenFakeSSHD(t *testing.T, accept func(ssh.PublicKey) bool) {
+	t.Helper()
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
 	}
 	t.Cleanup(func() { _ = ln.Close() })
+	fakeSSHD(t, ln, accept)
+	usePort(t, strconv.Itoa(ln.Addr().(*net.TCPAddr).Port))
+}
+
+// sshd is up but refuses the key, as it does under pam_nologin or before
+// late user-data has written authorized_keys, then lets it in.
+func TestBastionBootstrapRetriesAuthRejectedWhileBooting(t *testing.T) {
+	f := newBastionFixture(t)
+	var booted atomic.Bool
+	listenFakeSSHD(t, func(k ssh.PublicKey) bool { return booted.Load() && onlyKey(f.pub)(k) })
+	created := time.Now()
+
+	wantSnooze(t, f.work(t, created, 0))
+	if got := f.status(t); got != "provisioning" {
+		t.Fatalf("status after rejected auth = %q, want provisioning", got)
+	}
+
+	booted.Store(true)
+	if err := f.work(t, created, 1); err != nil {
+		t.Fatalf("Work once auth is accepted = %v, want nil", err)
+	}
+	if got := f.status(t); got != "ready" {
+		t.Fatalf("status = %q, want ready", got)
+	}
+}
+
+func TestBastionBootstrapAuthRejectedPastGraceFails(t *testing.T) {
+	f := newBastionFixture(t)
 	other, _, _ := ed25519.GenerateKey(rand.Reader)
 	otherPub, _ := ssh.NewPublicKey(other)
-	fakeSSHD(t, ln, otherPub) // sshd up, but our key is not authorized
-	usePort(t, strconv.Itoa(ln.Addr().(*net.TCPAddr).Port))
+	listenFakeSSHD(t, onlyKey(otherPub)) // our key is never authorized
 
-	if err := f.work(t, time.Now(), 0); err != nil {
+	if err := f.work(t, time.Now().Add(-bastionAuthGrace()-time.Second), 5); err != nil {
 		t.Fatalf("Work = %v, want nil (failure recorded on the server, not retried)", err)
 	}
 	if got := f.status(t); got != "failed" {
