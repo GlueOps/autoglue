@@ -20,7 +20,6 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -254,8 +253,8 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 			}
 		}
 		waited := time.Since(since)
-		window := bastionSSHWait()
-		if delay, ok := bastionRetryDelay(err, waited, meta, window, bastionSessionLostMax()); ok {
+		window := bastionSSHWait
+		if delay, ok := bastionRetryDelay(err, waited, meta, window, bastionSessionLostMax); ok {
 			why := "host not reachable yet"
 			if isSessionLost(err) {
 				why = "connection lost, host may be rebooting"
@@ -311,24 +310,19 @@ var bastionSSHPort = "22"
 const (
 	bastionRetryInitial = 5 * time.Second
 	bastionRetryMax     = time.Minute
+
+	// bastionSSHWait is how long a bootstrap keeps waiting for a freshly
+	// created host to start accepting SSH before giving up and marking it
+	// failed.
+	bastionSSHWait = 10 * time.Minute
+
+	// bastionSessionLostMax is how many times a bootstrap may lose its
+	// connection mid-script and start over. Counted rather than timed: the
+	// reboot at the end of cloud-init's package upgrade routinely lands after
+	// the wait window since job creation has closed. Each attempt is still
+	// bounded by Timeout.
+	bastionSessionLostMax = 3
 )
-
-// bastionSSHWait is how long a bootstrap keeps waiting for a freshly created
-// host to start accepting SSH before giving up and marking it failed.
-func bastionSSHWait() time.Duration {
-	return interval("bastion.ssh_wait_seconds", 10*time.Minute)
-}
-
-// bastionSessionLostMax is how many times a bootstrap may lose its connection
-// mid-script and start over. Counted rather than timed: the reboot at the end
-// of cloud-init's package upgrade routinely lands after the wait window since
-// job creation has closed. Each attempt is still bounded by Timeout.
-func bastionSessionLostMax() int {
-	if n := viper.GetInt("bastion.session_lost_retries"); n > 0 {
-		return n
-	}
-	return 3
-}
 
 // Job metadata keys a bootstrap carries across snoozes.
 const (
