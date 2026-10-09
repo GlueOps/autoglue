@@ -78,7 +78,6 @@ type BastionSweepResult struct {
 	Status     string      `json:"status"`
 	Claimed    int         `json:"claimed"`
 	Dispatched int         `json:"dispatched"`
-	Duplicates int         `json:"duplicates"`
 	ServerIDs  []uuid.UUID `json:"server_ids"`
 }
 
@@ -133,29 +132,11 @@ func (w *BastionSweepWorker) Work(ctx context.Context, j *river.Job[BastionSweep
 		return nil
 	}
 
-	dispatched, duplicates := dispatchBastionBootstraps(ctx, river.ClientFromContext[pgx.Tx](ctx), db, claimedIDs)
+	client := river.ClientFromContext[pgx.Tx](ctx)
 
-	log.Info().Int("claimed", len(claimedIDs)).Int("dispatched", dispatched).
-		Int("duplicates", duplicates).Msg("[bastion] sweep dispatched bootstrap jobs")
-
-	if err := river.RecordOutput(ctx, BastionSweepResult{
-		Status:     "ok",
-		Claimed:    len(claimedIDs),
-		Dispatched: dispatched,
-		Duplicates: duplicates,
-		ServerIDs:  claimedIDs,
-	}); err != nil {
-		log.Warn().Err(err).Msg("[bastion] could not record sweep output")
-	}
-	return nil
-}
-
-// dispatchBastionBootstraps inserts one bootstrap job per claimed server and
-// reports how many were new and how many deduplicated against a live job.
-func dispatchBastionBootstraps(ctx context.Context, client *Client, db *gorm.DB, claimedIDs []uuid.UUID) (dispatched, duplicates int) {
+	dispatched := 0
 	for _, id := range claimedIDs {
-		res, err := client.Insert(ctx, BastionBootstrapArgs{ServerID: id}, nil)
-		if err != nil {
+		if _, err := client.Insert(ctx, BastionBootstrapArgs{ServerID: id}, nil); err != nil {
 			// Hand the server back so a later tick retries it, rather than
 			// leaving it stranded in provisioning.
 			log.Error().Err(err).Str("server_id", id.String()).
@@ -163,19 +144,21 @@ func dispatchBastionBootstraps(ctx context.Context, client *Client, db *gorm.DB,
 			_ = setServerStatus(db, id, "pending")
 			continue
 		}
-		if res.UniqueSkippedAsDuplicate {
-			// Usually a server set back to pending while its bootstrap is
-			// snoozed waiting for sshd. That job is still live and will set the
-			// final status, so there is nothing to hand back.
-			log.Info().Str("server_id", id.String()).Int64("existing_job_id", res.Job.ID).
-				Msg("[bastion] bootstrap already queued for server; skipped duplicate dispatch")
-			duplicates++
-			continue
-		}
 		dispatched++
 	}
 
-	return dispatched, duplicates
+	log.Info().Int("claimed", len(claimedIDs)).Int("dispatched", dispatched).
+		Msg("[bastion] sweep dispatched bootstrap jobs")
+
+	if err := river.RecordOutput(ctx, BastionSweepResult{
+		Status:     "ok",
+		Claimed:    len(claimedIDs),
+		Dispatched: dispatched,
+		ServerIDs:  claimedIDs,
+	}); err != nil {
+		log.Warn().Err(err).Msg("[bastion] could not record sweep output")
+	}
+	return nil
 }
 
 // ----- Bootstrap (one server) -----
@@ -221,17 +204,6 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 
 	sink.System(fmt.Sprintf("claimed bastion %s (%s)", s.ID, s.Hostname))
 
-	// Whether this host had booted and been reached before this job started,
-	// decided on the first attempt and carried across snoozes: TOFU records the
-	// host key during that first handshake, so from the second attempt on the
-	// server row can no longer tell us.
-	meta := parseBastionMeta(j.Metadata)
-	if meta.KnownHost == nil {
-		known := s.SSHHostKey != ""
-		meta.KnownHost = &known
-		_ = river.MetadataSet(ctx, bastionMetaKnownHost, known)
-	}
-
 	fail := func(step string, err error) error {
 		sink.System("bootstrap failed at " + step + ": " + err.Error())
 		logHostErr(jobID, &s, step, err)
@@ -267,16 +239,6 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 
 	out, err := sshInstallDockerWithOutput(ctx, db, &s, host, s.SSHUser, []byte(privKey), sink)
 	if err != nil {
-		// The worker is shutting down. The script is safe to re-run, so hand
-		// the job back to run again as soon as a worker is up, rather than
-		// failing a bastion that did nothing wrong. A job cancelled on purpose
-		// (River UI, JobCancel) is not handed back; it fails below.
-		if errors.Is(err, context.Canceled) && ctx.Err() != nil &&
-			!errors.Is(context.Cause(ctx), river.ErrJobCancelledRemotely) {
-			sink.System("worker shutting down; bootstrap will restart")
-			return river.JobSnooze(0)
-		}
-
 		// A bastion is usually claimed seconds after its VM was created, well
 		// before sshd is listening, and cloud-init may reboot it once more
 		// while the script waits on it. Snooze rather than fail so the server
@@ -284,6 +246,7 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 		// booted. The wait is measured from the job's creation, which snoozing
 		// does not reset, or from the last lost connection, since a reboot
 		// starts the boot over.
+		meta := parseBastionMeta(j.Metadata)
 		since := j.CreatedAt
 		if meta.SessionLostAt > 0 {
 			if t := time.Unix(meta.SessionLostAt, 0); t.After(since) {
@@ -291,14 +254,16 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 			}
 		}
 		waited := time.Since(since)
-		limits := bastionLimits()
-		if delay, why, ok := bastionRetryDelay(err, waited, meta, limits); ok {
+		window := bastionSSHWait()
+		if delay, ok := bastionRetryDelay(err, waited, meta, window, bastionSessionLostMax()); ok {
+			why := "host not reachable yet"
 			if isSessionLost(err) {
+				why = "connection lost, host may be rebooting"
 				_ = river.MetadataSet(ctx, bastionMetaSessionLost, meta.SessionLost+1)
 				_ = river.MetadataSet(ctx, bastionMetaSessionLostAt, time.Now().Unix())
 			}
 			sink.System(fmt.Sprintf("%s (%v); retrying in %s (waited %s of %s)",
-				why, err, delay, waited.Round(time.Second), limits.window))
+				why, err, delay, waited.Round(time.Second), window))
 			logHostInfo(jobID, &s, "ssh_wait", why+", snoozing",
 				"delay", delay, "waited", waited.Round(time.Second), "reason", err.Error())
 			return river.JobSnooze(delay)
@@ -308,8 +273,6 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 			err = fmt.Errorf("connection lost %d times, giving up: %w", meta.SessionLost+1, err)
 		case isHostNotReady(err):
 			err = fmt.Errorf("host still unreachable after %s: %w", waited.Round(time.Second), err)
-		case isAuthRejected(err):
-			err = fmt.Errorf("auth still rejected after %s: %w", waited.Round(time.Second), err)
 		}
 		tail := out
 		if len(tail) > 800 {
@@ -356,19 +319,10 @@ func bastionSSHWait() time.Duration {
 	return interval("bastion.ssh_wait_seconds", 10*time.Minute)
 }
 
-// bastionAuthGrace is how long a rejected key is still put down to the host
-// booting. sshd can be up before it will let the user in: pam_nologin refuses
-// non-root logins until systemd-user-sessions has run, and user-data that
-// creates the user or its key late (runcmd, write_files) leaves it missing for
-// all of cloud-final. Past this, a rejected key is taken to be the wrong key.
-func bastionAuthGrace() time.Duration {
-	return interval("bastion.ssh_auth_grace_seconds", 3*time.Minute)
-}
-
 // bastionSessionLostMax is how many times a bootstrap may lose its connection
-// mid-script and start over. Counted rather than timed: a reboot at the end of
-// cloud-init's package upgrade routinely lands well after the wait window
-// since job creation has closed. Each attempt is still bounded by Timeout.
+// mid-script and start over. Counted rather than timed: the reboot at the end
+// of cloud-init's package upgrade routinely lands after the wait window since
+// job creation has closed. Each attempt is still bounded by Timeout.
 func bastionSessionLostMax() int {
 	if n := viper.GetInt("bastion.session_lost_retries"); n > 0 {
 		return n
@@ -376,23 +330,8 @@ func bastionSessionLostMax() int {
 	return 3
 }
 
-type bastionRetryLimits struct {
-	window         time.Duration
-	authGrace      time.Duration
-	sessionLostMax int
-}
-
-func bastionLimits() bastionRetryLimits {
-	return bastionRetryLimits{
-		window:         bastionSSHWait(),
-		authGrace:      bastionAuthGrace(),
-		sessionLostMax: bastionSessionLostMax(),
-	}
-}
-
 // Job metadata keys a bootstrap carries across snoozes.
 const (
-	bastionMetaKnownHost     = "bastion_known_host"
 	bastionMetaSessionLost   = "bastion_session_lost"
 	bastionMetaSessionLostAt = "bastion_session_lost_at"
 )
@@ -402,7 +341,6 @@ const (
 // the only counter River moves.
 type bastionJobMeta struct {
 	Snoozes       int   `json:"snoozes"`
-	KnownHost     *bool `json:"bastion_known_host"`
 	SessionLost   int   `json:"bastion_session_lost"`
 	SessionLostAt int64 `json:"bastion_session_lost_at"`
 }
@@ -413,30 +351,19 @@ func parseBastionMeta(metadata []byte) bastionJobMeta {
 	return m
 }
 
-// bastionRetryDelay decides whether a failed bootstrap should be snoozed, for
-// how long, and why. "Host not up yet" errors are retried inside the window,
-// a lost connection up to sessionLostMax times, and a rejected key inside the
-// auth grace period, but only for a host never reached before: on one that has
-// been, fail2ban would ban us long before the grace ran out and turn a wrong
-// key into what looks like an unreachable host. Everything else (bad key, host
-// key mismatch, the remote script exiting non-zero) fails immediately, since
-// waiting would not change the outcome.
-func bastionRetryDelay(err error, waited time.Duration, meta bastionJobMeta, l bastionRetryLimits) (time.Duration, string, bool) {
-	var why string
+// bastionRetryDelay decides whether a failed bootstrap should be snoozed and
+// for how long. "Host not up yet" errors are retried inside window, and a
+// connection lost mid-script up to sessionLostMax times; everything else (bad
+// key, auth, host key mismatch, the remote script exiting non-zero) fails
+// immediately, since waiting would not change the outcome.
+func bastionRetryDelay(err error, waited time.Duration, meta bastionJobMeta, window time.Duration, sessionLostMax int) (time.Duration, bool) {
 	switch {
 	case isSessionLost(err):
-		if meta.SessionLost >= l.sessionLostMax {
-			return 0, "", false
+		if meta.SessionLost >= sessionLostMax {
+			return 0, false
 		}
-		why = "connection lost, host may be rebooting"
-	case waited >= l.window:
-		return 0, "", false
-	case isHostNotReady(err):
-		why = "host not reachable yet"
-	case isAuthRejected(err) && waited < l.authGrace && (meta.KnownHost == nil || !*meta.KnownHost):
-		why = "auth rejected, host may still be booting"
-	default:
-		return 0, "", false
+	case !isHostNotReady(err) || waited >= window:
+		return 0, false
 	}
 	delay := bastionRetryInitial
 	for i := 0; i < meta.Snoozes && delay < bastionRetryMax; i++ {
@@ -445,7 +372,7 @@ func bastionRetryDelay(err error, waited time.Duration, meta bastionJobMeta, l b
 	if delay > bastionRetryMax {
 		delay = bastionRetryMax
 	}
-	return delay, why, true
+	return delay, true
 }
 
 // sshConnectError marks a failure to reach sshd at all (dial or handshake),
@@ -478,13 +405,6 @@ func isHostNotReady(err error) bool {
 	return errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
 }
 
-// isAuthRejected reports whether sshd answered but refused our key. x/crypto
-// returns this as an unwrapped fmt.Errorf, so it can only be matched on text.
-func isAuthRejected(err error) bool {
-	var ce *sshConnectError
-	return errors.As(err, &ce) && strings.Contains(err.Error(), "ssh: unable to authenticate")
-}
-
 // sshSessionError marks a failure after the handshake: opening the session or
 // running the remote script.
 type sshSessionError struct{ err error }
@@ -496,30 +416,16 @@ func (e *sshSessionError) Unwrap() error { return e.err }
 // connection going away rather than finishing. The usual cause is the host
 // rebooting under it (cloud-init's package_reboot_if_required lands while the
 // script sits in "cloud-init status --wait"), and the script is safe to re-run
-// from the top: every step is guarded or overwrites its own file.
-//
-// A script that ran to completion and exited non-zero is not this, and is
-// never retried. A script killed by TERM, HUP or KILL is: that is what a
-// shutdown does to the session before the connection drops.
+// from the top. A script that ran and exited non-zero is not this, and is
+// never retried.
 func isSessionLost(err error) bool {
 	var se *sshSessionError
 	if !errors.As(err, &se) {
 		return false
 	}
-	if errors.Is(err, errKeepaliveLost) {
-		return true
-	}
 	var missing *ssh.ExitMissingError
 	if errors.As(err, &missing) {
 		return true
-	}
-	var exit *ssh.ExitError
-	if errors.As(err, &exit) {
-		switch exit.Signal() {
-		case "TERM", "HUP", "KILL":
-			return true
-		}
-		return false
 	}
 	for _, errno := range []syscall.Errno{syscall.ECONNRESET, syscall.ECONNABORTED, syscall.EPIPE} {
 		if errors.Is(err, errno) {
@@ -527,20 +433,6 @@ func isSessionLost(err error) bool {
 		}
 	}
 	return errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
-}
-
-// sessionErr tags a post-handshake failure, unless the supervisor closed the
-// connection: then its reason is the real cause. A cancelled context is
-// deliberately left untagged so it is never mistaken for a lost session.
-func sessionErr(closedBecause, err error) error {
-	switch {
-	case closedBecause == nil:
-		return &sshSessionError{err}
-	case errors.Is(closedBecause, errKeepaliveLost):
-		return &sshSessionError{fmt.Errorf("%w: %v", closedBecause, err)}
-	default:
-		return fmt.Errorf("aborted: %w (%v)", closedBecause, err)
-	}
 }
 
 func setServerStatus(db *gorm.DB, id uuid.UUID, status string) error {
@@ -622,15 +514,9 @@ func sshInstallDockerWithOutput(
 	client := ssh.NewClient(c, chans, reqs)
 	defer client.Close()
 
-	// Without this a host that vanishes without a FIN (a hard reset, a dropped
-	// route) leaves the session blocked until TCP gives up, and a cancelled
-	// job keeps its script running remotely.
-	stopSupervise := superviseSSH(ctx, client)
-	defer func() { _ = stopSupervise() }()
-
 	sess, err := client.NewSession()
 	if err != nil {
-		return "", sessionErr(stopSupervise(), fmt.Errorf("session: %w", err))
+		return "", &sshSessionError{fmt.Errorf("session: %w", err)}
 	}
 	defer sess.Close()
 
@@ -824,11 +710,6 @@ fi
 
 # ----------- docker & compose v2 -----------
 if [ "$INSTALL_DOCKER" = "1" ]; then
-  # An existing install may just not be started yet after a reboot.
-  if have docker && have systemctl; then
-    sudo systemctl enable --now docker || true
-  fi
-
   # "have docker" alone is not enough: a reboot during get.docker.com can
   # leave the CLI installed with no working daemon behind it.
   if ! docker_works; then
@@ -1056,7 +937,7 @@ echo "Bootstrap complete. If you were added to the docker group, log out and bac
 
 	runErr := runSSHStreaming(sess, "bash -s", w)
 	if runErr != nil {
-		return tail.String(), sessionErr(stopSupervise(), wrapSSHError(runErr, tail.String()))
+		return tail.String(), &sshSessionError{wrapSSHError(runErr, tail.String())}
 	}
 	return tail.String(), nil
 }

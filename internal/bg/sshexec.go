@@ -1,12 +1,9 @@
 package bg
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"io"
 	"sync"
-	"time"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -73,85 +70,4 @@ func runSSHStreaming(sess *ssh.Session, cmd string, w io.Writer) error {
 	wg.Wait()
 
 	return sess.Wait()
-}
-
-// Keepalive cadence for superviseSSH. Vars only so tests can shrink them.
-var (
-	sshKeepaliveEvery  = 15 * time.Second
-	sshKeepaliveMisses = 3
-)
-
-var errKeepaliveLost = errors.New("ssh keepalive: host stopped answering")
-
-// superviseSSH closes client when ctx is done, or when the host misses
-// sshKeepaliveMisses keepalives in a row. Closing it is what unblocks a
-// session stuck reading from a peer that is gone without a FIN.
-//
-// The returned stop ends supervision and reports why it closed the client:
-// nil if it did not, ctx.Err() or errKeepaliveLost if it did. It is safe to
-// call more than once.
-func superviseSSH(ctx context.Context, client *ssh.Client) (stop func() error) {
-	done := make(chan struct{})
-	var (
-		once   sync.Once
-		mu     sync.Mutex
-		reason error
-	)
-	closeFor := func(err error) {
-		mu.Lock()
-		if reason == nil {
-			reason = err
-		}
-		mu.Unlock()
-		_ = client.Close()
-	}
-
-	go func() {
-		t := time.NewTicker(sshKeepaliveEvery)
-		defer t.Stop()
-		misses := 0
-		for {
-			select {
-			case <-done:
-				return
-			case <-ctx.Done():
-				closeFor(ctx.Err())
-				return
-			case <-t.C:
-			}
-
-			// Any reply, including "unsupported", proves the host is there.
-			// An error means the connection is already gone, which the
-			// session will report on its own.
-			reply := make(chan error, 1)
-			go func() {
-				_, _, err := client.SendRequest("keepalive@openssh.com", true, nil)
-				reply <- err
-			}()
-			select {
-			case <-done:
-				return
-			case <-ctx.Done():
-				closeFor(ctx.Err())
-				return
-			case err := <-reply:
-				if err != nil {
-					return
-				}
-				misses = 0
-			case <-time.After(sshKeepaliveEvery):
-				if misses++; misses >= sshKeepaliveMisses {
-					closeFor(errKeepaliveLost)
-					return
-				}
-			}
-		}
-	}()
-
-	return func() error {
-		once.Do(func() { close(done) })
-		mu.Lock()
-		defer mu.Unlock()
-		return reason
-	}
 }
