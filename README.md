@@ -96,16 +96,6 @@ gate, and replaces the old hand-rolled jobs admin page. Retention of finished
 jobs is handled by River itself (`river.completed_retain_days` and friends in
 config), not by a cleanup job.
 
-### Bastion bootstrap retries
-
-`bootstrap_bastion` waits for a freshly created host instead of failing it.
-Unset or `0` means "use the default".
-
-| Setting                        | Default | What it bounds                                                        |
-| ------------------------------ | ------- | --------------------------------------------------------------------- |
-| `bastion.ssh_wait_seconds`     | 600     | How long to keep retrying while sshd is not reachable yet             |
-| `bastion.session_lost_retries` | 3       | How many times to restart after the connection drops mid-script (e.g. a cloud-init reboot) |
-
 ### Housekeeping schedule
 
 | Job                | When            | What it does                                                  |

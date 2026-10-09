@@ -425,7 +425,7 @@ func TestBastionBootstrapFailsAfterWindow(t *testing.T) {
 	f := newBastionFixture(t)
 	usePort(t, freePort(t))
 
-	if err := f.work(t, time.Now().Add(-bastionSSHWait()-time.Second), 7); err != nil {
+	if err := f.work(t, time.Now().Add(-bastionSSHWait-time.Second), 7); err != nil {
 		t.Fatalf("Work = %v, want nil (failure recorded on the server, not retried)", err)
 	}
 	if got := f.status(t); got != "failed" {
