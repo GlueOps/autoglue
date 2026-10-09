@@ -135,13 +135,21 @@ func (w *BastionSweepWorker) Work(ctx context.Context, j *river.Job[BastionSweep
 
 	dispatched := 0
 	for _, id := range claimedIDs {
-		if _, err := client.Insert(ctx, BastionBootstrapArgs{ServerID: id}, nil); err != nil {
+		res, err := client.Insert(ctx, BastionBootstrapArgs{ServerID: id}, nil)
+		if err != nil {
 			// Hand the server back so a later tick retries it, rather than
 			// leaving it stranded in provisioning.
 			log.Error().Err(err).Str("server_id", id.String()).
 				Msg("[bastion] could not dispatch bootstrap; returning server to pending")
 			_ = setServerStatus(db, id, "pending")
 			continue
+		}
+		if res.UniqueSkippedAsDuplicate {
+			// Usually a server set back to pending while its bootstrap is
+			// snoozed waiting for sshd. That job is still live and will set the
+			// final status, so there is nothing to hand back.
+			log.Info().Str("server_id", id.String()).Int64("existing_job_id", res.Job.ID).
+				Msg("[bastion] bootstrap already queued for server; skipped duplicate dispatch")
 		}
 		dispatched++
 	}
