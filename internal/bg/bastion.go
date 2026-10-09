@@ -238,12 +238,10 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 
 	out, err := sshInstallDockerWithOutput(ctx, db, &s, host, s.SSHUser, []byte(privKey), sink)
 	if err != nil {
-		// A bastion is usually claimed seconds after its VM was created, well
-		// before sshd is listening, and cloud-init may reboot it once more
-		// while the script waits on it. Snooze rather than fail so the server
-		// stays in provisioning and the bootstrap picks up once the host has
-		// booted. The wait is measured from the job's creation, which snoozing
-		// does not reset, or from the last lost connection, since a reboot
+		// A bastion is claimed seconds after its VM is created, before sshd is
+		// up, and cloud-init may reboot it mid-script. Snooze so the server
+		// stays in provisioning. The wait runs from job creation (snoozing
+		// does not reset it) or from the last lost connection, since a reboot
 		// starts the boot over.
 		meta := parseBastionMeta(j.Metadata)
 		since := j.CreatedAt
@@ -311,16 +309,12 @@ const (
 	bastionRetryInitial = 5 * time.Second
 	bastionRetryMax     = time.Minute
 
-	// bastionSSHWait is how long a bootstrap keeps waiting for a freshly
-	// created host to start accepting SSH before giving up and marking it
-	// failed.
+	// bastionSSHWait is how long a fresh host gets to start accepting SSH.
 	bastionSSHWait = 10 * time.Minute
 
-	// bastionSessionLostMax is how many times a bootstrap may lose its
-	// connection mid-script and start over. Counted rather than timed: the
-	// reboot at the end of cloud-init's package upgrade routinely lands after
-	// the wait window since job creation has closed. Each attempt is still
-	// bounded by Timeout.
+	// bastionSessionLostMax caps restarts after the connection drops
+	// mid-script. Counted rather than timed because cloud-init's post-upgrade
+	// reboot routinely lands after bastionSSHWait has passed.
 	bastionSessionLostMax = 3
 )
 
@@ -330,9 +324,9 @@ const (
 	bastionMetaSessionLostAt = "bastion_session_lost_at"
 )
 
-// bastionJobMeta is the job metadata a bootstrap reads back on each attempt.
-// Snoozes is River's own count; snoozing does not advance Attempt, so it is
-// the only counter River moves.
+// bastionJobMeta is the job metadata read back on each attempt. Snoozes is
+// River's own counter, used for backoff because snoozing does not advance
+// Attempt.
 type bastionJobMeta struct {
 	Snoozes       int   `json:"snoozes"`
 	SessionLost   int   `json:"bastion_session_lost"`
@@ -345,11 +339,10 @@ func parseBastionMeta(metadata []byte) bastionJobMeta {
 	return m
 }
 
-// bastionRetryDelay decides whether a failed bootstrap should be snoozed and
-// for how long. "Host not up yet" errors are retried inside window, and a
-// connection lost mid-script up to sessionLostMax times; everything else (bad
-// key, auth, host key mismatch, the remote script exiting non-zero) fails
-// immediately, since waiting would not change the outcome.
+// bastionRetryDelay reports whether to snooze a failed bootstrap and for how
+// long. Host-not-up errors retry inside window, lost sessions up to
+// sessionLostMax times; anything else (auth, host key, script exit status)
+// fails, since waiting would not change the outcome.
 func bastionRetryDelay(err error, waited time.Duration, meta bastionJobMeta, window time.Duration, sessionLostMax int) (time.Duration, bool) {
 	switch {
 	case isSessionLost(err):
@@ -376,9 +369,9 @@ type sshConnectError struct{ err error }
 func (e *sshConnectError) Error() string { return e.err.Error() }
 func (e *sshConnectError) Unwrap() error { return e.err }
 
-// isHostNotReady reports whether err looks like a host that is still booting:
-// nothing listening on 22 yet, no route while the network comes up, or sshd
-// dropping the connection before the handshake completes.
+// isHostNotReady reports whether a connect error looks like a host still
+// booting: nothing listening, no route yet, or sshd dropping the connection
+// before the handshake completes.
 func isHostNotReady(err error) bool {
 	var ce *sshConnectError
 	if !errors.As(err, &ce) {
@@ -407,11 +400,9 @@ func (e *sshSessionError) Error() string { return e.err.Error() }
 func (e *sshSessionError) Unwrap() error { return e.err }
 
 // isSessionLost reports whether the remote script was cut off by the
-// connection going away rather than finishing. The usual cause is the host
-// rebooting under it (cloud-init's package_reboot_if_required lands while the
-// script sits in "cloud-init status --wait"), and the script is safe to re-run
-// from the top. A script that ran and exited non-zero is not this, and is
-// never retried.
+// connection going away (usually cloud-init's package_reboot_if_required
+// firing during "cloud-init status --wait") rather than exiting. The script is
+// safe to re-run from the top.
 func isSessionLost(err error) bool {
 	var se *sshSessionError
 	if !errors.As(err, &se) {
@@ -489,9 +480,8 @@ func sshInstallDockerWithOutput(
 		Timeout:         30 * time.Second,
 	}
 
-	// context-aware dial. config.Timeout only applies to ssh.Dial, so bound
-	// the dial and the handshake here: a host that is still booting can accept
-	// the TCP connection and then never speak.
+	// config.Timeout only applies to ssh.Dial, so bound the dial and handshake
+	// here: a booting host can accept TCP and then never speak.
 	dialer := &net.Dialer{Timeout: config.Timeout}
 	conn, err := dialer.DialContext(ctx, "tcp", host)
 	if err != nil {
@@ -617,9 +607,8 @@ if [ "$pm" = "apt" ]; then
   printf 'DPkg::Lock::Timeout "%s";\n' "$APT_LOCK_WAIT_SECS" \
     | sudo tee /etc/apt/apt.conf.d/90autoglue-lock-timeout >/dev/null
 
-  # This script is re-run from the top after a reboot cuts it off, and a
-  # reboot mid-install leaves packages unpacked but unconfigured. apt refuses
-  # to do anything until that is finished, so finish it first.
+  # A reboot mid-install leaves packages unconfigured and apt refuses to work
+  # until that is finished; this script is re-run from the top after one.
   apt_wait_lock
   sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a || true
 fi
@@ -704,8 +693,7 @@ fi
 
 # ----------- docker & compose v2 -----------
 if [ "$INSTALL_DOCKER" = "1" ]; then
-  # "have docker" alone is not enough: a reboot during get.docker.com can
-  # leave the CLI installed with no working daemon behind it.
+  # A reboot during get.docker.com can leave the CLI without a working daemon.
   if ! docker_works; then
     if [ "$pm" = "apt" ]; then apt_wait_lock; fi
     curl -fsSL https://get.docker.com | sh

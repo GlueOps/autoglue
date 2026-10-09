@@ -433,10 +433,9 @@ func TestBastionBootstrapFailsAfterWindow(t *testing.T) {
 	}
 }
 
-// TestIsSessionLostAgainstRealExits checks the classification against what
-// x/crypto really returns for each way a session can end, rather than against
-// hand-built errors. One fake sshd serves every case so the host key stays the
-// one TOFU recorded first.
+// TestIsSessionLostAgainstRealExits classifies the errors x/crypto actually
+// returns. One fake sshd serves every case so the host key stays the one TOFU
+// recorded first.
 func TestIsSessionLostAgainstRealExits(t *testing.T) {
 	f := newBastionFixture(t)
 	var mode atomic.Value
@@ -483,8 +482,7 @@ func TestIsSessionLostAgainstRealExits(t *testing.T) {
 	}
 }
 
-// The host reboots under the script (cloud-init's package_reboot_if_required
-// while it sits in "cloud-init status --wait"); the next attempt finds it back.
+// The host reboots under the script; the next attempt finds it back.
 func TestBastionBootstrapRetriesAfterConnectionLost(t *testing.T) {
 	f := newBastionFixture(t)
 	var rebooted atomic.Bool
@@ -522,9 +520,8 @@ func TestBastionBootstrapScriptFailureFailsImmediately(t *testing.T) {
 	}
 }
 
-// The Proxmox reboot after cloud-init's package upgrade lands after the
-// script has sat in "cloud-init status --wait" for the whole upgrade, often
-// past the wait window. It must still be retried.
+// The reboot after cloud-init's package upgrade often lands past the wait
+// window and must still be retried.
 func TestBastionBootstrapSessionLostPastWindowIsRetried(t *testing.T) {
 	f := newBastionFixture(t)
 	listenFakeSSHD(t, onlyKey(f.pub), func() string { return execDrop })
