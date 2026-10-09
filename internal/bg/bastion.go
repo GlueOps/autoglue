@@ -244,15 +244,22 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 		// Measured from the job's creation, which snoozing does not reset.
 		waited := time.Since(j.CreatedAt)
 		window := bastionSSHWait()
-		if delay, ok := bastionRetryDelay(err, waited, bastionSnoozes(j.Metadata), window); ok {
-			sink.System(fmt.Sprintf("host not reachable yet (%v); retrying in %s (waited %s of %s)",
-				err, delay, waited.Round(time.Second), window))
-			logHostInfo(jobID, &s, "ssh_wait", "host not reachable yet, snoozing",
+		if delay, ok := bastionRetryDelay(err, waited, bastionSnoozes(j.Metadata), window, bastionAuthGrace()); ok {
+			why := "host not reachable yet"
+			if isAuthRejected(err) {
+				why = "auth rejected, host may still be booting"
+			}
+			sink.System(fmt.Sprintf("%s (%v); retrying in %s (waited %s of %s)",
+				why, err, delay, waited.Round(time.Second), window))
+			logHostInfo(jobID, &s, "ssh_wait", why+", snoozing",
 				"delay", delay, "waited", waited.Round(time.Second), "reason", err.Error())
 			return river.JobSnooze(delay)
 		}
-		if isHostNotReady(err) {
+		switch {
+		case isHostNotReady(err):
 			err = fmt.Errorf("host still unreachable after %s: %w", waited.Round(time.Second), err)
+		case isAuthRejected(err):
+			err = fmt.Errorf("auth still rejected after %s: %w", waited.Round(time.Second), err)
 		}
 		tail := out
 		if len(tail) > 800 {
@@ -299,12 +306,25 @@ func bastionSSHWait() time.Duration {
 	return interval("bastion.ssh_wait_seconds", 10*time.Minute)
 }
 
+// bastionAuthGrace is how long a rejected key is still put down to the host
+// booting. sshd can be up before it will let the user in: pam_nologin refuses
+// non-root logins until systemd-user-sessions has run, and user-data that
+// creates the user or its key late (runcmd, write_files) leaves it missing for
+// all of cloud-final. Past this, a rejected key is taken to be the wrong key.
+func bastionAuthGrace() time.Duration {
+	return interval("bastion.ssh_auth_grace_seconds", 3*time.Minute)
+}
+
 // bastionRetryDelay decides whether a failed bootstrap should be snoozed and
-// for how long. Only "host not up yet" errors are retried, and only inside the
-// window; everything else (bad key, auth, host key mismatch, the remote script
-// itself) fails immediately, since waiting would not change the outcome.
-func bastionRetryDelay(err error, waited time.Duration, snoozes int, window time.Duration) (time.Duration, bool) {
-	if !isHostNotReady(err) || waited >= window {
+// for how long. "Host not up yet" errors are retried inside window, and a
+// rejected key inside authGrace; everything else (bad key, host key mismatch,
+// the remote script itself) fails immediately, since waiting would not change
+// the outcome.
+func bastionRetryDelay(err error, waited time.Duration, snoozes int, window, authGrace time.Duration) (time.Duration, bool) {
+	if waited >= window {
+		return 0, false
+	}
+	if !isHostNotReady(err) && (!isAuthRejected(err) || waited >= authGrace) {
 		return 0, false
 	}
 	delay := bastionRetryInitial
@@ -355,6 +375,13 @@ func isHostNotReady(err error) bool {
 		return true
 	}
 	return errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
+}
+
+// isAuthRejected reports whether sshd answered but refused our key. x/crypto
+// returns this as an unwrapped fmt.Errorf, so it can only be matched on text.
+func isAuthRejected(err error) bool {
+	var ce *sshConnectError
+	return errors.As(err, &ce) && strings.Contains(err.Error(), "ssh: unable to authenticate")
 }
 
 func setServerStatus(db *gorm.DB, id uuid.UUID, status string) error {
