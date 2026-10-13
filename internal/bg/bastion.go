@@ -700,7 +700,7 @@ if [ "$INSTALL_DOCKER" = "1" ]; then
   fi
 
   if have systemctl; then
-    sudo systemctl enable --now docker
+    sudo systemctl enable --now docker || true
   fi
 
   # add current ssh user to docker group if exists
