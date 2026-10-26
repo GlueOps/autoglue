@@ -1,6 +1,8 @@
 package bg
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"sync"
@@ -35,13 +37,46 @@ func (t *tailBuffer) String() string {
 	return string(t.b)
 }
 
+// closeOnDone closes c once ctx is done, and returns a func that cancels this.
+//
+// Nothing in x/crypto/ssh takes a context: once a handshake or a remote command
+// is under way, the only way to stop waiting on it is to close what it is
+// reading from. Bind the TCP connection to the step's context right after the
+// dial, so the step's deadline bounds the handshake and the command too, even
+// against a peer that has stopped answering altogether.
+func closeOnDone(ctx context.Context, c io.Closer) (stop func() bool) {
+	return context.AfterFunc(ctx, func() { _ = c.Close() })
+}
+
+// stepErr reports a remote step that its context cut short as exactly that,
+// instead of as the transport error that closing the connection produces. The
+// result does not wrap the original error, so it is never mistaken for a
+// dropped connection worth retrying.
+func stepErr(ctx context.Context, err error) error {
+	if err == nil || ctx.Err() == nil {
+		return err
+	}
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return fmt.Errorf("remote step timed out: %w", context.Cause(ctx))
+	}
+	return fmt.Errorf("remote step cancelled: %w", context.Cause(ctx))
+}
+
 // runSSHStreaming runs cmd and copies its combined output to w as it arrives,
 // rather than buffering until exit the way (*ssh.Session).CombinedOutput does.
 //
 // That difference is the whole point: a `make bootstrap` can run for hours, and
 // with CombinedOutput nothing is observable until it finishes — and on success
 // the output was discarded entirely.
-func runSSHStreaming(sess *ssh.Session, cmd string, w io.Writer) error {
+//
+// When ctx is done the session is closed, which ends the wait while the peer
+// still answers. A peer that has gone silent will not answer that close either;
+// callers bind the connection itself with closeOnDone for that case. This
+// stops autoglue waiting on the command, not the command: a container started
+// with --sig-proxy=false keeps running on the bastion by design.
+func runSSHStreaming(ctx context.Context, sess *ssh.Session, cmd string, w io.Writer) error {
+	defer closeOnDone(ctx, sess)()
+
 	stdout, err := sess.StdoutPipe()
 	if err != nil {
 		return fmt.Errorf("stdout pipe: %w", err)
@@ -51,8 +86,10 @@ func runSSHStreaming(sess *ssh.Session, cmd string, w io.Writer) error {
 		return fmt.Errorf("stderr pipe: %w", err)
 	}
 
+	// Start waits for the peer to acknowledge the exec request, so it can be
+	// the call a deadline cuts short.
 	if err := sess.Start(cmd); err != nil {
-		return fmt.Errorf("start remote command: %w", err)
+		return stepErr(ctx, fmt.Errorf("start remote command: %w", err))
 	}
 
 	// Both pipes must be drained fully before Wait, or Wait can block and the
@@ -69,5 +106,5 @@ func runSSHStreaming(sess *ssh.Session, cmd string, w io.Writer) error {
 
 	wg.Wait()
 
-	return sess.Wait()
+	return stepErr(ctx, sess.Wait())
 }

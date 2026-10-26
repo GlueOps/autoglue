@@ -333,6 +333,7 @@ func sshInstallDockerWithOutput(
 		return "", fmt.Errorf("dial: %w", err)
 	}
 	defer conn.Close()
+	defer closeOnDone(ctx, conn)()
 
 	c, chans, reqs, err := ssh.NewClientConn(conn, host, config)
 	if err != nil {
@@ -748,7 +749,7 @@ echo "Bootstrap complete. If you were added to the docker group, log out and bac
 		w = io.MultiWriter(tail, sink)
 	}
 
-	runErr := runSSHStreaming(sess, "bash -s", w)
+	runErr := runSSHStreaming(ctx, sess, "bash -s", w)
 	return tail.String(), wrapSSHError(runErr, tail.String())
 }
 
@@ -756,6 +757,11 @@ echo "Bootstrap complete. If you were added to the docker group, log out and bac
 func wrapSSHError(err error, output string) error {
 	if err == nil {
 		return nil
+	}
+	// A step cut off by its deadline says so. Its output can mention apt or a
+	// failed lookup without that being why it stopped.
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+		return fmt.Errorf("remote run: %w", err)
 	}
 	switch {
 	case strings.Contains(output, "Could not resolve host"):
