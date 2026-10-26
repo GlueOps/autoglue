@@ -1,7 +1,7 @@
 #################################
 # Builder: Go + Node in one
 #################################
-FROM golang:1.26.10-alpine@sha256:27f2d3b83cfc5803c8078f8e730af0f7c431bf067afaec8f60a36fb763187cba AS builder
+FROM golang:1.27.3-alpine@sha256:b8c9b82affbbb82a020bbcf998dad2ba9516944ac7e883524642a481a9505e9c AS builder
 
 RUN apk add --no-cache \
     bash git ca-certificates tzdata \
@@ -33,7 +33,7 @@ RUN make build
 #################################
 # Runtime
 #################################
-FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 
 RUN apk add --no-cache ca-certificates tzdata postgresql17-client \
  && addgroup -S app && adduser -S app -G app
