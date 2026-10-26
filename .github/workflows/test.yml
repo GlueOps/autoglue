@@ -101,18 +101,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      # Deliberately not go-version-file here. go.mod still declares go 1.25.4
-      # while the image builds on a newer toolchain, so scanning with the
-      # directive reports standard library advisories that are not present in
-      # the binary that actually ships. Scan what ships.
+      # Deliberately not go-version-file here. go.mod declares a minimum, not
+      # the toolchain the image builds on, so scanning with the directive
+      # reports standard library advisories that are not present in the binary
+      # that actually ships. Scan what ships.
       #
-      # This must match the builder image in the Dockerfile exactly. When they
-      # drift, the scan is either reporting vulnerabilities the shipped binary
-      # does not have or, worse, missing ones it does.
+      # The version is read from the Dockerfile builder line rather than
+      # hardcoded. It used to be a literal here, and Renovate's toolchain bumps
+      # only touch the Dockerfile — so a bump PR scanned the old toolchain and
+      # could never turn its own check green.
+      - name: Read builder Go version
+        id: go
+        run: |
+          v=$(sed -n 's/^FROM golang:\([0-9][0-9.]*\)-.*/\1/p' Dockerfile)
+          test -n "$v" || { echo "::error::no golang builder image in Dockerfile"; exit 1; }
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
       - name: Set up Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
-          go-version: "1.26.6"
+          go-version: ${{ steps.go.outputs.version }}
 
       - name: Generate embeds
         run: |
