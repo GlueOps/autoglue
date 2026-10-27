@@ -493,10 +493,16 @@ func sshInstallDockerWithOutput(
 		return "", &sshConnectError{fmt.Errorf("dial: %w", err)}
 	}
 	defer conn.Close()
+	defer closeOnDone(ctx, conn)()
 
 	_ = conn.SetDeadline(time.Now().Add(config.Timeout))
 	c, chans, reqs, err := ssh.NewClientConn(conn, host, config)
 	if err != nil {
+		// Once the step's deadline closes the connection, the handshake fails
+		// with EOF, which would read as a host still booting.
+		if ctx.Err() != nil {
+			return "", stepErr(ctx, err)
+		}
 		return "", &sshConnectError{fmt.Errorf("ssh handshake: %w", err)}
 	}
 	_ = conn.SetDeadline(time.Time{})
@@ -505,6 +511,9 @@ func sshInstallDockerWithOutput(
 
 	sess, err := client.NewSession()
 	if err != nil {
+		if ctx.Err() != nil {
+			return "", stepErr(ctx, err)
+		}
 		return "", &sshSessionError{fmt.Errorf("session: %w", err)}
 	}
 	defer sess.Close()
@@ -922,7 +931,7 @@ echo "Bootstrap complete. If you were added to the docker group, log out and bac
 		w = io.MultiWriter(tail, sink)
 	}
 
-	runErr := runSSHStreaming(sess, "bash -s", w)
+	runErr := runSSHStreaming(ctx, sess, "bash -s", w)
 	if runErr != nil {
 		return tail.String(), &sshSessionError{wrapSSHError(runErr, tail.String())}
 	}
@@ -933,6 +942,11 @@ echo "Bootstrap complete. If you were added to the docker group, log out and bac
 func wrapSSHError(err error, output string) error {
 	if err == nil {
 		return nil
+	}
+	// A step cut off by its deadline says so. Its output can mention apt or a
+	// failed lookup without that being why it stopped.
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+		return fmt.Errorf("remote run: %w", err)
 	}
 	switch {
 	case strings.Contains(output, "Could not resolve host"):

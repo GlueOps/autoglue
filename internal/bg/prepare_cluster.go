@@ -188,6 +188,7 @@ func pushAssetsToBastion(
 		return fmt.Errorf("dial bastion: %w", err)
 	}
 	defer conn.Close()
+	defer closeOnDone(ctx, conn)()
 
 	cconn, chans, reqs, err := ssh.NewClientConn(conn, host, config)
 	if err != nil {
@@ -248,7 +249,7 @@ func pushAssetsToBastion(
 	out, runErr := sess.CombinedOutput("bash -s")
 
 	if runErr != nil {
-		return wrapSSHError(runErr, string(out))
+		return wrapSSHError(stepErr(ctx, runErr), string(out))
 	}
 	return nil
 }
@@ -328,6 +329,7 @@ func runMakeOnBastion(
 		return "", fmt.Errorf("dial bastion: %w", err)
 	}
 	defer conn.Close()
+	defer closeOnDone(ctx, conn)()
 
 	cconn, chans, reqs, err := ssh.NewClientConn(conn, host, config)
 	if err != nil {
@@ -373,7 +375,7 @@ func runMakeOnBastion(
 		w = io.MultiWriter(tail, sink)
 	}
 
-	if runErr := runSSHStreaming(sess, cmd, w); runErr != nil {
+	if runErr := runSSHStreaming(ctx, sess, cmd, w); runErr != nil {
 		return tail.String(), wrapSSHError(runErr, tail.String())
 	}
 	return tail.String(), nil
