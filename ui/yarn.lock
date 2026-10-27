@@ -8624,8 +8624,8 @@ __metadata:
   linkType: hard
 
 "victory-vendor@npm:^37.0.2":
-  version: 37.4.0
-  resolution: "victory-vendor@npm:37.4.0"
+  version: 37.4.1
+  resolution: "victory-vendor@npm:37.4.1"
   dependencies:
     "@types/d3-array": "npm:^3.0.3"
     "@types/d3-ease": "npm:^3.0.0"
@@ -8641,7 +8641,7 @@ __metadata:
     d3-shape: "npm:^3.1.0"
     d3-time: "npm:^3.0.0"
     d3-timer: "npm:^3.0.1"
-  checksum: 10/506afbd63b01ec93e8177720760c84519e4560b8c774d8483a1b1e9a36ef2d7371e36cd89aeb1108c57e380a7b760a699df67762c56345a012b0d896c47e8d10
+  checksum: 10/3862d8f6edf1a7c6c13a2fff90cbaf2d92084213f765a62c7d1bf3d31779cbe12c163c8b066cefef863907030933e9bfe5efe204dd02171b5fb8b5d4054e6a97
   languageName: node
   linkType: hard
 
