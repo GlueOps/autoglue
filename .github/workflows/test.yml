@@ -23,10 +23,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      # Test on the toolchain the image builds with, read from the Dockerfile
+      # rather than go.mod: Renovate bumps the builder image on each Go patch
+      # but treats go.mod's directive as a minimum and leaves it alone, so the
+      # two drift apart until someone raises go.mod by hand. See vulncheck.
+      - name: Read builder Go version
+        id: go
+        run: |
+          v=$(sed -n 's/^FROM golang:\([0-9][0-9.]*\)-.*/\1/p' Dockerfile)
+          test -n "$v" || { echo "::error::no golang builder image in Dockerfile"; exit 1; }
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: go.mod
+          go-version: ${{ steps.go.outputs.version }}
 
       - name: Test
         run: make test
