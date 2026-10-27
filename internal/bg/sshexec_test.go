@@ -343,3 +343,21 @@ func TestWrapSSHErrorReportsTimeoutOverOutput(t *testing.T) {
 		t.Fatal("a timed-out step should not wrap the transport error it caused")
 	}
 }
+
+// A step cut short by its deadline must not be retried as a lost session or a
+// host still booting (#1245): closing the connection produces exactly the EOF
+// both of those look for.
+func TestTimedOutStepIsNotRetried(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	defer cancel()
+	<-ctx.Done()
+
+	for name, err := range map[string]error{
+		"run":     &sshSessionError{wrapSSHError(stepErr(ctx, io.EOF), "")},
+		"session": stepErr(ctx, io.EOF),
+	} {
+		if isSessionLost(err) || isHostNotReady(err) {
+			t.Errorf("%s: timed-out step classified as retryable: %v", name, err)
+		}
+	}
+}
