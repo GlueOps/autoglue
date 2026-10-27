@@ -142,7 +142,8 @@ func TestParseBastionMeta(t *testing.T) {
 		``:              {},
 		`{}`:            {},
 		`{"snoozes":3}`: {Snoozes: 3},
-		`{"snoozes":2,"other":"x","bastion_session_lost":1,"bastion_session_lost_at":42}`: {
+		// Keys built from the constants Work writes, so they can't drift from the json tags.
+		fmt.Sprintf(`{"snoozes":2,"other":"x","%s":1,"%s":42}`, bastionMetaSessionLost, bastionMetaSessionLostAt): {
 			Snoozes: 2, SessionLost: 1, SessionLostAt: 42,
 		},
 		`not json`: {},

@@ -256,8 +256,13 @@ func (w *BastionBootstrapWorker) Work(ctx context.Context, j *river.Job[BastionB
 			why := "host not reachable yet"
 			if isSessionLost(err) {
 				why = "connection lost, host may be rebooting"
-				_ = river.MetadataSet(ctx, bastionMetaSessionLost, meta.SessionLost+1)
-				_ = river.MetadataSet(ctx, bastionMetaSessionLostAt, time.Now().Unix())
+				if err := errors.Join(
+					river.MetadataSet(ctx, bastionMetaSessionLost, meta.SessionLost+1),
+					river.MetadataSet(ctx, bastionMetaSessionLostAt, time.Now().Unix()),
+				); err != nil {
+					log.Warn().Err(err).Str("server_id", s.ID.String()).
+						Msg("[bastion] could not record session loss")
+				}
 			}
 			sink.System(fmt.Sprintf("%s (%v); retrying in %s (waited %s of %s)",
 				why, err, delay, waited.Round(time.Second), window))
