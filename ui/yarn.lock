@@ -6334,15 +6334,15 @@ __metadata:
   linkType: hard
 
 "lucide-react@npm:^1.0.0":
-  version: 1.61.0
-  resolution: "lucide-react@npm:1.61.0"
+  version: 1.62.0
+  resolution: "lucide-react@npm:1.62.0"
   peerDependencies:
     "@types/react": "*"
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10/94967ade6a5ed65e12606558411caa7de6c8318a024a52d311c90dd7c93cfc7fd8d5eabcba546485ff2f1692218e9a725702418a7307e54604cf699f1bd7d630
+  checksum: 10/3a326045d9063285eebb2f9e89e7d818c55ae86fc4bc56123de49e6fb0b662108448f276e13e27e71b093ca54e98c91ab2c816379b7d0adbb26374ea5660246d
   languageName: node
   linkType: hard
 
@@ -7177,12 +7177,12 @@ __metadata:
   linkType: hard
 
 "qs@npm:^6.16.0, qs@npm:^6.16.1":
-  version: 6.16.1
-  resolution: "qs@npm:6.16.1"
+  version: 6.17.0
+  resolution: "qs@npm:6.17.0"
   dependencies:
     es-define-property: "npm:^1.0.1"
     side-channel: "npm:^1.1.1"
-  checksum: 10/e33e0a5ceecb7bef81ea1f855365482045f55ba55278f40b8dbf9ee18eae8ef82d44246fe4e4009d6b6f102cbf2885a34b88c4272536cd628cde40b4ac9912c2
+  checksum: 10/c6e6d98d25721c2eb61b2b8b0a99c299e335abd5b8dea3ae6b6335b51da38a0dbf83535c48c02c32745175ed7b96acb25772667647b1a6cc2cac69825f56c7f9
   languageName: node
   linkType: hard
 
