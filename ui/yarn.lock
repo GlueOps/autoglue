@@ -3829,9 +3829,9 @@ __metadata:
   linkType: hard
 
 "apg-lite@npm:^1.0.3, apg-lite@npm:^1.0.4, apg-lite@npm:^1.0.5":
-  version: 1.0.6
-  resolution: "apg-lite@npm:1.0.6"
-  checksum: 10/9f8c15bd18df38c9509e4390eb9292d9d1d4a1abea4641695867ab77adb09aeb71a92819887c214897f9f9525be7e0da0dcc8726557b14a7e039bcf397b8d17d
+  version: 1.0.7
+  resolution: "apg-lite@npm:1.0.7"
+  checksum: 10/c00013b34dcbba515cacad50f679ee4ea3b16a780f21f2d4e5019b97dffd508d979a29ac2a4d93440176d484d566434d4ca7ef4bf4c65d4b4e685d77a1ef5727
   languageName: node
   linkType: hard
 
