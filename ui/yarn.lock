@@ -2967,11 +2967,11 @@ __metadata:
   linkType: hard
 
 "@swaggerexpert/cookie@npm:^2.0.2":
-  version: 2.1.0
-  resolution: "@swaggerexpert/cookie@npm:2.1.0"
+  version: 2.1.1
+  resolution: "@swaggerexpert/cookie@npm:2.1.1"
   dependencies:
     apg-lite: "npm:^1.0.7"
-  checksum: 10/35d505ac4071f1f8d51ffe78055c23882a372b328709d58c1c6b51b87bb4af5ec245815b61ec7d492250da17552e223fcc6b35ffd42ac26250683445744066f8
+  checksum: 10/5830e466c1d9f926dad80f2419fb14547760f1738071d7e740c6ffdd8d748b2bdf593c728f7e879ba7303556c7a823eebbf704867c24d79cec9dbbe2d84f74b4
   languageName: node
   linkType: hard
 
