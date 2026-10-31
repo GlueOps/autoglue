@@ -6650,9 +6650,9 @@ __metadata:
   linkType: hard
 
 "node-releases@npm:^2.0.60":
-  version: 2.0.61
-  resolution: "node-releases@npm:2.0.61"
-  checksum: 10/f757b1b25752d0df9abd385718b815320cbfa5257b3e77b5c6b9a847eaca3d220e047fb87bb68a5a48978d58233236721e96ab7d68f2125ff0c2005f68bccead
+  version: 2.0.62
+  resolution: "node-releases@npm:2.0.62"
+  checksum: 10/c2fa707f6baed7ac7050f45ce76115d655dedbbba517d10e9fff242681f21d91fd9d77393acd9990ef1f3307262d9b343e2ab832491b3995bd07e076b68f16fa
   languageName: node
   linkType: hard
 
