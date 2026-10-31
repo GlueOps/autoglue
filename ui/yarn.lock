@@ -8079,11 +8079,11 @@ __metadata:
   linkType: hard
 
 "systeminformation@npm:^5.22.11":
-  version: 5.33.18
-  resolution: "systeminformation@npm:5.33.18"
+  version: 5.33.19
+  resolution: "systeminformation@npm:5.33.19"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10/923204e0970fc94a52bc14c65aa32034a5253566e60ea68f6d74877d4b2820c5380e8724c74c3911dee3b0f0b1d08496a53b12cdfc772caaeed43ff605586c31
+  checksum: 10/d952b30f39fd8902f67fa6cc3ba97fec7d01877247fa86a11bea59c30b93986e04a9cbbd44a54b6893631210de7c8bf484966bcbfad5c4bfa00e979400265067
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
