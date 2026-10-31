@@ -4782,8 +4782,8 @@ __metadata:
   linkType: hard
 
 "es-toolkit@npm:^1.39.3":
-  version: 1.53.0
-  resolution: "es-toolkit@npm:1.53.0"
+  version: 1.53.1
+  resolution: "es-toolkit@npm:1.53.1"
   dependenciesMeta:
     "@trivago/prettier-plugin-sort-imports@4.3.0":
       unplugged: true
@@ -4791,7 +4791,7 @@ __metadata:
       unplugged: true
     vitepress-plugin-sandpack@1.1.4:
       unplugged: true
-  checksum: 10/c3889f372cd39aec4acc9f5df31bc920c1e506e195d2764e87d9c1240908bd0bf84c44b42b6c7ec59ec3f739acddb5ffaeb6bf7d6527338b655fb31f5a52010f
+  checksum: 10/0e95c3acba17b62b47b3557247ca8b957206be81bff5cd284f5e57157426f42516543cdbdc4945d9dcd0769eddc405ff6065449ce884c3831435eafbbe14b32e
   languageName: node
   linkType: hard
 
