@@ -34,7 +34,7 @@ require (
 	gorm.io/datatypes v1.2.7
 	gorm.io/driver/postgres v1.6.3
 	gorm.io/gorm v1.31.2
-	riverqueue.com/riverui v0.19.0
+	riverqueue.com/riverui v0.20.0
 )
 
 require (
@@ -120,7 +120,7 @@ require (
 	github.com/swaggo/swag/v2 v2.0.0-rc5 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
-	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/pretty v1.2.2 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tuvistavie/securerandom v0.0.0-20140719024926-15512123a948 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
