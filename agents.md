@@ -172,7 +172,7 @@ Request handlers implement business logic for API endpoints:
 ## Development Workflow
 
 ### Prerequisites
-- Go 1.25.4+
+- Go 1.27+
 - Docker & Docker Compose
 - PostgreSQL (via docker-compose)
 - Node.js (for UI development)
