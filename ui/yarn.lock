@@ -5279,22 +5279,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"framer-motion@npm:13.5.1":
-  version: 13.5.1
-  resolution: "framer-motion@npm:13.5.1"
+"framer-motion@npm:14.9.0":
+  version: 14.9.0
+  resolution: "framer-motion@npm:14.9.0"
   dependencies:
-    motion-dom: "npm:13.5.1"
-    motion-utils: "npm:13.5.0"
+    motion-dom: "npm:14.9.0"
+    motion-utils: "npm:14.7.0"
     tslib: "npm:^2.4.0"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
     react-dom: ^18.0.0 || ^19.0.0
+    remix: ^3.1.0
   peerDependenciesMeta:
     react:
       optional: true
     react-dom:
       optional: true
-  checksum: 10/34e429d254361bd6ea55d61003078a4043da888899f93b4ecd444078fbe06ec7d7b9203703ac364ba6ce1cba5fe2616f47762a909f8dc8faad041bfdfb74d81f
+    remix:
+      optional: true
+  checksum: 10/7a953677cee5d404af8ba04ec5f9cf9af61ba968f55f3c40c519515d0a7ea8a197c5528f11e7bd2e5b8501bea7fd248fd7a359444d44911dd04e2787722fa562
   languageName: node
   linkType: hard
 
@@ -6551,37 +6554,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"motion-dom@npm:13.5.1":
-  version: 13.5.1
-  resolution: "motion-dom@npm:13.5.1"
+"motion-dom@npm:14.9.0":
+  version: 14.9.0
+  resolution: "motion-dom@npm:14.9.0"
   dependencies:
-    motion-utils: "npm:13.5.0"
-  checksum: 10/3be9d4dd79d6e5dc7605ae5380f08eaa90e69299c465414b6646d31d99c32452dc08e4d2ddeb0e6aa1e4df0567862bd77d68804e85bd075fff178414651125f6
+    motion-utils: "npm:14.7.0"
+  checksum: 10/092d8c99ba985b2930003ad071c935be1953e7fb3c248c5294d288e0363713936afa792aa0bf588e931e229acb0f31b21cd905a5280119fe4ad4323cc72253e4
   languageName: node
   linkType: hard
 
-"motion-utils@npm:13.5.0":
-  version: 13.5.0
-  resolution: "motion-utils@npm:13.5.0"
-  checksum: 10/ccdba6179ddd7b22913bb81ca4961df5218efca2d754bfe72e63c90b50ff273666cb06d83319f2299a88263b8f5779ea45ae9e7113b7c893b3515aa2970f8fb0
+"motion-utils@npm:14.7.0":
+  version: 14.7.0
+  resolution: "motion-utils@npm:14.7.0"
+  checksum: 10/411e24ba7f1bd736180a9bcf2dec92f41fc6300fa92c89e3cc6dc384e20fd2961314da2daf147750b3fc80739190f2693c7cbb696d0176905c1a9d54ad22bef6
   languageName: node
   linkType: hard
 
-"motion@npm:^13.0.0":
-  version: 13.5.1
-  resolution: "motion@npm:13.5.1"
+"motion@npm:^14.0.0":
+  version: 14.9.0
+  resolution: "motion@npm:14.9.0"
   dependencies:
-    framer-motion: "npm:13.5.1"
+    framer-motion: "npm:14.9.0"
     tslib: "npm:^2.4.0"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
     react-dom: ^18.0.0 || ^19.0.0
+    remix: ^3.1.0
   peerDependenciesMeta:
     react:
       optional: true
     react-dom:
       optional: true
-  checksum: 10/b34cdf61f28c4566752c4781ef07fcdc915cf2ca75ffd3c43c7fca66b452d5ee9341e3759653124e744eb857dfaffb6aaa16c2ffe37408e4a43aeb52951c1a8d
+    remix:
+      optional: true
+  checksum: 10/5a66d0776c22acece5c6e426880e82cb312d68ab444935e2875b49a12f20f7f631593f9ea0e1eb100fbd783123727519a9fb2a20fe6d8265292508082517c5d5
   languageName: node
   linkType: hard
 
@@ -8477,7 +8483,7 @@ __metadata:
     input-otp: "npm:^1.4.2"
     jsdom: "npm:30.1.1"
     lucide-react: "npm:^1.0.0"
-    motion: "npm:^13.0.0"
+    motion: "npm:^14.0.0"
     next-themes: "npm:^0.4.6"
     prettier: "npm:3.9.9"
     prettier-plugin-tailwindcss: "npm:0.8.1"
