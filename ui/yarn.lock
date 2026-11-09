@@ -6862,11 +6862,11 @@ __metadata:
   linkType: hard
 
 "postcss-selector-parser@npm:^7.1.3":
-  version: 7.1.8
-  resolution: "postcss-selector-parser@npm:7.1.8"
+  version: 7.2.0
+  resolution: "postcss-selector-parser@npm:7.2.0"
   dependencies:
     util-deprecate: "npm:^1.0.2"
-  checksum: 10/4e91895bacc95f23cf150e01e999a479fd8472a842ea006684109bb6d70bb9e84146e78a86cea591782281e5ee5220af6f819c68eb378916499e6e3cfe498bbb
+  checksum: 10/369b847d2cc270673502f4180448056bb13112c14a4a328782cce07a32bc6eebc112b6adfc870242c394d6d0ddf06bdacf2687dbbdde6f9c0907420f3701351e
   languageName: node
   linkType: hard
 
