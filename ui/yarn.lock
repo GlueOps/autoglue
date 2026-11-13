@@ -8078,21 +8078,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tldts-core@npm:^7.4.27":
-  version: 7.4.27
-  resolution: "tldts-core@npm:7.4.27"
-  checksum: 10/28acea705fb8f3a04af06d168c49ad96c23c059f5bd6845bf396213ac2f97fa904f2db056e66e62409f168147a77bdf14549f0e361c2211c4ff398d1783f14b1
+"tldts-core@npm:^7.4.28":
+  version: 7.4.28
+  resolution: "tldts-core@npm:7.4.28"
+  checksum: 10/e4c70dfa098c679e7e3d6acdc3a0ffa112c67891e5c582264f88d32c1c454635358ecb1474842984518c7c634c5f9e447d4ac6937cd0e2537ee5fbc017cd0d72
   languageName: node
   linkType: hard
 
 "tldts@npm:^7.0.5":
-  version: 7.4.27
-  resolution: "tldts@npm:7.4.27"
+  version: 7.4.28
+  resolution: "tldts@npm:7.4.28"
   dependencies:
-    tldts-core: "npm:^7.4.27"
+    tldts-core: "npm:^7.4.28"
   bin:
     tldts: bin/cli.js
-  checksum: 10/517cae84fd62b8a50adc4e573f0ecfd2175fe98e7d721cee38e2c65a887b583b40e10511db4a92b4b2f3eebd9b7343510397101ca9aac972a853a1cd9518ba45
+  checksum: 10/6c3771e736868d716fbaaa762ec851686e809790944f1304ce8424c31ba80c37ea72b4a00ff9bb2e389a086d94e8a5ad697855a66774508468ca5dfdffdf32bf
   languageName: node
   linkType: hard
 
