@@ -4750,9 +4750,9 @@ __metadata:
   linkType: hard
 
 "encodeurl@npm:^2.0.0":
-  version: 2.0.2
-  resolution: "encodeurl@npm:2.0.2"
-  checksum: 10/c548244b79cff2160a23666cce01f2a7304d5ff87aae975c6ec3bc9c0bd36aca1d5b939026d68b052d9d6b00d2e58f18e1f860f9e7a828f85f9600d089182b4c
+  version: 2.0.3
+  resolution: "encodeurl@npm:2.0.3"
+  checksum: 10/61995df1fc6c869ed18f1fafd4f584115488de64f14ec867d764a9973cf1bf0454bb8d0ff1bacac52722cec16da5bfa05a6599aa4ab1dfb757f0669c48ec7e7b
   languageName: node
   linkType: hard
 
