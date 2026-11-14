@@ -8021,9 +8021,9 @@ __metadata:
   linkType: hard
 
 "tapable@npm:^2.3.3":
-  version: 2.3.3
-  resolution: "tapable@npm:2.3.3"
-  checksum: 10/21fb64a7ae1a0e11d855a6c33a22ae5ecf7e2f23170c942da673b44bf4c3aae8aa52451ef2792d0ce36c7feca13dceafa4f135105d66fc06912632488c0913fd
+  version: 2.3.4
+  resolution: "tapable@npm:2.3.4"
+  checksum: 10/31de6d1ad41fabcc91f2541b17e430cd3a8a56e2d430a7a44c971cc149a787ef39ec9bd9777df833ad75598beb337d1ec6140b7a81659a4a999718e06698034a
   languageName: node
   linkType: hard
 
