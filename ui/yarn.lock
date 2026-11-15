@@ -28,14 +28,14 @@ __metadata:
   linkType: hard
 
 "@asamuzakjp/dom-selector@npm:^10.0.3":
-  version: 10.0.5
-  resolution: "@asamuzakjp/dom-selector@npm:10.0.5"
+  version: 10.0.6
+  resolution: "@asamuzakjp/dom-selector@npm:10.0.6"
   dependencies:
     bidi-js: "npm:^1.1.0"
     css-tree: "npm:^3.2.1"
     is-potential-custom-element-name: "npm:^1.0.1"
     lru-cache: "npm:^11.5.3"
-  checksum: 10/86d568ad394446403a7f5ba9a6ac5f45e7bf269f3edbf4694f509a2f2ed3d44362ef58bab70521139d7fabc3f697a761417e923fe38f307a0a0d3de923a59946
+  checksum: 10/a4d981ff41cd97fb2ebf3b86c9265a571c9bc9e2e69de0eae8ca2c2d35fbb5027dafc220cb0ab77c85d1713c1b3fc5f7b973aa85b81262fc1c8d96b3ce50c372
   languageName: node
   linkType: hard
 
