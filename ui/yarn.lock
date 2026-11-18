@@ -7523,15 +7523,15 @@ __metadata:
   linkType: hard
 
 "router@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "router@npm:2.2.0"
+  version: 2.3.0
+  resolution: "router@npm:2.3.0"
   dependencies:
     debug: "npm:^4.4.0"
     depd: "npm:^2.0.0"
     is-promise: "npm:^4.0.0"
     parseurl: "npm:^1.3.3"
     path-to-regexp: "npm:^8.0.0"
-  checksum: 10/8949bd1d3da5403cc024e2989fee58d7fda0f3ffe9f2dc5b8a192f295f400b3cde307b0b554f7d44851077640f36962ca469a766b3d57410d7d96245a7ba6c91
+  checksum: 10/18b88dc715357c621352d6db92c2e36cf7f1f258e0f03c3550942b033f22e85e2b98c0744033d3e5f702e70b07bbac3e7f1e742b48ff9e8688ea3680c5879595
   languageName: node
   linkType: hard
 
