@@ -6648,9 +6648,9 @@ __metadata:
   linkType: hard
 
 "object-inspect@npm:^1.13.3, object-inspect@npm:^1.13.4":
-  version: 1.13.4
-  resolution: "object-inspect@npm:1.13.4"
-  checksum: 10/aa13b1190ad3e366f6c83ad8a16ed37a19ed57d267385aa4bfdccda833d7b90465c057ff6c55d035a6b2e52c1a2295582b294217a0a3a1ae7abdd6877ef781fb
+  version: 1.14.0
+  resolution: "object-inspect@npm:1.14.0"
+  checksum: 10/22aaef3925723457734357fded54111198f2bd1aa8a6df98fc669d316d9276edcec3cd3cefb623c5b3c74ee7c022c42d0219ca46358c18cddc53494c5c489b41
   languageName: node
   linkType: hard
 
