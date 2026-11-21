@@ -8404,9 +8404,9 @@ __metadata:
   linkType: hard
 
 "undici-types@npm:^8.9.0":
-  version: 8.13.0
-  resolution: "undici-types@npm:8.13.0"
-  checksum: 10/6c0685b112b05b61b8c49517dee66b4b0d02ad1725dae91ff556a7a2300599574a73fecf9ca18fc83aced8ab07d194eac5e4a33405e175d9d4b1aa1d42c4af19
+  version: 8.13.1
+  resolution: "undici-types@npm:8.13.1"
+  checksum: 10/0955cc2bdd8f7ba103ece94969349b9468b563c58657789ba2cccc594407878053ab67029ed465a62b78595aca1554221ae60b410a41ce2610afa48055feea92
   languageName: node
   linkType: hard
 
@@ -8425,9 +8425,9 @@ __metadata:
   linkType: hard
 
 "undici@npm:^8.12.1, undici@npm:^8.4.1":
-  version: 8.13.0
-  resolution: "undici@npm:8.13.0"
-  checksum: 10/51c30d230089afa7641a818f0a82cc4e4313eb06ed4954477ca0ac46431195c53ab2e73e8b467160b7713fb30f82ca2048c51185a111bddd4620320396d18076
+  version: 8.13.1
+  resolution: "undici@npm:8.13.1"
+  checksum: 10/6409e6a4ee7eae5f67f97b92232ab00417db4a0af1b4bc42a13d59ebac0775534b8e340c9dfbf7ce34d4cbde349b6fd52fc95dd92a1fdf00cf951119a5aa431f
   languageName: node
   linkType: hard
 
