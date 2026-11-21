@@ -28,8 +28,10 @@ SDK_PKG      ?= ${BIN}                      # package name inside the SDK
 
 UI_SSG_ROUTES ?= /,/login,/docs,/pricing
 
-# Go versioning (go.mod uses major.minor; you’re on 1.25.4)
-GO_VERSION   ?= 1.25.4
+# Minimum Go for the generated Go SDK's go.mod. The SDK is a library, so this
+# is a floor imposed on every consumer, not the toolchain anything ships with:
+# keep it at the oldest supported Go release (x.y.0), not the builder's patch.
+GO_VERSION   ?= 1.26.0
 SWAG_FLAGS   ?= --v3.1 --outputTypes json,yaml,go
 
 # SDK / package settings (TypeScript)
