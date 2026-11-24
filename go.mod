@@ -34,7 +34,7 @@ require (
 	gorm.io/datatypes v1.2.7
 	gorm.io/driver/postgres v1.6.3
 	gorm.io/gorm v1.31.2
-	riverqueue.com/riverui v0.21.0
+	riverqueue.com/riverui v0.22.0
 )
 
 require (
