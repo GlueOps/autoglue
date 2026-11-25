@@ -8013,11 +8013,11 @@ __metadata:
   linkType: hard
 
 "systeminformation@npm:^5.22.11":
-  version: 5.33.25
-  resolution: "systeminformation@npm:5.33.25"
+  version: 5.33.26
+  resolution: "systeminformation@npm:5.33.26"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10/f774f87ea003a7445536e1d9b9e9cc37d7759b69d5d345dd1600ef1e56da0c2c1181ac09d93b4e994830892efa9c2fbbcc05179fa0f1469d091d7d067f851f9a
+  checksum: 10/f8a3a05287994ca3aa15cf842110e90e9d1dc4a42fae7c3caefe8b2c728c7cfb1ee84cf2e3663d2e013b365c8f55cf5996f33de53e7454bfedabeaa99ebde47b
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
