@@ -3484,9 +3484,9 @@ __metadata:
   linkType: hard
 
 "@types/estree@npm:^1.0.0, @types/estree@npm:^1.0.6, @types/estree@npm:^1.0.8":
-  version: 1.0.10
-  resolution: "@types/estree@npm:1.0.10"
-  checksum: 10/dfc3b05946d9e99e959843eddd2ed11b9ba750d30abbbd998ad7d6565f459ef647b7ea935124de622d80b6aa1eaa0f86bfc65e665ac91c71f63fbf0262912a7d
+  version: 1.0.11
+  resolution: "@types/estree@npm:1.0.11"
+  checksum: 10/eebcef06c91f3e4e1c263c0018ef017a9a75a5ea0d8c3b4f201a305f7632834f50838d4683cc4c1f52b05610387ae3989ee4d7c516db96471f3ebf6e4e7b6ae5
   languageName: node
   linkType: hard
 
