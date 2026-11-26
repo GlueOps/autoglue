@@ -2324,9 +2324,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shadcn/registry@npm:0.2.0":
-  version: 0.2.0
-  resolution: "@shadcn/registry@npm:0.2.0"
+"@shadcn/registry@npm:0.2.1":
+  version: 0.2.1
+  resolution: "@shadcn/registry@npm:0.2.1"
   dependencies:
     "@babel/core": "npm:^7.28.0"
     "@babel/parser": "npm:^7.28.0"
@@ -2349,9 +2349,9 @@ __metadata:
     stringify-object: "npm:^5.0.0"
     tsconfig-paths: "npm:^4.2.0"
     type-fest: "npm:^4.41.0"
-    undici: "npm:^7.29.1"
+    undici: "npm:^7.30.1"
     zod: "npm:^4.2.0"
-  checksum: 10/716b90be688bb88e98cb079dd1a9a34761c69811f24d5313189e0d7a18eec81b178c669d30715a7765422375db2c200b23aa203a0ed9bf345312acb14d45d297
+  checksum: 10/906661e06e7b00c778e968d663a3c25112810bb1a23cea575ad02698704bb6627b98e82f417c5c7e13470dcd8317e4b85c10e42d98b0f570c166223d9b3d92d2
   languageName: node
   linkType: hard
 
@@ -7640,9 +7640,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shadcn@npm:4.22.1":
-  version: 4.22.1
-  resolution: "shadcn@npm:4.22.1"
+"shadcn@npm:4.22.2":
+  version: 4.22.2
+  resolution: "shadcn@npm:4.22.2"
   dependencies:
     "@babel/core": "npm:^7.28.0"
     "@babel/parser": "npm:^7.28.0"
@@ -7650,7 +7650,7 @@ __metadata:
     "@babel/preset-typescript": "npm:^7.27.1"
     "@dotenvx/dotenvx": "npm:^1.48.4"
     "@modelcontextprotocol/sdk": "npm:^1.32.0"
-    "@shadcn/registry": "npm:0.2.0"
+    "@shadcn/registry": "npm:0.2.1"
     "@types/validate-npm-package-name": "npm:^4.0.2"
     browserslist: "npm:^4.29.3"
     cn: "npm:^0.2.4"
@@ -7673,12 +7673,12 @@ __metadata:
     stringify-object: "npm:^5.0.0"
     ts-morph: "npm:^26.0.0"
     tsconfig-paths: "npm:^4.2.0"
-    undici: "npm:^7.29.1"
+    undici: "npm:^7.30.1"
     validate-npm-package-name: "npm:^7.0.1"
     zod: "npm:^4.2.0"
   bin:
     shadcn: dist/index.js
-  checksum: 10/fb71d4c6489dfcc936cf522405ed1a0cca60b14ec0158d9d4d0dac2671865e6b51157a9a5ebf9833d7173a6e902916d265ae417d4993c9e5d8d2eba36fa36af1
+  checksum: 10/a7b6bd1fa855eb2be985bad5e77c836e5ea10be98e7cb13f841b7d109d23d0d1152ce2c84f05144a61ff95be0f5a8be64412a60f554780d9c16abe2fa5822d77
   languageName: node
   linkType: hard
 
@@ -8385,7 +8385,7 @@ __metadata:
     react-resizable-panels: "npm:4.15.0"
     react-router-dom: "npm:^7.11.0"
     recharts: "npm:3.10.1"
-    shadcn: "npm:4.22.1"
+    shadcn: "npm:4.22.2"
     sonner: "npm:^2.0.7"
     tailwind-merge: "npm:^3.4.0"
     tailwindcss: "npm:^4.1.18"
@@ -8420,7 +8420,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:^7.11.0, undici@npm:^7.29.1":
+"undici@npm:^7.11.0, undici@npm:^7.30.1":
   version: 7.30.2
   resolution: "undici@npm:7.30.2"
   checksum: 10/9e88f3950386de4f99ee3255825eafb798ee92061a26aee66f40b78586b6d1508e8fd77dbe495d771626ef83ea1fa8b72444b05f071d418f48fff3a86dc9bfb1
