@@ -7537,9 +7537,9 @@ __metadata:
   linkType: hard
 
 "tldts-core@npm:^7.5.6":
-  version: 7.5.6
-  resolution: "tldts-core@npm:7.5.6"
-  checksum: 10/4704cfbcaf3fc6c128551aa90be7ee082b08bfa5c19f023e7a984544458c38e1661e56086c83609cb709cf0c0d70adfc3cbde60613022eebbaa9aa72b20abc15
+  version: 7.6.0
+  resolution: "tldts-core@npm:7.6.0"
+  checksum: 10/36eb253975d180263fa4a7ac9950eba7f3677f76824af387210d3facc39e47028f5eb098637f8b2549fced9cc7e707bfd69016405cea7672ce2788d67654670c
   languageName: node
   linkType: hard
 
