@@ -371,13 +371,13 @@ __metadata:
   linkType: hard
 
 "@bramus/specificity@npm:^2.4.2":
-  version: 2.4.4
-  resolution: "@bramus/specificity@npm:2.4.4"
+  version: 2.4.5
+  resolution: "@bramus/specificity@npm:2.4.5"
   dependencies:
     css-tree: "npm:^3.2.1"
   bin:
     specificity: bin/cli.js
-  checksum: 10/f04756899f367ae37a686b59b71ab340989bf9317a1c0128384360263a33da9aa2c06cae0340b83fa78717c5c9389918a512d63e171919846f47a68acab4d541
+  checksum: 10/f39b1e3016a4bb6497aeccc51701a8be50963470863fa49e98dfb57801da524890f31b0d36187713013f267264ac6846928d007688c52b527e4dd7a5d93b97f4
   languageName: node
   linkType: hard
 
