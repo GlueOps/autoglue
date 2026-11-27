@@ -2476,469 +2476,469 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ast@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ast@npm:1.14.0"
+"@swagger-api/apidom-ast@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ast@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     unraw: "npm:^3.0.0"
-  checksum: 10/001b3f2d20a561c54deda795bec66f842cb68da00ca4139d0c008587ce89ffa49c54807335249733bee6d8ab962e536da2676635553c3074d9e4155007ca8988
+  checksum: 10/2861478733e247879914241eec49358dd94edf5f5ce5c4c8dcb8c5f5943b4f3e655b76393a3fa1d856543d3d70f148f865542eab67671a3fbb6cff87bd0545c6
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-core@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-core@npm:1.14.0"
+"@swagger-api/apidom-core@npm:^1.14.0, @swagger-api/apidom-core@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-core@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-ast": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
+    "@swagger-api/apidom-ast": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     minim: "npm:~0.23.8"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     short-unique-id: "npm:^5.3.2"
     ts-mixer: "npm:^6.0.3"
-  checksum: 10/dd23324c882d727e368510e6c426c3ec09ec03b778952cd2f0e910b03aecc610a5837021910af28a2928915630f7d3174402e82b1f985c8817add23eea11445f
+  checksum: 10/44b527f3489223f94b2fd2823a9ebf830d6143d830818bff193dc7743cf942392b644f2abf704701a11c7868f79204e387fc00736b82b83f805644f2e25cf09f
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-error@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-error@npm:1.14.0"
+"@swagger-api/apidom-error@npm:^1.14.0, @swagger-api/apidom-error@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-error@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.20.7"
-  checksum: 10/3dd20c20873be5b2d52b105c066493e617d91e6841febe37336a00a522fc71899698ad8d141419e01caac44c6dd577dbd411e7569e87124378f0570b9da75f5f
+  checksum: 10/e489a0d57da7f628c128a9c70b7f0d0e900490e62fdc4f05f415e2c9915eede9cf9edf933ef80cef9481a08ee354d2256af5239bfdb618af59cc22c26a49a59e
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-json-pointer@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-json-pointer@npm:1.14.0"
+"@swagger-api/apidom-json-pointer@npm:^1.14.0, @swagger-api/apidom-json-pointer@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-json-pointer@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
     "@swaggerexpert/json-pointer": "npm:^2.10.1"
-  checksum: 10/6ccdfd58eb3f509a2410083580d614ca93a83cfd5176bedc6d7bc112137e5ed800ec79a7d4f66906981a15e666f986e02ae91b44bd9c515bbdddd66a0c17f38d
+  checksum: 10/f8c8a20c7fa01a2b3bb1a51d4532d8534c8e5913ba4127d1530d959bcee0393e16be19d44861537ce18032b1fb472a3e41f53b010572cd6a06cdb0050dffed5d
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-a2a-1@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-a2a-1@npm:1.14.0"
+"@swagger-api/apidom-ns-a2a-1@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-a2a-1@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.3"
-  checksum: 10/cdcf379a84b977b48088dcd40e3464dd12e90e30572d485fdfb932e869f6f446cd253e84fd632c311cd4b3fc68e40ccae63a0621bceb6b701031baea264a2338
+  checksum: 10/132d32cd04ee41ec171616ffb47e053c0dec3bb5af2e8594ea98a15177aa9c6f9aa5455500eaf0016a4e9b6f3786197681980eb0932f6fa325bbe9330bf55534
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-api-design-systems@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-api-design-systems@npm:1.14.0"
+"@swagger-api/apidom-ns-api-design-systems@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-api-design-systems@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-1": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-1": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.3"
-  checksum: 10/9f198948f5e7b34571521416b0695883c982ed8357d1596844dfc0a84e10192f91ccab903250d3c68fe9563d38034dc1b57984e16bf21f34ec4c34c7c6491d42
+  checksum: 10/5086576a7bff540f2d4f2b2b57d2af586e03a3d0139364d2249d1587cda00e0de8cdeb3cd7e03842a3ab11a028bb0cf51de30541d42c91712d6c1d3d4f710eea
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-arazzo-1@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-arazzo-1@npm:1.14.0"
+"@swagger-api/apidom-ns-arazzo-1@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-arazzo-1@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.3"
-  checksum: 10/6d29e028e839e89f9b2fff8642aa6e8462f637428898f10c65466a97ec8be2d80acfe2a0be783d383dfae8670811e911a85bcf31a74a462d27492b17a4deddb2
+  checksum: 10/15bd0f3df31e594cb95560823fdeb904f6d784bd7a302217645e36f9590daeb91760fa0de3c2333f256f3c9eb14f209b6148392a00fa0dcd68b08c5eaf1d4036
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-asyncapi-2@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-asyncapi-2@npm:1.14.0"
+"@swagger-api/apidom-ns-asyncapi-2@npm:^1.14.0, @swagger-api/apidom-ns-asyncapi-2@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-asyncapi-2@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-draft-7": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-draft-7": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.3"
-  checksum: 10/34423f0299f6b7fb3b0d927902c18a76dc77cc18988ef115ff4066fc6ca9c7eb299bc5305820565737926581d9cf25e345df08992a6965384798683e91d06197
+  checksum: 10/2906103d71ee8547c8abb049b7f04ccd261df14af6812f9760c89b00082d1a4d8c1910f5ee0beec159e2a7fbc327b0b1be6691df98b2d684db236eab11e9a331
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-asyncapi-3@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-asyncapi-3@npm:1.14.0"
+"@swagger-api/apidom-ns-asyncapi-3@npm:^1.14.0, @swagger-api/apidom-ns-asyncapi-3@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-asyncapi-3@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-asyncapi-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-asyncapi-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.3"
-  checksum: 10/a37f444af15b521cc8cb389a60f3ec16d00dde6bc976d17f431a831901642fad29e2a43860554d95b2a33acbd672b0de606ce1e87232bddb6a544498d991df69
+  checksum: 10/519106094a559e92741e476b8aa8958f351bbb8f607af9fa5e6367fba87aa0b350dd8a1a5b971d5c08f5a74698dba68eeb81ae491344d00d41f099d4ee620e90
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-json-schema-2019-09@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-json-schema-2019-09@npm:1.14.0"
+"@swagger-api/apidom-ns-json-schema-2019-09@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-json-schema-2019-09@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-draft-7": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-draft-7": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.4"
-  checksum: 10/583bc16b2ffa821f9b6b71da079c34222a5f9d910fa53c7041e7d269f09a7fb95f91292b387b3101cc678e1a72f7d1b4cb081d9668b40a8a37461365785277c7
+  checksum: 10/548dc9e0c34925d3688c1c6150b50d27303d18aab63161e4e1f7dc4a00cd2810b16b8371851508a64fa82264d958bf3070ed1bee59028fab1b77ffd758f4a28d
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-json-schema-2020-12@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-json-schema-2020-12@npm:1.14.0"
+"@swagger-api/apidom-ns-json-schema-2020-12@npm:^1.14.0, @swagger-api/apidom-ns-json-schema-2020-12@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-json-schema-2020-12@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-2019-09": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-2019-09": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.4"
-  checksum: 10/cfa5e087c75253b8c6b1321f9d934d9b7409afdde6dfc91a55edac0607ac3ca8bc4a0eebe9870f891a99db344de195b4a3d62a7c4751badb797f8b1b4cc62c77
+  checksum: 10/68eea6072c33fbdefff9cf5d2283e052d3ef12109de6aa58cabc9b6173dec62c8f399f867ab8d444add3fdf967dd60804c59f2f8b5176175078438ac298a0f27
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-json-schema-draft-4@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-json-schema-draft-4@npm:1.14.0"
+"@swagger-api/apidom-ns-json-schema-draft-4@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-json-schema-draft-4@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-ast": "npm:^1.14.0"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
+    "@swagger-api/apidom-ast": "npm:^1.15.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.4"
-  checksum: 10/780dde9e142f0c9bfdc68a06c60766f7ac45f1feae196e97738059a5880c7458ef409b21ab07b4f8f5602eed65aef55b25e13af06aba93e8aaad58b5964cd6fb
+  checksum: 10/2519208ecec29a52c5075873487c74d81480d3a26c907edfded9b5737562f1b61f313826b222abc328499b439563cf0a0e247e714bc31d461ca57ff55ebe7c2d
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-json-schema-draft-6@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-json-schema-draft-6@npm:1.14.0"
+"@swagger-api/apidom-ns-json-schema-draft-6@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-json-schema-draft-6@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-draft-4": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-draft-4": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.4"
-  checksum: 10/49adde0171103682e449a3a707fc601d1220c64d66c9e96b39d3338e9bebd72183d682a131dd794d7a1544a9d425485ca90d5c55fb035cc19f439cf65a67a288
+  checksum: 10/4b9d2a5197f3493455f41c671767f23b210f1451dc418032b3d19a381cfd7fd13002a023491658e3cc9be270e8e06ad7f527c28bce17fa466decdb46479affe0
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-json-schema-draft-7@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-json-schema-draft-7@npm:1.14.0"
+"@swagger-api/apidom-ns-json-schema-draft-7@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-json-schema-draft-7@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-draft-6": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-draft-6": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.4"
-  checksum: 10/7dbd97668561c919c24c3c650b2886d5e5eed75266cc2169cb45c9cfc53f20ce5181945fe198850baa4106354bfda57815954d0cd8b7e81b9f8d853e9990639e
+  checksum: 10/bfb9ce6edb953d275fc49a49b2086447a0f0d6548e2583593f6a45e7a1a20ef9d76146aa1b9de41b81ef80e41dd20f8d6936dc2e41b5db5e14fc86dce4fd9933
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-openapi-2@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-openapi-2@npm:1.14.0"
+"@swagger-api/apidom-ns-openapi-2@npm:^1.14.0, @swagger-api/apidom-ns-openapi-2@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-openapi-2@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-draft-4": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-draft-4": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.3"
-  checksum: 10/b7d1b301cf88d34da4239f821edf46e1fb25f255dcaf3492a113f77eaf6cea1de55af5a70615ba9c630c212d0fa4362b1d4eef52218c61faf18a12d9998cba8d
+  checksum: 10/530eaddf43595f7ff399fb40b9f633a2dc171f9d33a6da776185e61b07da085e8368c489f9a1238cd5ae7a449fc4f75394fc2a76a79f1d770fc12133d20b357d
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-openapi-3-0@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-openapi-3-0@npm:1.14.0"
+"@swagger-api/apidom-ns-openapi-3-0@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-openapi-3-0@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-draft-4": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-draft-4": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.3"
-  checksum: 10/7b3d163ff8af49d01ac4c33c51334914f8aba408f947d5e141f0460f0208b39398afe9705e105c23de4ab89d72e48e7a829988d708b30ca7c9af7674346dfac6
+  checksum: 10/b481022262bb114835e0ff05e0deba0de9f27766946bb6e8f836761d9ca8e865671fbd0ae9a3f0907d42b62f0bf0b6ed91b9a1d61fb132ebb8a43b719f16618b
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-openapi-3-1@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-openapi-3-1@npm:1.14.0"
+"@swagger-api/apidom-ns-openapi-3-1@npm:^1.14.0, @swagger-api/apidom-ns-openapi-3-1@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-openapi-3-1@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-ast": "npm:^1.14.0"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-json-pointer": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-0": "npm:^1.14.0"
+    "@swagger-api/apidom-ast": "npm:^1.15.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-json-pointer": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-0": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.3"
-  checksum: 10/36cba92bd8cd8e9d28404c517a8e6ca97c3ba7fb5c61cc6ab8713d7db936df7b5237f0a2b20de887e0b1132cc7443e1048ade9b3c07dfa9dec1982ec8a5adec3
+  checksum: 10/339c06b5f54176678731ed43a020e4bdd1fe087e2a2664a7b4e1e26f567fe5844ae4571159a03e7570fd0faf93fa320cbde740c6204cc853c43c493fec0b9cca
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-ns-openapi-3-2@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-ns-openapi-3-2@npm:1.14.0"
+"@swagger-api/apidom-ns-openapi-3-2@npm:^1.14.0, @swagger-api/apidom-ns-openapi-3-2@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-ns-openapi-3-2@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-ast": "npm:^1.14.0"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-json-pointer": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-0": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-1": "npm:^1.14.0"
+    "@swagger-api/apidom-ast": "npm:^1.15.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-json-pointer": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-0": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-1": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     ts-mixer: "npm:^6.0.3"
-  checksum: 10/d55ab3d984623faaf02a9f01968bd6d12d67aa665c251bbffc33245d9ef72a8386b10b1c64f78802587ac8fc838ed0bbdbabac1a1d420528408a164b9cab7a5f
+  checksum: 10/6232491ee0c4361f94fc92d9c2158868d96e06a64d91659fba9bc63a70881097faa7e048a6bf4000abaa0357554f201b70f9c374a96391cfbe33f09119256ff1
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-a2a-json-1@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-a2a-json-1@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-a2a-json-1@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-a2a-json-1@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-a2a-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-a2a-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/0524a8fcb15fe3b573c15744234abaabbd4072b107dd68525ab96fa719100c58a1cc337deadfcd71415391307616d1f20a1e99511ce9fd9219a0bf8e273cbfba
+  checksum: 10/5752e822878527437cde1a19f41782f64d38cd488083750316b19735c397f8d22ad388d59339cb255a2797fa1070a54d678a433803015f42f0d14bbc5927c9e2
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-a2a-yaml-1@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-a2a-yaml-1@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-a2a-yaml-1@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-a2a-yaml-1@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-a2a-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-a2a-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/4807c55e5a8dcf237a07366453a17222b9d349c383f8b5969752fc338a5a54718e322ec80c3cae1bed48b34b0d40fbf2bf35376f080c54bfb8292b263319615f
+  checksum: 10/e6441b7fc29d4609a7cef63972e084cf78785ff9e4d3f8418c10dbbe76844e26634c4b965e1ceca5f878bddb49b729ab1fed7fdaf2f48acdbb2e0e600001eaf6
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-api-design-systems-json@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-api-design-systems-json@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-api-design-systems-json@npm:^1.14.0, @swagger-api/apidom-parser-adapter-api-design-systems-json@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-api-design-systems-json@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-api-design-systems": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-api-design-systems": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/86424dfa8cec5168b2326f1bae6eadea0ba9efad8904967288d628df32c9b2a63914fbd0cd77c4b0c39a52bc83648893e9adcb63bf754545f07b2806eb31a7e1
+  checksum: 10/2ce2136edd9d380ed1aa3b096efb37d923e5847ef90a8f617fad79e643b89e30d6d6431b08434cabc11b65f354d8193b6c6872a78aec113013517d7124e5c29f
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-api-design-systems-yaml@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-api-design-systems-yaml@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-api-design-systems-yaml@npm:^1.14.0, @swagger-api/apidom-parser-adapter-api-design-systems-yaml@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-api-design-systems-yaml@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-api-design-systems": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-api-design-systems": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/7c76ae48f75506df2134cdc46b0ce395354b6a96da7e322ace1bea730532af097451695fa9aec8e3ef2b9c2813ab3a1328a6c4159fb72e259cb06f952859dbda
+  checksum: 10/9f70bf1b1335442412ff31c37eb2973b30766fba29651e635b01617c744316340b65893323b44de403579f2d75fe8d120f231970213970cddce86988e828a53f
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-arazzo-json-1@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-arazzo-json-1@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-arazzo-json-1@npm:^1.14.0, @swagger-api/apidom-parser-adapter-arazzo-json-1@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-arazzo-json-1@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-arazzo-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-arazzo-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/8d757568750748a093fa101cd877bf32344316447619914d5004a39c5a7f87142acd86a2731d3a88d2f206728034a13ee22f9316cde49e7aff4cf9af118373c4
+  checksum: 10/752b9c1616a58a85193ebd08075a1d6779fef3c5d0fa69cc16855ccf4ad8ad25e8d7d0132169e4e0c5cbcd91c110f9d92e7470ba3350dee65f428ed021de2d06
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-arazzo-yaml-1@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-arazzo-yaml-1@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-arazzo-yaml-1@npm:^1.14.0, @swagger-api/apidom-parser-adapter-arazzo-yaml-1@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-arazzo-yaml-1@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-arazzo-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-arazzo-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/2497b69872e80c2f5c986c135d124e471be59eb0dcda4d56d213f2358ac1813e6c3c1e45d5f5bcb0f1d0d5f9b055f309f635e14acd4e527a02f43082f1831654
+  checksum: 10/797244373df5d417f2e52f493632db1f968dce8203c9342052cdf9de095ed8965a241205d39af73ad11919f5ca6599d657e4b53037a776cb4744ddcd55733979
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-asyncapi-json-2@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-asyncapi-json-2@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-asyncapi-json-2@npm:^1.14.0, @swagger-api/apidom-parser-adapter-asyncapi-json-2@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-asyncapi-json-2@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-asyncapi-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-asyncapi-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/0a193d22fac461f9b9360df1959c9f58f32090f2a473c7e0412cb7afb548521624b7f5f3ac5d7e85e68a5a492cb4ae6059929d147a611f8b09de34c5a8ffeac3
+  checksum: 10/5f56370fab4da429fcf709e4a640e57178e3dd1d20cf740e4247aff6dfc2d78e8c6855f27edd8f7fd0ba016526e8e828347b7079956cb58e7d9978a2ca630ce9
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-asyncapi-json-3@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-asyncapi-json-3@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-asyncapi-json-3@npm:^1.14.0, @swagger-api/apidom-parser-adapter-asyncapi-json-3@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-asyncapi-json-3@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-asyncapi-3": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-asyncapi-3": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/d1391bb59ca95b01c8c24adc7818919ed544045bad5ffd1791a3a4516eec6479701f07577fab9f442f37a0aa18e2e59a2c60ddaf27525c2e3da3e00f0e9b6aff
+  checksum: 10/acf007349a0f3d9748eb86f2808efd553fbf00419f871eb2b9eade64de6d340e0058b6a930c22d006752f7f4ba8862745e1236c6cb3622a6754edc35a390f98c
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-asyncapi-yaml-2@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-asyncapi-yaml-2@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-asyncapi-yaml-2@npm:^1.14.0, @swagger-api/apidom-parser-adapter-asyncapi-yaml-2@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-asyncapi-yaml-2@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-asyncapi-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-asyncapi-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/48c7e0d847fcde3bc2eb1b12558c5c72ff7856fce84eb1b5dc9e7bdef84c748f127b5a66ae07a010c8f58da8c4086a0914c28f9aa006921ee85318454022d131
+  checksum: 10/641d29a8743e86b191150b34df51e2ad6221da62261771eafe5d17e1dce6625a0281c22d7c7b92b65e4e69d8fb8d42738ad0c5472c8ce79025ef88a3ffc9b647
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-asyncapi-yaml-3@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-asyncapi-yaml-3@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-asyncapi-yaml-3@npm:^1.14.0, @swagger-api/apidom-parser-adapter-asyncapi-yaml-3@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-asyncapi-yaml-3@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-asyncapi-3": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-asyncapi-3": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/af5d977ac8e20e94b0f6248a6ca0ff723207769324992733390e3c53b0fff7b6087cd372b533c97620b37f246da2decfeadbf69a26eb6b5e04c26b3ce9b771dc
+  checksum: 10/ff57376d7a4e4cfbbdfdc474c8650fcc3993041e2cadbab5068129a0cb1762ce3638899d31b8771ac95435ea321bb7824606ae90d5ad2826a9ff4fee1048e640
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-json-schema-json-2020-12@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-json-schema-json-2020-12@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-json-schema-json-2020-12@npm:^1.14.0, @swagger-api/apidom-parser-adapter-json-schema-json-2020-12@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-json-schema-json-2020-12@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/7b7745715da354c3ae7364ee0ff02d3f9f401dd76fd0477e43e30f6b5bd16a07105a07d4838e7c86626ebe6fe55b38320a4617fadf8e179aed672d7afce45a1a
+  checksum: 10/85d2b27ef90ec84c1f39b6c4954a58f7d283c8c144bc3970e753f4980e3dfddd6f8b36f23ba098e1c04475eb5f3119c48fa40f662f29188b2b01950e1518710a
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-json-schema-yaml-2020-12@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-json-schema-yaml-2020-12@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-json-schema-yaml-2020-12@npm:^1.14.0, @swagger-api/apidom-parser-adapter-json-schema-yaml-2020-12@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-json-schema-yaml-2020-12@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/7cae4c6ac163b365056c28071ef8967e9b0d6c2eb9ab0505a1faf4cd6554ab297ae5431d6439f8cc0dda4443ccfe5d184c6c7f74808472c5a63c7ae8c3ca18a7
+  checksum: 10/dcbae69619462c7312391bbc480b7fadab1cb1b096ccde6ab4ed98058ffd9b242209fec4f5d5a45cc926d29ba92bc2a5c2cd52bdbd9a1088b1c43f0a3352f8eb
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-json@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-json@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-json@npm:^1.14.0, @swagger-api/apidom-parser-adapter-json@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-json@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-ast": "npm:^1.14.0"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
+    "@swagger-api/apidom-ast": "npm:^1.15.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     node-gyp: "npm:latest"
     ramda: "npm:~0.30.0"
@@ -2946,189 +2946,189 @@ __metadata:
     tree-sitter: "npm:=0.21.1"
     tree-sitter-json: "npm:=0.24.8"
     web-tree-sitter: "npm:=0.24.5"
-  checksum: 10/df9d7506c1be50c9dc767cac6bd9f817b0dabffbe63a1447a7548c527aa5ee44abdbf4e2e9a2e8e25565bd474e6ee5d4695920c2f17dbae37459aa54074f9b4f
+  checksum: 10/2e9b90b64c299b14b9fa148fd1b44d1967bd3786e9b17f624f87a6ec1e03c497b31be9e4de16a055a64dd81201435122dc3c490285098f72b71ec3f1535961d9
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-openapi-json-2@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-openapi-json-2@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-openapi-json-2@npm:^1.14.0, @swagger-api/apidom-parser-adapter-openapi-json-2@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-openapi-json-2@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/4f52e0e742206f435bac29d0658766daf6b136ac2259de803b0177977c289c5bdf4092466d6dfc14c587b3381a09ca8f29b40c4374b0b4fdbb3468d6d0d874e8
+  checksum: 10/95bcb0abf82ee09150334d00667b47f12da719053760c51db1f4cd1f1f5614bf3ee888f82ac95b3fa008993ac4a23ad47e7eeee2873ce011c27d6204a783e270
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-openapi-json-3-0@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-openapi-json-3-0@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-openapi-json-3-0@npm:^1.14.0, @swagger-api/apidom-parser-adapter-openapi-json-3-0@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-openapi-json-3-0@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-0": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-0": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/3706744ee821cf8821a31fa00237104ce4c0fe04544d6e5af22fd04ae0827f4796ba6cce424783bae8182714a943fe718da39357289c1e22267001fb7135a7fc
+  checksum: 10/0c069fe6b2bd998c630910e890ce83b2a1e251f5d1c6fec8784af63a75a371d55e1dd0cd5ae150824c7dbd5865733d9ccdda640ab80f49d4340c60375bc94255
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-openapi-json-3-1@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-openapi-json-3-1@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-openapi-json-3-1@npm:^1.14.0, @swagger-api/apidom-parser-adapter-openapi-json-3-1@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-openapi-json-3-1@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/a3b21155db282c522ec9fd44926dfdffe9a89e6583e6fa8306813f0fd4bdcbd9079a9c758847096fc831427805d546dc02685045ab3161ba0d32ae9157a0de92
+  checksum: 10/ce284ece0bd346400638027b5552e7ea27e067b0063aa37748aa5c583bf0b41924a9237d22285fb8986ecea35a0150540fe34c67379a63182e1fb78cbe434987
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-openapi-json-3-2@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-openapi-json-3-2@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-openapi-json-3-2@npm:^1.14.0, @swagger-api/apidom-parser-adapter-openapi-json-3-2@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-openapi-json-3-2@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/d817fcf9e8fdf544a63e2dc793702a218debe5c1923323536baedd7fc544b09ef1f42844ca463bd3b5093ec0d5ad7ce184a9a4d46c9a1dc40ac2b420b8ff7ec7
+  checksum: 10/5da3f14d7969b603506666cdac201c34130e1c21bd00e9607a4a080bd0b1e20c01b9dbee1c502bc91ed54b385d94cb26b87cb179a4ad7923db11acab984acf62
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-openapi-yaml-2@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-openapi-yaml-2@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-openapi-yaml-2@npm:^1.14.0, @swagger-api/apidom-parser-adapter-openapi-yaml-2@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-openapi-yaml-2@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/21d44f7f209befde0df12478e20ada25de0163b1be6fc6827f1929cdb42d22dc36be5aecf21eea52629c031351ea01bcade9b480a644554de77b4be2ad64a9ed
+  checksum: 10/79e300bcc32c926c738bf4085acbc7e42f3b5d8b152ad204356fa29b54f8e70132461b59f725453b636892fde708390be028fd9c0b6e76c845bca36babeac701
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-openapi-yaml-3-0@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-openapi-yaml-3-0@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-openapi-yaml-3-0@npm:^1.14.0, @swagger-api/apidom-parser-adapter-openapi-yaml-3-0@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-openapi-yaml-3-0@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-0": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-0": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/60c8563fb8e4ea5d0e0465c103ac3d669178dd79b2490bfd8f79c7632cd5d258c3a2ed031f2cd01490f57853d34d22c7b3304247f45943ec17aebf48fc2d69aa
+  checksum: 10/b7e98dd80bc88f86df8d0170fee283e7f53dfb7c652b7caef936efaa304d3dad72d0b22bc212241e23c488b90f814befae4a51a851fba700ad0cec76ec12f34c
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-openapi-yaml-3-1@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-openapi-yaml-3-1@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-openapi-yaml-3-1@npm:^1.14.0, @swagger-api/apidom-parser-adapter-openapi-yaml-3-1@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-openapi-yaml-3-1@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/2157cc5345a001ab89bdeafa214e8d1e988be896e75624e75446de9156c2dd3c68634577aa268c50ae3649a2f095e45f10951e3547c0babf2ff136683406a1dd
+  checksum: 10/ca620bc2c0f4e99424034761786ed111c80788c1a004bc6b67d154200c80aa53cb353627bd104bf2a4b11acd0d862f6acefb4f7cf9b6c690eb87257deecbe0d6
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-openapi-yaml-3-2@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-openapi-yaml-3-2@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-openapi-yaml-3-2@npm:^1.14.0, @swagger-api/apidom-parser-adapter-openapi-yaml-3-2@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-openapi-yaml-3-2@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
-  checksum: 10/d9dfb2926ac003909a3456be54d1ccd455048d8def8c7acb17e34348c7dc807061fd4ab3f509653597e6d627c2d71b40d05a5168a3f2202d65c5008129400519
+  checksum: 10/1a706d04b64cf2ed4cc2ab932f5a5af99c5d667949836c7aca30881d3b9c750413443d816e21143564a69283bb421de4249c80d08ba6bda3bb72d753098fb350
   languageName: node
   linkType: hard
 
-"@swagger-api/apidom-parser-adapter-yaml-1-2@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-parser-adapter-yaml-1-2@npm:1.14.0"
+"@swagger-api/apidom-parser-adapter-yaml-1-2@npm:^1.14.0, @swagger-api/apidom-parser-adapter-yaml-1-2@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-parser-adapter-yaml-1-2@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-ast": "npm:^1.14.0"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
+    "@swagger-api/apidom-ast": "npm:^1.15.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
     "@tree-sitter-grammars/tree-sitter-yaml": "npm:=0.7.1"
     "@types/ramda": "npm:~0.30.0"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
     tree-sitter: "npm:=0.22.4"
     web-tree-sitter: "npm:=0.24.5"
-  checksum: 10/c2d62f6e8df212d08c9a5f782aae97ea8312c222ebff110d72c01d110258177edb47469e31f12322eb8be8dbff1a37df370be45b94d77bc90b2b7f1ccf68fb28
+  checksum: 10/afd6f6911f7f3a700322f5064e167e582e128f71b76dae83320e3b90f2c1dc04551705e7ebb5a04889b9a856ee53ade35b86e7a0ae41aaea1fbcf6efb52b93d6
   languageName: node
   linkType: hard
 
 "@swagger-api/apidom-reference@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@swagger-api/apidom-reference@npm:1.14.0"
+  version: 1.15.0
+  resolution: "@swagger-api/apidom-reference@npm:1.15.0"
   dependencies:
     "@babel/runtime-corejs3": "npm:^7.26.10"
-    "@swagger-api/apidom-core": "npm:^1.14.0"
-    "@swagger-api/apidom-error": "npm:^1.14.0"
-    "@swagger-api/apidom-json-pointer": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-a2a-1": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-arazzo-1": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-asyncapi-2": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-2": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-0": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-1": "npm:^1.14.0"
-    "@swagger-api/apidom-ns-openapi-3-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-a2a-json-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-a2a-yaml-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-api-design-systems-json": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-api-design-systems-yaml": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-arazzo-json-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-arazzo-yaml-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-asyncapi-json-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-asyncapi-json-3": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-asyncapi-yaml-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-asyncapi-yaml-3": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json-schema-json-2020-12": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-json-schema-yaml-2020-12": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-openapi-json-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-openapi-json-3-0": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-openapi-json-3-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-openapi-json-3-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-openapi-yaml-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-openapi-yaml-3-0": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-openapi-yaml-3-1": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-openapi-yaml-3-2": "npm:^1.14.0"
-    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.14.0"
+    "@swagger-api/apidom-core": "npm:^1.15.0"
+    "@swagger-api/apidom-error": "npm:^1.15.0"
+    "@swagger-api/apidom-json-pointer": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-a2a-1": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-arazzo-1": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-asyncapi-2": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-json-schema-2020-12": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-2": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-0": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-1": "npm:^1.15.0"
+    "@swagger-api/apidom-ns-openapi-3-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-a2a-json-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-a2a-yaml-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-api-design-systems-json": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-api-design-systems-yaml": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-arazzo-json-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-arazzo-yaml-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-asyncapi-json-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-asyncapi-json-3": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-asyncapi-yaml-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-asyncapi-yaml-3": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json-schema-json-2020-12": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-json-schema-yaml-2020-12": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-openapi-json-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-openapi-json-3-0": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-openapi-json-3-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-openapi-json-3-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-openapi-yaml-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-openapi-yaml-3-0": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-openapi-yaml-3-1": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-openapi-yaml-3-2": "npm:^1.15.0"
+    "@swagger-api/apidom-parser-adapter-yaml-1-2": "npm:^1.15.0"
     "@types/ramda": "npm:~0.30.0"
     axios: "npm:^1.20.0"
-    minimatch: "npm:^10.2.6"
+    minimatch: "npm:^11.0.1"
     ramda: "npm:~0.30.0"
     ramda-adjunct: "npm:^5.0.0"
   dependenciesMeta:
@@ -3194,7 +3194,7 @@ __metadata:
       optional: true
     "@swagger-api/apidom-parser-adapter-yaml-1-2":
       optional: true
-  checksum: 10/524daf6baa58ce281e25e3209419196d244f202192c71c3cfac06df1c6a8d2fc1de9069ca93cacef83caa7f70d5103ae2a11b86bfd23e8896f45511d37d7f0ae
+  checksum: 10/3f87540c02233aecf0a8e6046fdeeec530c35ac72de8876d7d08257fcb3d202f9f6feea0ec0c59143ec6ddffc0e12c4512c457533b080d6e0e5017920319ac71
   languageName: node
   linkType: hard
 
@@ -6207,7 +6207,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^10.0.1, minimatch@npm:^10.2.2, minimatch@npm:^10.2.5, minimatch@npm:^10.2.6":
+"minimatch@npm:^10.0.1, minimatch@npm:^10.2.2, minimatch@npm:^10.2.5":
   version: 10.2.6
   resolution: "minimatch@npm:10.2.6"
   dependencies:
@@ -6216,7 +6216,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^11.0.5":
+"minimatch@npm:^11.0.1, minimatch@npm:^11.0.5":
   version: 11.0.9
   resolution: "minimatch@npm:11.0.9"
   dependencies:
